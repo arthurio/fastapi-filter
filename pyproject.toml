@@ -73,6 +73,7 @@ typing-extensions = "^4.2.0"
 tomli = "^2.0.1"
 sqlalchemy2-stubs = "^0.0.2-alpha.22"
 greenlet = "^1.1.2"
+mkdocs-material = "^8.2.15"
 
 [tool.portry.extras]
 mongoengine = ["mongoengine"]
