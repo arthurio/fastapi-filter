@@ -26,12 +26,12 @@ def User(db_connect):
 
 @pytest.fixture(scope="function")
 def users(User):
-    User(name=None, age=21, created_at=datetime.fromisoformat("2021-12-01")).save()
-    User(name="Arthur", age=33, created_at=datetime.fromisoformat("2021-12-01")).save()
-    User(name="Ranjith", age=90, created_at=datetime.fromisoformat("2021-12-02")).save()
-    User(name="Christina", age=21, created_at=datetime.fromisoformat("2021-12-03")).save()
-    User(name="Nick", age=1, created_at=datetime.fromisoformat("2021-12-04")).save()
-    User(name="Akash", age=50, created_at=datetime.fromisoformat("2021-12-04")).save()
+    User(name=None, age=21, created_at=datetime(2021, 12, 1)).save()
+    User(name="Arthur", age=33, created_at=datetime(2021, 12, 1)).save()
+    User(name="Ranjith", age=90, created_at=datetime(2021, 12, 2)).save()
+    User(name="Christina", age=21, created_at=datetime(2021, 12, 3)).save()
+    User(name="Nick", age=1, created_at=datetime(2021, 12, 4)).save()
+    User(name="Akash", age=50, created_at=datetime(2021, 12, 4)).save()
 
 
 @pytest.fixture(scope="function", autouse=True)

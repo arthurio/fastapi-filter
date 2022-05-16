@@ -10,10 +10,8 @@ from sqlalchemy.orm import sessionmaker
 
 @pytest.fixture(scope="session")
 def sqlite_file():
-    file_name = "./core-py.sqlite"
-
+    file_name = "./fastapi_filter.sqlite"
     yield file_name
-
     os.remove(file_name)
 
 
@@ -71,11 +69,11 @@ def User(Base):
 def users(session, User):
     session.add_all(
         [
-            User(name=None, age=21, created_at=datetime.fromisoformat("2021-12-01")),
-            User(name="Arthur", age=33, created_at=datetime.fromisoformat("2021-12-01")),
-            User(name="Ranjith", age=90, created_at=datetime.fromisoformat("2021-12-02")),
-            User(name="Christina", age=21, created_at=datetime.fromisoformat("2021-12-03")),
-            User(name="Nick", age=1, created_at=datetime.fromisoformat("2021-12-04")),
-            User(name="Akash", age=50, created_at=datetime.fromisoformat("2021-12-04")),
+            User(name=None, age=21, created_at=datetime(2021, 12, 1)),
+            User(name="Arthur", age=33, created_at=datetime(2021, 12, 1)),
+            User(name="Ranjith", age=90, created_at=datetime(2021, 12, 2)),
+            User(name="Christina", age=21, created_at=datetime(2021, 12, 3)),
+            User(name="Nick", age=1, created_at=datetime(2021, 12, 4)),
+            User(name="Akash", age=50, created_at=datetime(2021, 12, 4)),
         ]
     )
