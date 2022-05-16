@@ -214,7 +214,7 @@ sqlalchemy2-stubs==0.0.2a22
     # via sqlalchemy
 stack-data==0.2.0
     # via ipython
-starlette==0.17.1
+starlette==0.20.0
     # via
     #   -r requirements.txt
     #   fastapi

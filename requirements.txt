@@ -30,7 +30,7 @@ sniffio==1.2.0
     # via anyio
 sqlalchemy==1.4.36
     # via -r requirements.in
-starlette==0.17.1
+starlette==0.20.0
     # via fastapi
 typing-extensions==4.2.0
     # via pydantic
