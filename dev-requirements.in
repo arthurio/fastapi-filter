@@ -1,0 +1,26 @@
+-r requirements.txt
+
+bandit==1.7.4  # Security related checks
+black==22.3.0  # Formatting
+flake8-breakpoint==1.1.0
+flake8-builtins==1.5.3
+flake8-docstrings==1.6.0
+flake8-simplify==0.19.2
+flake8==4.0.1  # Linting
+flynt==0.76  # Convert string formattings to f-strings
+ipython==8.3.0  # Enhanced python shell
+isort==5.10.1  # Sort imports
+mypy==0.950  # Type checker
+pre-commit==2.18.1  # Run checks automatically on commit
+pudb==2022.1.1  # Enhanced debugger
+pytest-asyncio==0.18.3
+pytest-cov==3.0.0  # Report test coverage
+pytest-pudb==0.7.0  # pudb plugin
+pytest==7.1.2  # Test runner
+python-lsp-server==1.4.1  # Server for browsing the code in vim
+sqlalchemy[mypy]
+sqlalchemy-utils==0.38.2
+types-click==7.1.8
+types-setuptools==57.4.14
+types-toml==0.10.6
+uvicorn==0.17.6
