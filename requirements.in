@@ -1,4 +1,0 @@
-fastapi==0.75.2
-mongoengine==0.24.1
-pydantic[email]==1.9.0
-sqlalchemy==1.4.36
