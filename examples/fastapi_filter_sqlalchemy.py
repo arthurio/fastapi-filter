@@ -4,10 +4,9 @@ import uvicorn
 from faker import Faker
 from fastapi import Depends, FastAPI
 from pydantic import BaseModel
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.future import select
 from sqlalchemy.orm import relationship, sessionmaker
 
 from fastapi_filter import FilterDepends, nested_filter
@@ -116,7 +115,7 @@ async def get_db() -> AsyncIterator[AsyncSession]:
 
 @app.get("/users", response_model=list[UserOut])
 async def get_users(user_filter: UserFilter = FilterDepends(UserFilter), db: AsyncSession = Depends(get_db)) -> Any:
-    query = user_filter.filter(select(User).join(Address))
+    query = user_filter.filter(select(User).outerjoin(Address))
     result = await db.execute(query)
     return result.scalars().all()
 
