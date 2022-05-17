@@ -1,0 +1,32 @@
+name: Upload Python Package to pypi
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.10 ]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -U pip poetry
+
+      - name: Publish package
+        env:
+          PYPI_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: poetry publish --build -u "__token__" -p "${{ env.PYPI_API_TOKEN }}"
