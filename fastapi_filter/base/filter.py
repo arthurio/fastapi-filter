@@ -7,14 +7,14 @@ from pydantic.fields import FieldInfo
 
 
 class BaseFilterModel(BaseModel, extra=Extra.forbid):
-    class Constants:
+    class Constants:  # pragma: no cover
         ...
 
-    def filter(self, query):
+    def filter(self, query):  # pragma: no cover
         ...
 
     @validator("*", pre=True)
-    def split_str(cls, value, field):
+    def split_str(cls, value, field):  # pragma: no cover
         ...
 
 

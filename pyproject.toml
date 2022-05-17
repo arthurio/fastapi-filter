@@ -77,6 +77,8 @@ greenlet = "^1.1.2"
 mkdocs-material = "^8.2.15"
 Faker = "^13.11.1"
 aiosqlite = "^0.17.0"
+requests = "^2.27.1"
+httpx = "^0.22.0"
 
 [tool.poetry.extras]
 mongoengine = ["mongoengine"]
