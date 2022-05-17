@@ -1,0 +1,44 @@
+repos:
+  - repo: local
+    hooks:
+      - id: isort
+        name: "isort"
+        entry: isort
+        types: [python]
+        language: system
+      - id: flynt
+        name: "flynt"
+        entry: flynt
+        args: [--fail-on-change]
+        types: [python]
+        language: system
+      - id: black
+        name: "black"
+        entry: black
+        language: system
+        types: [python]
+      - id: flake8
+        name: "flake8"
+        entry: flake8
+        args: ["--config", ".flake8"]
+        types: [python]
+        language: system
+      - id: bandit
+        name: "bandit"
+        entry: bandit
+        language: system
+        types: [python]
+        args: [--ini, .bandit]
+      - id: mypy
+        name: "mypy"
+        entry: mypy
+        args: ["--config-file", "pyproject.toml"]
+        types: [python]
+        language: system
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: .*(min.js|min.css|html|svg|css.map|js.map)
+      - id: trailing-whitespace

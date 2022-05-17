@@ -1,0 +1,3 @@
+[bandit]
+targets: fastapi_filter,tests,examples
+skips: B101

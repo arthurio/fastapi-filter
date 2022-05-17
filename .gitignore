@@ -1,0 +1,8 @@
+*.sqlite-journal
+.DS_Store
+.coverage
+.pypirc
+coverage.xml
+dist/
+fastapi_filter.sqlite
+poetry.toml
