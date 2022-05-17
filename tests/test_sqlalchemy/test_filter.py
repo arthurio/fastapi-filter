@@ -12,18 +12,18 @@ from fastapi_filter.contrib.sqlalchemy import Filter
 
 
 @pytest.fixture(scope="function")
-def app(SessionLocal, Address, User, UserFilter):
+def app(SessionLocal, Address, User, UserFilter, UserOut):
     app = FastAPI()
 
     async def get_db() -> AsyncIterator[AsyncSession]:
         async with SessionLocal() as session:
             yield session
 
-    @app.get("/users", response_model=list[int])
+    @app.get("/users", response_model=list[UserOut])
     async def get_users(user_filter: UserFilter = FilterDepends(UserFilter), db: AsyncSession = Depends(get_db)):
         query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
         result = await db.execute(query)
-        return [user.id for user in result.scalars().all()]
+        return result.scalars().all()
 
     yield app
 
@@ -92,7 +92,7 @@ def UserFilter(User, AddressFilter):
     ],
 )
 async def test_filter(session, Address, User, UserFilter, users, filter_, expected_count):
-    query = select(User).outerjoin(Address).distinct()
+    query = select(User).outerjoin(Address)
     query = UserFilter(**filter_).filter(query)
 
     result = await session.execute(query)

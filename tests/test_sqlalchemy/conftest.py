@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import pytest
+from pydantic import BaseModel
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -54,11 +55,11 @@ def User(Base, Address):
         __tablename__ = "users"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
-        created_at = Column(DateTime, default=datetime.now)
-        updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-        name = Column(String, nullable=True)
+        created_at = Column(DateTime, default=datetime.now, nullable=False)
+        updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
+        name = Column(String)
         age = Column(Integer, nullable=False)
-        address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
+        address_id = Column(Integer, ForeignKey("addresses.id"))
         address: Address = relationship(Address, backref="users", lazy="joined")
 
     return User
@@ -75,6 +76,36 @@ def Address(Base):
         country = Column(String, nullable=False)
 
     return Address
+
+
+@pytest.fixture(scope="session")
+def AddressOut():
+    class AddressOut(BaseModel):
+        id: int
+        street: str | None
+        city: str
+        country: str
+
+        class Config:
+            orm_mode = True
+
+    yield AddressOut
+
+
+@pytest.fixture(scope="session")
+def UserOut(AddressOut):
+    class UserOut(BaseModel):
+        id: int
+        created_at: datetime
+        updated_at: datetime
+        name: str | None
+        age: int
+        address: AddressOut | None
+
+        class Config:
+            orm_mode = True
+
+    yield UserOut
 
 
 @pytest.fixture(scope="function")
