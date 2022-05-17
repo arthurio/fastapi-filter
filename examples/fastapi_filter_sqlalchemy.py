@@ -4,10 +4,9 @@ import uvicorn
 from faker import Faker
 from fastapi import Depends, FastAPI
 from pydantic import BaseModel
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.future import select
 from sqlalchemy.orm import relationship, sessionmaker
 
 from fastapi_filter import FilterDepends, nested_filter
