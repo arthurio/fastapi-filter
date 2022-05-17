@@ -27,16 +27,16 @@ from fastapi_filter.contrib.sqlalchemy import OrderBy
         ],
     ],
 )
-def test_basic_orm_order_by(session, User, users, order_by, assert_function):
+async def test_basic_orm_order_by(session, User, users, order_by, assert_function):
     class UserOrderBy(OrderBy):
         class Constants:
             model = User
 
     query = select(User)
     query = UserOrderBy(order_by=order_by).sort(query)
-    result = session.execute(query).scalars().all()
+    result = await session.execute(query)
     previous_user = None
-    for user in result:
+    for user in result.scalars().all():
         if not previous_user:
             previous_user = user
             continue
@@ -44,7 +44,7 @@ def test_basic_orm_order_by(session, User, users, order_by, assert_function):
         previous_user = user
 
 
-def test_orm_order_by_with_default(session, User, users):
+async def test_orm_order_by_with_default(session, User, users):
     class UserOrderBy(OrderBy):
         class Constants:
             model = User
@@ -54,7 +54,8 @@ def test_orm_order_by_with_default(session, User, users):
     query = select(User)
     query = UserOrderBy().sort(query)
     previous_user = None
-    for user in session.execute(query).scalars().all():
+    result = await session.execute(query)
+    for user in result.scalars().all():
         if not previous_user:
             previous_user = user
             continue
