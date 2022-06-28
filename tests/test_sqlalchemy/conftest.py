@@ -1,3 +1,4 @@
+import contextlib
 import os
 from datetime import datetime
 
@@ -13,7 +14,8 @@ from sqlalchemy.orm import relationship, sessionmaker
 def sqlite_file():
     file_name = "./fastapi_filter_test.sqlite"
     yield file_name
-    os.remove(file_name)
+    with contextlib.suppress(FileNotFoundError):
+        os.remove(file_name)
 
 
 @pytest.fixture(scope="session")

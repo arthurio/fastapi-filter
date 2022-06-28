@@ -1,6 +1,6 @@
-from .base.filter import FilterDepends, nested_filter
+from .base.filter import FilterDepends, with_prefix
 
 __all__ = (
     "FilterDepends",
-    "nested_filter",
+    "with_prefix",
 )
