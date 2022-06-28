@@ -70,7 +70,7 @@ class Filter(BaseFilterModel):
         return value
 
     def filter(self, query: Query | Select):
-        for field_name, value in self.dict(exclude_defaults=True, exclude_unset=True).items():
+        for field_name, value in self.dict(exclude_none=True, exclude_unset=True).items():
             field = getattr(self, field_name)
             if isinstance(field, Filter):
                 query = field.filter(query)
