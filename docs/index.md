@@ -22,14 +22,15 @@ Based on the type of orm/odb you use there might be some slightly different setu
 ### Operators
 
 By default, fastapi_filter supports the following operators:
+
   - `gt`
   - `gte`
   - `in`
   - `isnull`
   - `it`
   - `lte`
-  - `not`
-  - `not_in`
+  - `not`/`ne`
+  - `not_in`/`nin`
 
 _**Note:** Mysql excludes `None` values when using `in` filter)_
 
