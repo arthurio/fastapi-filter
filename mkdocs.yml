@@ -1,3 +1,5 @@
 site_name: FastAPI filter
 theme:
   name: material
+  features:
+    - content.code.annotate
