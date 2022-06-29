@@ -53,11 +53,6 @@ class Filter(BaseFilterModel):
             count__lte: int | None
             created_at__gt: datetime | None
             name__isnull: bool | None
-
-    # Limitation
-
-    You can't set defaults on filter fields in the class definition or they always will be ignored.
-    Instead, you should set a value on the instance of the filter class.
     """
 
     class Constants:

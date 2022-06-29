@@ -40,8 +40,8 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
 
     # Limitation
 
-    The alias generator is the last to be picked in order of prevalence. So if one the fields has a `Query` as default
-    and declares an alias already, this will be picked first and you won't get the prefix.
+    The alias generator is the last to be picked in order of prevalence. So if one of the fields has a `Query` as
+    default and declares an alias already, this will be picked first and you won't get the prefix.
 
     Example:
         ```python
