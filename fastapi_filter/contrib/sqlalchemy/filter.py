@@ -57,6 +57,7 @@ class Filter(BaseFilterModel):
 
     class Constants:
         model = None
+        prefix: str
 
     @validator("*", pre=True)
     def split_str(cls, value, field):
@@ -66,9 +67,9 @@ class Filter(BaseFilterModel):
 
     def filter(self, query: Query | Select):
         for field_name, value in self.dict(exclude_none=True, exclude_unset=True).items():
-            field = getattr(self, field_name)
-            if isinstance(field, Filter):
-                query = field.filter(query)
+            field_value = getattr(self, field_name)
+            if isinstance(field_value, Filter):
+                query = field_value.filter(query)
             else:
                 if "__" in field_name:
                     field_name, operator = field_name.split("__")

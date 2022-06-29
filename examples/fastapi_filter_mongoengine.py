@@ -1,11 +1,11 @@
-from typing import Any, Dict, Generator
+from typing import Any, Generator
 
 import uvicorn
 from bson.objectid import ObjectId
 from faker import Faker
 from fastapi import FastAPI
 from mongoengine import Document, connect, fields
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.mongoengine import Filter
@@ -25,7 +25,7 @@ class PydanticObjectId(ObjectId):
         return str(v)
 
     @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
         field_schema.update(type="string")
 
 
@@ -54,12 +54,15 @@ class AddressOut(BaseModel):
 
 class UserIn(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     age: int
 
 
 class UserOut(UserIn):
     id: PydanticObjectId = Field(..., alias="_id")
+    name: str
+    email: EmailStr
+    age: int
     address: AddressOut | None
 
     class Config:

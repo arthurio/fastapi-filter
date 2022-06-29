@@ -119,6 +119,6 @@ async def test_filter(session, Address, User, UserFilter, users, filter_, expect
         [{"address_id__isnull": True}, 1],
     ],
 )
-async def test_api(session, test_client, Address, User, UserFilter, users, filter_, expected_count):
+async def test_api(test_client, Address, User, UserFilter, users, filter_, expected_count):
     response = await test_client.get(f"/users?{urlencode(filter_)}")
     assert len(response.json()) == expected_count
