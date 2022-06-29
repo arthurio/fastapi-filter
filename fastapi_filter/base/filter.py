@@ -18,7 +18,7 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
         ...
 
 
-def nested_filter(prefix: str, Filter: Type[BaseFilterModel]):
+def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
     """Allow re-using existing filter under a prefix.
 
     Example:
@@ -31,7 +31,7 @@ def nested_filter(prefix: str, Filter: Type[BaseFilterModel]):
 
         class MainFilter(BaseModel):
             name: str
-            number_filter: Filter | None = FilterDepends(nested_filter("number_filter", Filter))
+            number_filter: Filter | None = FilterDepends(with_prefix("number_filter", Filter))
         ```
 
     As a result, you'll get the following filters:
@@ -40,19 +40,19 @@ def nested_filter(prefix: str, Filter: Type[BaseFilterModel]):
 
     # Limitation
 
-    The alias generator is the last to be picked in order of prevalence. So if one the fields has a `Query` as default
-    and declares an alias already, this will be picked first and you won't get the prefix.
+    The alias generator is the last to be picked in order of prevalence. So if one of the fields has a `Query` as
+    default and declares an alias already, this will be picked first and you won't get the prefix.
 
     Example:
         ```python
          from pydantic import BaseModel
 
         class NumberFilter(BaseModel):
-            count: Optional[int] = Query(default=10, alias=counter)
+            count: int | None = Query(default=10, alias=counter)
 
         class MainFilter(BaseModel):
             name: str
-            number_filter: Optional[Filter] = FilterDepends(nested_filter("number_filter", Filter))
+            number_filter: Filter | None = FilterDepends(with_prefix("number_filter", Filter))
         ```
 
     As a result, you'll get the following filters:
@@ -67,6 +67,8 @@ def nested_filter(prefix: str, Filter: Type[BaseFilterModel]):
             @classmethod
             def alias_generator(cls, string: str) -> str:
                 return f"{prefix}__{string}"
+
+    NestedFilter.Constants.prefix = prefix
 
     return NestedFilter
 
@@ -84,7 +86,7 @@ def _list_to_str_fields(Filter: Type[BaseFilterModel]):
     return ret
 
 
-def FilterDepends(Filter: Type[BaseFilterModel], *, use_cache: bool = True) -> Any:
+def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True) -> Any:
     """This is a hack to support lists in filters.
 
     Fastapi doesn't support it yet: https://github.com/tiangolo/fastapi/issues/50
@@ -101,7 +103,7 @@ def FilterDepends(Filter: Type[BaseFilterModel], *, use_cache: bool = True) -> A
     class FilterWrapper(GeneratedFilter):  # type: ignore[misc,valid-type]
         def filter(self, *args, **kwargs):
             try:
-                original_filter = Filter(**self.dict())
+                original_filter = Filter(**self.dict(by_alias=by_alias))
             except ValidationError as e:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
             return original_filter.filter(*args, **kwargs)

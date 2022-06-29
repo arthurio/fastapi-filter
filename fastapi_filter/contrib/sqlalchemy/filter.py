@@ -53,15 +53,11 @@ class Filter(BaseFilterModel):
             count__lte: int | None
             created_at__gt: datetime | None
             name__isnull: bool | None
-
-    # Limitation
-
-    You can't set defaults on filter fields in the class definition or they always will be ignored.
-    Instead, you should set a value on the instance of the filter class.
     """
 
     class Constants:
         model = None
+        prefix: str
 
     @validator("*", pre=True)
     def split_str(cls, value, field):
@@ -70,10 +66,10 @@ class Filter(BaseFilterModel):
         return value
 
     def filter(self, query: Query | Select):
-        for field_name, value in self.dict(exclude_defaults=True, exclude_unset=True).items():
-            field = getattr(self, field_name)
-            if isinstance(field, Filter):
-                query = field.filter(query)
+        for field_name, value in self.dict(exclude_none=True, exclude_unset=True).items():
+            field_value = getattr(self, field_name)
+            if isinstance(field_value, Filter):
+                query = field_value.filter(query)
             else:
                 if "__" in field_name:
                     field_name, operator = field_name.split("__")

@@ -1,3 +1,35 @@
-site_name: FastAPI filter
+site_name: FastAPI Filter
+site_author: Arthur Rio
+site_description: FastAPI Filter
+copyright: "Copyright &copy; 2022 Arthur Rio"
+repo_url: https://github.com/arthurio/fastapi-filter
+repo_name: arthurio/fastapi-filter
+
 theme:
   name: material
+  features:
+    - content.code.annotate
+
+nav:
+  - "Home": index.md
+
+markdown_extensions:
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+  - extra
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.keys
+  - pymdownx.inlinehilite
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/arthurio/fastapi-filter
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/arthur_rio
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/arthurio/

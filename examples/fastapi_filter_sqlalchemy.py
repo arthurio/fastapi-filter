@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
-from fastapi_filter import FilterDepends, nested_filter
+from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter
 
 engine = create_async_engine("sqlite+aiosqlite:///fastapi_filter.sqlite")
@@ -67,7 +67,7 @@ class UserOut(UserIn):
 class AddressFilter(Filter):
     street: str | None
     country: str | None
-    city: str | None = "Nantes"
+    city: str | None
     city__in: list[str] | None
 
     class Constants:
@@ -76,9 +76,9 @@ class AddressFilter(Filter):
 
 class UserFilter(Filter):
     name: str | None
-    address: AddressFilter | None = FilterDepends(nested_filter("address", AddressFilter))
+    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: int | None
-    age__gte: int  # <-- NOTE(arthurio): This filter required
+    age__gte: int = 10  # <-- NOTE(arthurio): This filter required
 
     class Constants:
         model = User
@@ -116,6 +116,16 @@ async def get_db() -> AsyncIterator[AsyncSession]:
 @app.get("/users", response_model=list[UserOut])
 async def get_users(user_filter: UserFilter = FilterDepends(UserFilter), db: AsyncSession = Depends(get_db)) -> Any:
     query = user_filter.filter(select(User).outerjoin(Address))
+    result = await db.execute(query)
+    return result.scalars().all()
+
+
+@app.get("/addresses", response_model=list[AddressOut])
+async def get_addresses(
+    address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    query = address_filter.filter(select(Address))
     result = await db.execute(query)
     return result.scalars().all()
 

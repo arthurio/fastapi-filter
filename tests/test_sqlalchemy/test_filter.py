@@ -7,7 +7,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from fastapi_filter import FilterDepends, nested_filter
+from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter
 
 
@@ -34,7 +34,7 @@ async def test_client(app):
         yield async_test_client
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def AddressFilter(Address):
     class AddressFilter(Filter):
         street__isnull: bool | None
@@ -48,7 +48,7 @@ def AddressFilter(Address):
     yield AddressFilter
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def UserFilter(User, AddressFilter):
     class UserFilter(Filter):
         name: str | None
@@ -62,7 +62,7 @@ def UserFilter(User, AddressFilter):
         age__gt: int | None
         age__gte: int | None
         age__in: list[int] | None
-        address: AddressFilter | None = FilterDepends(nested_filter("address", AddressFilter))
+        address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
         address_id__isnull: bool | None
 
         class Constants:
@@ -119,6 +119,6 @@ async def test_filter(session, Address, User, UserFilter, users, filter_, expect
         [{"address_id__isnull": True}, 1],
     ],
 )
-async def test_api(session, test_client, Address, User, UserFilter, users, filter_, expected_count):
+async def test_api(test_client, Address, User, UserFilter, users, filter_, expected_count):
     response = await test_client.get(f"/users?{urlencode(filter_)}")
     assert len(response.json()) == expected_count

@@ -1,13 +1,13 @@
-from typing import Any, Dict, Generator
+from typing import Any, Generator
 
 import uvicorn
 from bson.objectid import ObjectId
 from faker import Faker
 from fastapi import FastAPI
 from mongoengine import Document, connect, fields
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
-from fastapi_filter import FilterDepends, nested_filter
+from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.mongoengine import Filter
 
 fake = Faker()
@@ -25,7 +25,7 @@ class PydanticObjectId(ObjectId):
         return str(v)
 
     @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
         field_schema.update(type="string")
 
 
@@ -54,12 +54,15 @@ class AddressOut(BaseModel):
 
 class UserIn(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     age: int
 
 
 class UserOut(UserIn):
     id: PydanticObjectId = Field(..., alias="_id")
+    name: str
+    email: EmailStr
+    age: int
     address: AddressOut | None
 
     class Config:
@@ -69,7 +72,7 @@ class UserOut(UserIn):
 class AddressFilter(Filter):
     street: str | None
     country: str | None
-    city: str | None = "Nantes"
+    city: str | None
     city__in: list[str] | None
 
     class Constants:
@@ -78,9 +81,9 @@ class AddressFilter(Filter):
 
 class UserFilter(Filter):
     name: str | None
-    address: AddressFilter | None = FilterDepends(nested_filter("address", AddressFilter))
+    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: int | None
-    age__gte: int  # <-- NOTE(arthurio): This filter required
+    age__gte: int = 10  # <-- NOTE(arthurio): This filter required
 
     class Constants:
         collection = User
@@ -109,6 +112,14 @@ async def on_shutdown() -> None:
 async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
     query = user_filter.filter(User.objects()).select_related()
     return [user.to_mongo() | {"address": user.address.to_mongo()} for user in query]
+
+
+@app.get("/addresses", response_model=list[AddressOut])
+async def get_addresses(
+    address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True)
+) -> Any:
+    query = address_filter.filter(Address.objects())
+    return [address.to_mongo() for address in query]
 
 
 if __name__ == "__main__":
