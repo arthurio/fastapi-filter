@@ -1,4 +1,4 @@
-# Welcome to FastAPI filter
+# FastAPI Filter
 
 Add querystring filters to your api endpoints and show them in the swagger UI.
 
