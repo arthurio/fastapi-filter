@@ -3,12 +3,12 @@ from typing import Any, Generator
 import uvicorn
 from bson.objectid import ObjectId
 from faker import Faker
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from mongoengine import Document, connect, fields
 from pydantic import BaseModel, EmailStr, Field
 
 from fastapi_filter import FilterDepends, with_prefix
-from fastapi_filter.contrib.mongoengine import Filter
+from fastapi_filter.contrib.mongoengine import Filter, OrderBy
 
 fake = Faker()
 
@@ -89,6 +89,18 @@ class UserFilter(Filter):
         collection = User
 
 
+class UserOrderBy(OrderBy):
+    class Constants:
+        collection = User
+
+    order_by: str = "age"
+
+
+class AddressOrderBy(OrderBy):
+    class Constants:
+        collection = Address
+
+
 app = FastAPI()
 
 
@@ -109,16 +121,22 @@ async def on_shutdown() -> None:
 
 
 @app.get("/users", response_model=list[UserOut])
-async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
-    query = user_filter.filter(User.objects()).select_related()
+async def get_users(
+    user_filter: UserFilter = FilterDepends(UserFilter), user_order_by: UserOrderBy = Depends(UserOrderBy)
+) -> Any:
+    query = user_filter.filter(User.objects())
+    query = user_order_by.sort(query)
+    query = query.select_related()
     return [user.to_mongo() | {"address": user.address.to_mongo()} for user in query]
 
 
 @app.get("/addresses", response_model=list[AddressOut])
 async def get_addresses(
-    address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True)
+    address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
+    address_order_by: AddressOrderBy = Depends(AddressOrderBy),
 ) -> Any:
     query = address_filter.filter(Address.objects())
+    query = address_order_by.sort(query)
     return [address.to_mongo() for address in query]
 
 

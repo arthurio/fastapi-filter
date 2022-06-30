@@ -10,7 +10,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
 from fastapi_filter import FilterDepends, with_prefix
-from fastapi_filter.contrib.sqlalchemy import Filter
+from fastapi_filter.contrib.sqlalchemy import Filter, OrderBy
 
 engine = create_async_engine("sqlite+aiosqlite:///fastapi_filter.sqlite")
 async_session = sessionmaker(engine, class_=AsyncSession)
@@ -84,6 +84,18 @@ class UserFilter(Filter):
         model = User
 
 
+class UserOrderBy(OrderBy):
+    class Constants:
+        model = User
+
+    order_by: str = "age"
+
+
+class AddressOrderBy(OrderBy):
+    class Constants:
+        model = Address
+
+
 app = FastAPI()
 
 
@@ -114,8 +126,13 @@ async def get_db() -> AsyncIterator[AsyncSession]:
 
 
 @app.get("/users", response_model=list[UserOut])
-async def get_users(user_filter: UserFilter = FilterDepends(UserFilter), db: AsyncSession = Depends(get_db)) -> Any:
+async def get_users(
+    user_filter: UserFilter = FilterDepends(UserFilter),
+    user_order_by: UserOrderBy = Depends(UserOrderBy),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
     query = user_filter.filter(select(User).outerjoin(Address))
+    query = user_order_by.sort(query)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -123,9 +140,11 @@ async def get_users(user_filter: UserFilter = FilterDepends(UserFilter), db: Asy
 @app.get("/addresses", response_model=list[AddressOut])
 async def get_addresses(
     address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
+    address_order_by: AddressOrderBy = Depends(AddressOrderBy),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     query = address_filter.filter(select(Address))
+    query = address_order_by.sort(query)
     result = await db.execute(query)
     return result.scalars().all()
 
