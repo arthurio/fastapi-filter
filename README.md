@@ -44,7 +44,13 @@ poetry install
 python examples/fastapi_filter_sqlalchemy.py
 ```
 
+### Filter
+
 https://user-images.githubusercontent.com/950449/176737541-0e36b72f-38e2-4368-abfa-8bbc0c82e8ae.mp4
+
+### Order by
+
+https://user-images.githubusercontent.com/950449/176747056-ea82d6b9-cb3b-43eb-aec7-96ba0bc79e8b.mp4
 
 ## Contribution
 
