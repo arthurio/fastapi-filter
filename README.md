@@ -44,6 +44,8 @@ poetry install
 python examples/fastapi_filter_sqlalchemy.py
 ```
 
+https://user-images.githubusercontent.com/950449/176737541-0e36b72f-38e2-4368-abfa-8bbc0c82e8ae.mp4
+
 ## Contribution
 
 You can run tests with `pytest`.
@@ -53,3 +55,5 @@ pip install poetry
 poetry install --extras all
 pytest
 ```
+
+<img width="884" alt="arthur_Arthurs-MacBook-Pro-2___code_fastapi-filter" src="https://user-images.githubusercontent.com/950449/176737623-a77f15d6-4e60-4c06-bdb7-b3d77f346a54.png">
