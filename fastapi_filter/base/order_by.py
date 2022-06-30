@@ -21,11 +21,11 @@ class BaseOrderBy(BaseModel):
     class Constants:
         ...
 
-    def sort(self, query):
+    def sort(self, query):  # pragma: no cover
         ...
 
     @classmethod
-    def get_constants_field(self):
+    def get_constants_field(self):  # pragma: no cover
         ...
 
     @validator("order_by", allow_reuse=True)
