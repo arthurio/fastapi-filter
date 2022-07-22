@@ -58,7 +58,7 @@ def UserFilter(User, AddressFilter):
         address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
 
         class Constants(Filter.Constants):
-            collection = User
+            model = User
 
     yield UserFilter
 

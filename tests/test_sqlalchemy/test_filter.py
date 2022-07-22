@@ -42,7 +42,7 @@ def AddressFilter(Address):
         city__in: list[str] | None
         country__not_in: list[str] | None
 
-        class Constants:
+        class Constants(Filter.Constants):
             model = Address
 
     yield AddressFilter
@@ -65,7 +65,7 @@ def UserFilter(User, AddressFilter):
         address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
         address_id__isnull: bool | None
 
-        class Constants:
+        class Constants(Filter.Constants):
             model = User
 
     yield UserFilter
