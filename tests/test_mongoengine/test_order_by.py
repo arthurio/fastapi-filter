@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from fastapi_filter.contrib.mongoengine import OrderBy
+from fastapi_filter.contrib.mongoengine import Filter
 
 
 @pytest.mark.parametrize(
@@ -27,12 +27,14 @@ from fastapi_filter.contrib.mongoengine import OrderBy
     ],
 )
 def test_basic_order_by(User, users, order_by, assert_function):
-    class UserOrderBy(OrderBy):
-        class Constants:
-            collection = User
+    class UserFilter(Filter):
+        class Constants(Filter.Constants):
+            model = User
+
+        order_by: list[str] | None
 
     query = User.objects().all()
-    query = UserOrderBy(order_by=order_by).sort(query)
+    query = UserFilter(order_by=order_by).sort(query)
     previous_user = None
     for user in query:
         if not previous_user:
@@ -43,14 +45,14 @@ def test_basic_order_by(User, users, order_by, assert_function):
 
 
 def test_order_by_with_default(User, users):
-    class UserOrderBy(OrderBy):
-        class Constants:
-            collection = User
+    class UserFilter(Filter):
+        class Constants(Filter.Constants):
+            model = User
 
-        order_by: str = "age"
+        order_by: list[str] = ["age"]
 
     query = User.objects().all()
-    query = UserOrderBy().sort(query)
+    query = UserFilter().sort(query)
     previous_user = None
     for user in query:
         if not previous_user:
@@ -61,9 +63,22 @@ def test_order_by_with_default(User, users):
 
 
 def test_invalid_order_by(User, users):
-    class UserOrderBy(OrderBy):
-        class Constants:
-            collection = User
+    class UserFilter(Filter):
+        class Constants(Filter.Constants):
+            model = User
+
+        order_by: list[str] | None
 
     with pytest.raises(ValidationError):
-        UserOrderBy(order_by="invalid")
+        UserFilter(order_by="invalid")
+
+
+def test_missing_order_by_field(User):
+    class UserFilter(Filter):
+        class Constants(Filter.Constants):
+            model = User
+
+    query = User.objects().all()
+
+    with pytest.raises(AttributeError):
+        UserFilter().sort(query)

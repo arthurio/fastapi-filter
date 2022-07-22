@@ -1,4 +1,4 @@
-from mongoengine import Document, QuerySet
+from mongoengine import QuerySet
 from pydantic import validator
 
 from ...base.filter import BaseFilterModel
@@ -24,35 +24,32 @@ class Filter(BaseFilterModel):
             name__ne: str | None
             name__nin: list[str] | None
             name__isnull: bool | None
-
-    # Limitation
-
-    You can't set defaults on filter fields in the class definition or they always will be ignored.
-    Instead, you should set a value on the instance of the filter class.
+        ```
     """
 
-    class Constants:
-        collection: Document
-        prefix: str
+    def sort(self, query: QuerySet):
+        if not self.ordering_values:
+            return query
+        return query.order_by(*self.ordering_values)
 
     @validator("*", pre=True)
     def split_str(cls, value, field):
-        if (field.name.endswith("__in") or field.name.endswith("__nin")) and isinstance(value, str):
+        if (
+            field.name == cls.Constants.ordering_field_name
+            or field.name.endswith("__in")
+            or field.name.endswith("__nin")
+        ) and isinstance(value, str):
             return [field.type_(v) for v in value.split(",")]
         return value
 
     def filter(self, query: QuerySet):
-        for field_name, value in self.dict(exclude_none=True, exclude_unset=True).items():
+        for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
                 if not field_value.dict(exclude_none=True, exclude_unset=True):
                     continue
                 query = query.filter(
-                    **{
-                        f"{field_value.Constants.prefix}__in": field_value.filter(
-                            field_value.Constants.collection.objects()
-                        )
-                    }
+                    **{f"{field_value.Constants.prefix}__in": field_value.filter(field_value.Constants.model.objects())}
                 )
             else:
                 if field_name.endswith("__isnull"):

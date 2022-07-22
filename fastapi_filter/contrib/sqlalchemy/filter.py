@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from enum import Enum
 
 from pydantic import validator
 from sqlalchemy.orm import Query
@@ -32,8 +33,8 @@ class Filter(BaseFilterModel):
 
     All children must set:
         ```python
-        class Constants:
-            model = orm.MyModel
+        class Constants(Filter.Constants):
+            model = MyModel
         ```
 
     It can handle regular field names and Django style operators.
@@ -55,18 +56,22 @@ class Filter(BaseFilterModel):
             name__isnull: bool | None
     """
 
-    class Constants:
-        model = None
-        prefix: str
+    class Direction(str, Enum):
+        asc = "asc"
+        desc = "desc"
 
     @validator("*", pre=True)
     def split_str(cls, value, field):
-        if (field.name.endswith("__in") or field.name.endswith("__not_in")) and isinstance(value, str):
+        if (
+            field.name == cls.Constants.ordering_field_name
+            or field.name.endswith("__in")
+            or field.name.endswith("__not_in")
+        ) and isinstance(value, str):
             return [field.type_(v) for v in value.split(",")]
         return value
 
     def filter(self, query: Query | Select):
-        for field_name, value in self.dict(exclude_none=True, exclude_unset=True).items():
+        for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
                 query = field_value.filter(query)
@@ -79,5 +84,21 @@ class Filter(BaseFilterModel):
 
                 model_field = getattr(self.Constants.model, field_name)
                 query = query.filter(getattr(model_field, operator)(value))
+
+        return query
+
+    def sort(self, query: Query):
+        if not self.ordering_values:
+            return query
+
+        for field_name in self.ordering_values:
+            direction = Filter.Direction.asc
+            if field_name.startswith("-"):
+                direction = Filter.Direction.desc
+            field_name = field_name.replace("-", "").replace("+", "")
+
+            order_by_field = getattr(self.Constants.model, field_name)
+
+            query = query.order_by(getattr(order_by_field, direction)())
 
         return query

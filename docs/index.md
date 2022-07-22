@@ -2,7 +2,8 @@
 
 Add querystring filters to your api endpoints and show them in the swagger UI.
 
-The supported backends are [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy) and [MongoEngine](https://github.com/MongoEngine/mongoengine).
+The supported backends are [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy) and
+[MongoEngine](https://github.com/MongoEngine/mongoengine).
 
 
 ## Example
@@ -11,7 +12,9 @@ The supported backends are [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy
 
 ## Filter
 
-Based on the type of orm/odb you use there might be some slightly different setup for your classes (e.g. `collection` vs. `model` in the `Config` class of the filter). But the bottom line is defining the fields you want to filter on and the type of operator you want, then tie your filter to a specific model/collection.
+Based on the type of ORM/ODM you use there might be some slightly different setup for your classes (e.g. `collection`
+vs. `model` in the `Config` class of the filter). But the bottom line is defining the fields you want to filter on and
+the type of operator you want, then tie your filter to a specific model/collection.
 
 ### Examples
 
@@ -52,7 +55,7 @@ class AddressFilter(Filter):
     country: str | None
     city__in: list[str] | None
 
-    class Constants:
+    class Constants(Filter.Constants):
         model = Address
 
 
@@ -60,7 +63,7 @@ class UserFilter(Filter):
     name: str | None
     address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
 
-    class Constants:
+    class Constants(Filter.Constants):
         model = User
 
 @app.get("/users", response_model=list[UserOut])
@@ -97,7 +100,7 @@ class AddressFilter(Filter):
     street: str | None
     country: str | None
 
-    class Constants:
+    class Constants(Filter.Constants):
         model = Address
 
 
@@ -105,7 +108,7 @@ class UserFilter(Filter):
     name: str | None
     address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
 
-    class Constants:
+    class Constants(Filter.Constants):
         model = User
 ```
 
@@ -119,3 +122,31 @@ class UserFilter(Filter):
 ```
 
 ## Order by
+
+Simply define an order by class and link to your model/collection. You may defined a default ordering or not.
+
+
+### Example (sqlalchemy)
+
+```python
+from fastapi_filter.contrib.sqlalchemy import OrderBy
+
+class UserOrderBy(OrderBy):
+
+    class Constants(Filter.Constants):
+        model = User
+        allowed_fields = ["age", "name"]
+
+    order_by: str = "age"
+
+@app.get("/users", response_model=list[UserOut])
+
+async def get_users(
+    user_order_by: UserOrderBy = Depends(UserOrderBy),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    query = select(User)
+    query = user_order_by.sort(query)
+    result = await db.execute(query)
+    return result.scalars().all()
+```

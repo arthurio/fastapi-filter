@@ -7,11 +7,12 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi_filter.contrib.sqlalchemy import OrderBy
+from fastapi_filter import FilterDepends
+from fastapi_filter.contrib.sqlalchemy import Filter
 
 
 @pytest.fixture(scope="function")
-def app(SessionLocal, Address, User, UserOut, UserOrderBy, UserOrderByWithDefault):
+def app(SessionLocal, Address, User, UserOut, UserFilterOrderBy, UserFilterOrderByWithDefault):
     app = FastAPI()
 
     async def get_db() -> AsyncIterator[AsyncSession]:
@@ -19,16 +20,19 @@ def app(SessionLocal, Address, User, UserOut, UserOrderBy, UserOrderByWithDefaul
             yield session
 
     @app.get("/users", response_model=list[UserOut])
-    async def get_users(user_order_by: UserOrderBy = Depends(UserOrderBy), db: AsyncSession = Depends(get_db)):
-        query = user_order_by.sort(select(User))  # type: ignore[attr-defined]
+    async def get_users(
+        user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy), db: AsyncSession = Depends(get_db)
+    ):
+        query = user_filter.sort(select(User))  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().all()
 
     @app.get("/users_with_default", response_model=list[UserOut])
     async def get_users_with_default(
-        user_order_by: UserOrderByWithDefault = Depends(UserOrderByWithDefault), db: AsyncSession = Depends(get_db)
+        user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
+        db: AsyncSession = Depends(get_db),
     ):
-        query = user_order_by.sort(select(User))  # type: ignore[attr-defined]
+        query = user_filter.sort(select(User))  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().all()
 
@@ -42,23 +46,34 @@ async def test_client(app):
 
 
 @pytest.fixture(scope="function")
-def UserOrderByWithDefault(User):
-    class UserOrderByWithDefault(OrderBy):
-        class Constants:
+def UserFilterOrderByWithDefault(User):
+    class UserFilterOrderByWithDefault(Filter):
+        class Constants(Filter.Constants):
             model = User
 
-        order_by: str = "age"
+        order_by: list[str] = ["age"]
 
-    yield UserOrderByWithDefault
+    yield UserFilterOrderByWithDefault
 
 
 @pytest.fixture(scope="function")
-def UserOrderBy(User):
-    class UserOrderBy(OrderBy):
-        class Constants:
+def UserFilterOrderBy(User):
+    class UserFilterOrderBy(Filter):
+        class Constants(Filter.Constants):
             model = User
 
-    yield UserOrderBy
+        order_by: list[str] | None
+
+    yield UserFilterOrderBy
+
+
+@pytest.fixture(scope="function")
+def UserFilterNoOrderBy(User):
+    class UserFilterNoOrderBy(Filter):
+        class Constants(Filter.Constants):
+            model = User
+
+    yield UserFilterNoOrderBy
 
 
 @pytest.mark.parametrize(
@@ -66,15 +81,15 @@ def UserOrderBy(User):
     [
         [None, lambda previous_user, user: True],
         [
-            "name",
+            ["name"],
             lambda previous_user, user: previous_user.name <= user.name if previous_user.name and user.name else True,
         ],
         [
-            "-created_at",
+            ["-created_at"],
             lambda previous_user, user: previous_user.created_at >= user.created_at,
         ],
         [
-            "age,-name",
+            ["age", "-name"],
             lambda previous_user, user: (previous_user.age < user.age)
             or (
                 previous_user.age == user.age
@@ -83,9 +98,10 @@ def UserOrderBy(User):
         ],
     ],
 )
-async def test_basic_order_by(session, User, UserOrderBy, users, order_by, assert_function):
+@pytest.mark.asyncio
+async def test_basic_order_by(session, User, UserFilterOrderBy, users, order_by, assert_function):
     query = select(User)
-    query = UserOrderBy(order_by=order_by).sort(query)
+    query = UserFilterOrderBy(order_by=order_by).sort(query)
     result = await session.execute(query)
     previous_user = None
     for user in result.scalars().all():
@@ -120,6 +136,7 @@ async def test_basic_order_by(session, User, UserOrderBy, users, order_by, asser
         ],
     ],
 )
+@pytest.mark.asyncio
 async def test_api_basic_order_by(session, test_client, users, order_by, assert_function):
     endpoint = "/users"
     if order_by is not None:
@@ -134,9 +151,10 @@ async def test_api_basic_order_by(session, test_client, users, order_by, assert_
         previous_user = user
 
 
-async def test_order_by_with_default(session, User, UserOrderByWithDefault, users):
+@pytest.mark.asyncio
+async def test_order_by_with_default(session, User, UserFilterOrderByWithDefault, users):
     query = select(User)
-    query = UserOrderByWithDefault().sort(query)
+    query = UserFilterOrderByWithDefault().sort(query)
     result = await session.execute(query)
     previous_user = None
     for user in result.scalars().all():
@@ -171,6 +189,7 @@ async def test_order_by_with_default(session, User, UserOrderByWithDefault, user
         ],
     ],
 )
+@pytest.mark.asyncio
 async def test_api_order_by_with_default(session, test_client, users, order_by, assert_function):
     endpoint = "/users_with_default"
     if order_by is not None:
@@ -185,10 +204,12 @@ async def test_api_order_by_with_default(session, test_client, users, order_by, 
         previous_user = user
 
 
-def test_invalid_order_by(User, users):
-    class UserOrderBy(OrderBy):
-        class Constants:
-            model = User
-
+def test_invalid_order_by(UserFilterOrderBy):
     with pytest.raises(ValidationError):
-        UserOrderBy(order_by="invalid")
+        UserFilterOrderBy(order_by="invalid")
+
+
+def test_missing_order_by_field(User, UserFilterNoOrderBy):
+    query = select(User)
+    with pytest.raises(AttributeError):
+        UserFilterNoOrderBy().sort(query)
