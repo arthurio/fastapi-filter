@@ -1,5 +1,3 @@
-import contextlib
-import os
 from datetime import datetime
 
 import pytest
@@ -11,16 +9,14 @@ from sqlalchemy.orm import relationship, sessionmaker
 
 
 @pytest.fixture(scope="session")
-def sqlite_file():
-    file_name = "./fastapi_filter_test.sqlite"
-    yield file_name
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(file_name)
+def sqlite_file_path(tmp_path_factory):
+    file_path = tmp_path_factory.mktemp("data") / "fastapi_filter_test.sqlite"
+    yield file_path
 
 
 @pytest.fixture(scope="session")
-def database_url(sqlite_file) -> str:
-    return f"sqlite+aiosqlite:///{sqlite_file}"
+def database_url(sqlite_file_path) -> str:
+    return f"sqlite+aiosqlite:///{sqlite_file_path}"
 
 
 @pytest.fixture(scope="session")
