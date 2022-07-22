@@ -47,7 +47,7 @@ mongoengine = {version = "^0.24.1", optional = true}
 SQLAlchemy = {version = "^1.4.36", optional = true}
 
 [tool.poetry.dev-dependencies]
-pudb = "^2022.1.1"
+pudb = "^2022.1.2"
 bandit = "^1.7.4"
 black = "^22.6.0"
 flake8-breakpoint = "^1.1.0"

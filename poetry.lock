@@ -832,7 +832,7 @@ python-versions = "*"
 
 [[package]]
 name = "pudb"
-version = "2022.1.1"
+version = "2022.1.2"
 description = "A full-screen, console-based Python debugger"
 category = "dev"
 optional = false
@@ -1434,7 +1434,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "7297dbd7062c3e1045aaf4bd59d6c021a478c2dd9ab4a116aa2c366691510e19"
+content-hash = "b6a6bb0a97f71282548c90a85ecb6e77502682d24f725c50040cc8754a7f220d"
 
 [metadata.files]
 aiosqlite = [
@@ -1886,7 +1886,7 @@ ptyprocess = [
     {file = "ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"},
 ]
 pudb = [
-    {file = "pudb-2022.1.1.tar.gz", hash = "sha256:db3bdd66423c9d29074c1c2c49fcb224bd0d6f08319fed1b4e7ead683914083f"},
+    {file = "pudb-2022.1.2.tar.gz", hash = "sha256:6b83ab805bddb53710109690a2237e98bf83c0b3a00033c517cdf5f6a8fa470d"},
 ]
 pure-eval = [
     {file = "pure_eval-0.2.2-py3-none-any.whl", hash = "sha256:01eaab343580944bc56080ebe0a674b39ec44a945e6d09ba7db3cb8cec289350"},
