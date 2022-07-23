@@ -87,7 +87,7 @@ class Filter(BaseFilterModel):
 
         return query
 
-    def sort(self, query: Query):
+    def sort(self, query: Query | Select):
         if not self.ordering_values:
             return query
 
