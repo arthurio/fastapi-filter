@@ -8,6 +8,7 @@ from sqlalchemy import select
     "order_by,assert_function",
     [
         [None, lambda previous_user, user: True],
+        [[], lambda previous_user, user: True],
         [
             ["name"],
             lambda previous_user, user: previous_user.name <= user.name if previous_user.name and user.name else True,
@@ -55,6 +56,7 @@ async def test_order_by_with_default(session, User, UserFilterOrderByWithDefault
     "order_by,assert_function",
     [
         [None, lambda previous_user, user: previous_user["age"] <= user["age"]],
+        ["", lambda previous_user, user: True],
         [
             "name",
             lambda previous_user, user: previous_user["name"] <= user["name"]
@@ -105,6 +107,7 @@ def test_missing_order_by_field(User, UserFilterNoOrderBy):
     "order_by,assert_function",
     [
         [None, lambda previous_user, user: True],
+        ["", lambda previous_user, user: True],
         [
             "name",
             lambda previous_user, user: previous_user.name <= user.name if previous_user.name and user.name else True,
@@ -167,6 +170,7 @@ def test_restricted_order_by_success(User, UserFilterRestrictedOrderBy, order_by
     "order_by,assert_function",
     [
         [None, lambda previous_user, user: True],
+        ["", lambda previous_user, user: True],
         [
             "name",
             lambda previous_user, user: previous_user["name"] <= user["name"]
@@ -219,6 +223,7 @@ async def test_api_no_order_by(test_client, session):
     "order_by,assert_function,status_code",
     [
         [None, lambda previous_user, user: True, status.HTTP_200_OK],
+        ["", lambda previous_user, user: True, status.HTTP_200_OK],
         ["name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
         ["age,-name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
         ["-age", lambda previous_user, user: previous_user["age"] >= user["age"], status.HTTP_200_OK],

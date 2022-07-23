@@ -52,7 +52,7 @@ def Base(engine):
     return declarative_base(bind=engine)
 
 
-@pytest.fixture(scope="package")
+@pytest.fixture(scope="session")
 def User(Base, Address):
     class User(Base):
         __tablename__ = "users"
@@ -68,7 +68,7 @@ def User(Base, Address):
     return User
 
 
-@pytest.fixture(scope="package")
+@pytest.fixture(scope="session")
 def Address(Base):
     class Address(Base):
         __tablename__ = "addresses"

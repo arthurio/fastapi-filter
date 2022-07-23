@@ -41,7 +41,7 @@ def PydanticObjectId():
     return PydanticObjectId
 
 
-@pytest.fixture(scope="package")
+@pytest.fixture(scope="session")
 def User(db_connect, Address):
     class User(Document):
         created_at = fields.DateTimeField()
@@ -53,7 +53,7 @@ def User(db_connect, Address):
     return User
 
 
-@pytest.fixture(scope="package")
+@pytest.fixture(scope="session")
 def Address(db_connect):
     class Address(Document):
         street = fields.StringField(null=True)

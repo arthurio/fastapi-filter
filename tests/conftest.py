@@ -51,7 +51,7 @@ def UserFilterRestrictedOrderBy(UserFilter):
 
         @validator("order_by", allow_reuse=True)
         def restrict_sortable_fields(cls, value):
-            if value is None:
+            if not value:
                 return None
 
             allowed_field_names = ["age", "created_at"]
