@@ -11,6 +11,7 @@
   * Python: 3.10+
   * Fastapi: 0.78+
   * Pydantic: 1.9+
+
 **Optional**
   * MongoEngine: 0.24.1+
   * SQLAlchemy: 1.4.36+
