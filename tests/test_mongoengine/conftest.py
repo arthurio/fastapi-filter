@@ -3,8 +3,12 @@ from typing import Any, Generator
 
 import pytest
 from bson.objectid import ObjectId
+from fastapi import FastAPI
 from mongoengine import Document, connect, fields
 from pydantic import BaseModel, Field
+
+from fastapi_filter import FilterDepends, with_prefix
+from fastapi_filter.contrib.mongoengine import Filter as MongoFilter
 
 
 @pytest.fixture(scope="session")
@@ -37,7 +41,7 @@ def PydanticObjectId():
     return PydanticObjectId
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="package")
 def User(db_connect, Address):
     class User(Document):
         created_at = fields.DateTimeField()
@@ -49,7 +53,7 @@ def User(db_connect, Address):
     return User
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="package")
 def Address(db_connect):
     class Address(Document):
         street = fields.StringField(null=True)
@@ -98,7 +102,44 @@ def users(User, Address):
     ).save()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="package")
+def AddressFilter(Address, Filter):
+    class AddressFilter(Filter):
+        street__isnull: bool | None
+        country: str | None
+        city: str | None
+        city__in: list[str] | None
+        country__nin: list[str] | None
+
+        class Constants(Filter.Constants):
+            model = Address
+
+    yield AddressFilter
+
+
+@pytest.fixture(scope="package")
+def UserFilter(User, Filter, AddressFilter):
+    class UserFilter(Filter):
+        name: str | None
+        name__in: list[str] | None
+        name__nin: list[str] | None
+        name__ne: str | None
+        name__isnull: bool | None
+        age: int | None
+        age__lt: int | None
+        age__lte: int | None
+        age__gt: int | None
+        age__gte: int | None
+        age__in: list[int] | None
+        address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
+
+        class Constants(Filter.Constants):
+            model = User
+
+    yield UserFilter
+
+
+@pytest.fixture(scope="package")
 def AddressOut(PydanticObjectId):
     class AddressOut(BaseModel):
         id: PydanticObjectId = Field(..., alias="_id")
@@ -112,7 +153,7 @@ def AddressOut(PydanticObjectId):
     yield AddressOut
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="package")
 def UserOut(PydanticObjectId, AddressOut):
     class UserOut(BaseModel):
         id: PydanticObjectId = Field(..., alias="_id")
@@ -132,3 +173,61 @@ def clear_database(User):
     User.drop_collection()
     yield
     User.drop_collection()
+
+
+@pytest.fixture(scope="package")
+def Filter():
+    yield MongoFilter
+
+
+@pytest.fixture(scope="package")
+def app(
+    Address,
+    User,
+    UserFilter,
+    UserFilterCustomOrderBy,
+    UserFilterOrderBy,
+    UserFilterOrderByWithDefault,
+    UserFilterRestrictedOrderBy,
+    UserOut,
+):
+    app = FastAPI()
+
+    @app.get("/users", response_model=list[UserOut])
+    async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):
+        query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
+        query = query.select_related()
+        return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
+
+    @app.get("/users_with_order_by", response_model=list[UserOut])
+    async def get_users_with_order_by(user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy)):
+        query = user_filter.sort(User.objects())  # type: ignore[attr-defined]
+        query = user_filter.filter(query)  # type: ignore[attr-defined]
+        query = query.select_related()
+        return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
+
+    @app.get("/users_with_no_order_by", response_model=list[UserOut])
+    async def get_users_with_no_order_by(
+        user_filter: UserFilter = FilterDepends(UserFilter),
+    ):
+        return await get_users_with_order_by(user_filter)
+
+    @app.get("/users_with_default_order_by", response_model=list[UserOut])
+    async def get_users_with_default_order_by(
+        user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
+    ):
+        return await get_users_with_order_by(user_filter)
+
+    @app.get("/users_with_restricted_order_by", response_model=list[UserOut])
+    async def get_users_with_restricted_order_by(
+        user_filter: UserFilterRestrictedOrderBy = FilterDepends(UserFilterRestrictedOrderBy),
+    ):
+        return await get_users_with_order_by(user_filter)
+
+    @app.get("/users_with_custom_order_by", response_model=list[UserOut])
+    async def get_users_with_custom_order_by(
+        user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
+    ):
+        return await get_users_with_order_by(user_filter)
+
+    yield app

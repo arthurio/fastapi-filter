@@ -3,12 +3,12 @@ from typing import Any, Generator
 import uvicorn
 from bson.objectid import ObjectId
 from faker import Faker
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from mongoengine import Document, connect, fields
 from pydantic import BaseModel, EmailStr, Field
 
 from fastapi_filter import FilterDepends, with_prefix
-from fastapi_filter.contrib.mongoengine import Filter, OrderBy
+from fastapi_filter.contrib.mongoengine import Filter
 
 fake = Faker()
 
@@ -74,9 +74,11 @@ class AddressFilter(Filter):
     country: str | None
     city: str | None
     city__in: list[str] | None
+    custom_order_by: list[str] | None
 
-    class Constants:
-        collection = Address
+    class Constants(Filter.Constants):
+        model = Address
+        ordering_field_name = "custom_order_by"
 
 
 class UserFilter(Filter):
@@ -84,21 +86,10 @@ class UserFilter(Filter):
     address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: int | None
     age__gte: int = 10  # <-- NOTE(arthurio): This filter required
+    order_by: list[str] = ["age"]
 
-    class Constants:
-        collection = User
-
-
-class UserOrderBy(OrderBy):
-    class Constants:
-        collection = User
-
-    order_by: str = "age"
-
-
-class AddressOrderBy(OrderBy):
-    class Constants:
-        collection = Address
+    class Constants(Filter.Constants):
+        model = User
 
 
 app = FastAPI()
@@ -121,11 +112,9 @@ async def on_shutdown() -> None:
 
 
 @app.get("/users", response_model=list[UserOut])
-async def get_users(
-    user_filter: UserFilter = FilterDepends(UserFilter), user_order_by: UserOrderBy = Depends(UserOrderBy)
-) -> Any:
+async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
     query = user_filter.filter(User.objects())
-    query = user_order_by.sort(query)
+    query = user_filter.sort(query)
     query = query.select_related()
     return [user.to_mongo() | {"address": user.address.to_mongo()} for user in query]
 
@@ -133,10 +122,9 @@ async def get_users(
 @app.get("/addresses", response_model=list[AddressOut])
 async def get_addresses(
     address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
-    address_order_by: AddressOrderBy = Depends(AddressOrderBy),
 ) -> Any:
     query = address_filter.filter(Address.objects())
-    query = address_order_by.sort(query)
+    query = address_filter.sort(query)
     return [address.to_mongo() for address in query]
 
 

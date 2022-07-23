@@ -1,11 +1,16 @@
 from datetime import datetime
+from typing import AsyncIterator
 
 import pytest
-from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+import pytest_asyncio
+from fastapi import Depends, FastAPI
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+
+from fastapi_filter import FilterDepends, with_prefix
+from fastapi_filter.contrib.sqlalchemy import Filter as SQLAlchemyFilter
 
 
 @pytest.fixture(scope="session")
@@ -29,7 +34,7 @@ def SessionLocal(engine):
     return sessionmaker(autoflush=True, bind=engine, class_=AsyncSession)
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def session(engine, SessionLocal, Base):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -47,7 +52,7 @@ def Base(engine):
     return declarative_base(bind=engine)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="package")
 def User(Base, Address):
     class User(Base):
         __tablename__ = "users"
@@ -63,7 +68,7 @@ def User(Base, Address):
     return User
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="package")
 def Address(Base):
     class Address(Base):
         __tablename__ = "addresses"
@@ -76,37 +81,7 @@ def Address(Base):
     return Address
 
 
-@pytest.fixture(scope="session")
-def AddressOut():
-    class AddressOut(BaseModel):
-        id: int
-        street: str | None
-        city: str
-        country: str
-
-        class Config:
-            orm_mode = True
-
-    yield AddressOut
-
-
-@pytest.fixture(scope="session")
-def UserOut(AddressOut):
-    class UserOut(BaseModel):
-        id: int
-        created_at: datetime
-        updated_at: datetime
-        name: str | None
-        age: int
-        address: AddressOut | None
-
-        class Config:
-            orm_mode = True
-
-    yield UserOut
-
-
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def users(session, User, Address):
     session.add_all(
         [
@@ -148,3 +123,112 @@ async def users(session, User, Address):
         ]
     )
     await session.commit()
+
+
+@pytest.fixture(scope="package")
+def Filter():
+    yield SQLAlchemyFilter
+
+
+@pytest.fixture(scope="package")
+def AddressFilter(Address, Filter):
+    class AddressFilter(Filter):
+        street__isnull: bool | None
+        city: str | None
+        city__in: list[str] | None
+        country__not_in: list[str] | None
+
+        class Constants(Filter.Constants):
+            model = Address
+
+    yield AddressFilter
+
+
+@pytest.fixture(scope="package")
+def UserFilter(User, Filter, AddressFilter):
+    class UserFilter(Filter):
+        name: str | None
+        name__in: list[str] | None
+        name__not: str | None
+        name__not_in: list[str] | None
+        name__isnull: bool | None
+        age: int | None
+        age__lt: int | None
+        age__lte: int | None
+        age__gt: int | None
+        age__gte: int | None
+        age__in: list[int] | None
+        address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
+        address_id__isnull: bool | None
+
+        class Constants(Filter.Constants):
+            model = User
+
+    yield UserFilter
+
+
+@pytest.fixture(scope="package")
+def app(
+    Address,
+    SessionLocal,
+    User,
+    UserFilter,
+    UserFilterCustomOrderBy,
+    UserFilterOrderBy,
+    UserFilterOrderByWithDefault,
+    UserFilterRestrictedOrderBy,
+    UserOut,
+):
+    app = FastAPI()
+
+    async def get_db() -> AsyncIterator[AsyncSession]:
+        async with SessionLocal() as session:
+            yield session
+
+    @app.get("/users", response_model=list[UserOut])
+    async def get_users(
+        user_filter: UserFilter = FilterDepends(UserFilter),
+        db: AsyncSession = Depends(get_db),
+    ):
+        query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
+        result = await db.execute(query)
+        return result.scalars().all()
+
+    @app.get("/users_with_order_by", response_model=list[UserOut])
+    async def get_users_with_order_by(
+        user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),
+        db: AsyncSession = Depends(get_db),
+    ):
+        query = user_filter.sort(select(User).outerjoin(Address))  # type: ignore[attr-defined]
+        query = user_filter.filter(query)  # type: ignore[attr-defined]
+        result = await db.execute(query)
+        return result.scalars().all()
+
+    @app.get("/users_with_no_order_by", response_model=list[UserOut])
+    async def get_users_with_no_order_by(
+        user_filter: UserFilter = FilterDepends(UserFilter),
+    ):
+        return await get_users_with_order_by(user_filter)
+
+    @app.get("/users_with_default_order_by", response_model=list[UserOut])
+    async def get_users_with_default_order_by(
+        user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
+        db: AsyncSession = Depends(get_db),
+    ):
+        return await get_users_with_order_by(user_filter, db)
+
+    @app.get("/users_with_restricted_order_by", response_model=list[UserOut])
+    async def get_users_with_restricted_order_by(
+        user_filter: UserFilterRestrictedOrderBy = FilterDepends(UserFilterRestrictedOrderBy),
+        db: AsyncSession = Depends(get_db),
+    ):
+        return await get_users_with_order_by(user_filter, db)
+
+    @app.get("/users_with_custom_order_by", response_model=list[UserOut])
+    async def get_users_with_custom_order_by(
+        user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
+        db: AsyncSession = Depends(get_db),
+    ):
+        return await get_users_with_order_by(user_filter, db)
+
+    yield app
