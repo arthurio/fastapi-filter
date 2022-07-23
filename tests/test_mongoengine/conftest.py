@@ -201,8 +201,8 @@ def app(
 
     @app.get("/users_with_order_by", response_model=list[UserOut])
     async def get_users_with_order_by(user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy)):
-        query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
-        query = user_filter.sort(query)  # type: ignore[attr-defined]
+        query = user_filter.sort(User.objects())  # type: ignore[attr-defined]
+        query = user_filter.filter(query)  # type: ignore[attr-defined]
         query = query.select_related()
         return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
 

@@ -199,8 +199,8 @@ def app(
         user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),
         db: AsyncSession = Depends(get_db),
     ):
-        query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
-        query = user_filter.sort(query)  # type: ignore[attr-defined]
+        query = user_filter.sort(select(User).outerjoin(Address))  # type: ignore[attr-defined]
+        query = user_filter.filter(query)  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().all()
 
