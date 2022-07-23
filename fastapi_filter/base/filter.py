@@ -67,10 +67,29 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
     def split_str(cls, value, field):  # pragma: no cover
         ...
 
-    @validator(Constants.ordering_field_name, allow_reuse=True, check_fields=False)
-    def validate_order_by(cls, value):
-        if not value:
+    @validator("*", pre=True, allow_reuse=True, check_fields=False)
+    def strip_order_by_values(cls, value, values, field):
+        if field.name != cls.Constants.ordering_field_name:
             return value
+
+        if not value:
+            return None
+
+        stripped_values = []
+        for field_name in value:
+            stripped_value = field_name.strip()
+            if stripped_value:
+                stripped_values.append(stripped_value)
+
+        return stripped_values
+
+    @validator("*", allow_reuse=True, check_fields=False)
+    def validate_order_by(cls, value, values, field):
+        if field.name != cls.Constants.ordering_field_name:
+            return value
+
+        if not value:
+            return None
 
         field_name_usages = defaultdict(list)
         duplicated_field_names = set()
