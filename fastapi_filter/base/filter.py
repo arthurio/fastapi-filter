@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
 from typing import Any, Type
@@ -32,8 +33,6 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
 
         >>> "?my_field__gt=12&my_other_field=Tomato"
         >>> "?my_field__in=12,13,15&my_other_field__not_in=Tomato,Pepper"
-
-    ## Limitation
     """
 
     class Constants:  # pragma: no cover
@@ -73,12 +72,31 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
         if not value:
             return value
 
-        for field_name in value:
-            # Remove direction
-            field_name = field_name.replace("-", "").replace("+", "")
+        field_name_usages = defaultdict(list)
+        duplicated_field_names = set()
+
+        for field_name_with_direction in value:
+            field_name = field_name_with_direction.replace("-", "").replace("+", "")
 
             if not hasattr(cls.Constants.model, field_name):
                 raise ValueError(f"{field_name} is not a valid ordering field.")
+
+            field_name_usages[field_name].append(field_name_with_direction)
+            if len(field_name_usages[field_name]) > 1:
+                duplicated_field_names.add(field_name)
+
+        if duplicated_field_names:
+            ambiguous_field_names = ", ".join(
+                [
+                    field_name_with_direction
+                    for field_name in duplicated_field_names
+                    for field_name_with_direction in field_name_usages[field_name]
+                ]
+            )
+            raise ValueError(
+                f"Field names can appear at most once for {cls.Constants.ordering_field_name}. "
+                f"The following was ambiguous: {ambiguous_field_names}."
+            )
 
         return value
 
@@ -89,6 +107,7 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
     Example:
         ```python
         from pydantic import BaseModel
+
         from fastapi_filter.filter import FilterDepends
 
         class NumberFilter(BaseModel):

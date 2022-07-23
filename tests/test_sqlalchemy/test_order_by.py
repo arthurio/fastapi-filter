@@ -245,3 +245,17 @@ async def test_api_custom_order_by(test_client, session):
     endpoint = "/users_with_custom_order_by?custom_order_by=age"
     response = await test_client.get(endpoint)
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.parametrize(
+    "order_by, ambiguous_field_names",
+    [
+        (["age", "age"], "age, age."),
+        (["-age", "age"], "-age, age."),
+        (["name", "-age", "-name", "name"], "name, -name, name"),
+        (["name", "-age", "name", "age"], "-age, age, name, name"),
+    ],
+)
+def test_order_by_with_duplicates_fail(UserFilterOrderBy, order_by, ambiguous_field_names):
+    with pytest.raises(ValidationError, match=f"The following was ambiguous: {ambiguous_field_names}."):
+        UserFilterOrderBy(order_by=order_by)
