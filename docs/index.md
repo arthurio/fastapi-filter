@@ -35,7 +35,7 @@ By default, fastapi_filter supports the following operators:
   - `not`/`ne`
   - `not_in`/`nin`
 
-_**Note:** Mysql excludes `None` values when using `in` filter)_
+_**Note:** Mysql excludes `None` values when using `in` filter_
 
 For the list related operators (`in`, `not_in`), simply pass a comma separated list of strings to your api endpoint and
 they will be converted into the list of the type you defined.
@@ -209,8 +209,12 @@ class MyFilter(Filter):
       allowed_field_names = ["age", "id"]
 
       for field_name in value:
+          field_name = field_name.replace("+", "").replace("-", "")  # (1)
           if field_name not in allowed_field_names:
               raise ValueError(f"You may only sort by: {', '.join(allowed_field_names)}")
 
       return value
 ```
+
+1. If you want to restrict only on specific directions, like `-created_at` and `name` for example, you can remove this
+line. Your `allowed_field_names` would be something like `["age", "-age", "-created_at"]`.
