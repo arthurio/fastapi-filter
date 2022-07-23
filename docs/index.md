@@ -12,9 +12,8 @@ The supported backends are [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy
 
 ## Filter
 
-Based on the type of ORM/ODM you use there might be some slightly different setup for your classes (e.g. `collection`
-vs. `model` in the `Config` class of the filter). But the bottom line is defining the fields you want to filter on and
-the type of operator you want, then tie your filter to a specific model/collection.
+The philosophy of **fastapi_filter** is to be very declarative. You define the fields you want to be able to filter on
+as well as the type of operator, then tie your filter to a specific model.
 
 ### Examples
 
@@ -24,7 +23,7 @@ the type of operator you want, then tie your filter to a specific model/collecti
 
 ### Operators
 
-By default, fastapi_filter supports the following operators:
+By default, **fastapi_filter** supports the following operators:
 
   - `gt`
   - `gte`
@@ -84,6 +83,7 @@ The `with_prefix` wrapper function sets the prefix for your filters, so in that 
 
 Wherever you would use a `Depends`, replace it with `FilterDepends` if you are passing a filter class. The reason is
 that `FilterDepends` converts the `list` filter fields to `str` so that they can be displayed and used in swagger.
+It also handles turning `ValidationError` into `HTTPException(status_code=422)`.
 
 
 ### with_prefix
@@ -127,8 +127,8 @@ There is a specific field on the filter class that can be used for ordering. The
 takes a list of string. From an API call perspective, just like the `__in` filters, you simply pass a comma separated
 list of strings.
 
-You can change the **direction** of the sorting (asc or desc) by prefixing with `-` or `+` (Optional, it's the default
-behavior if omitted).
+You can change the **direction** of the sorting (*asc* or *desc*) by prefixing with `-` or `+` (Optional, it's the
+default behavior if omitted).
 
 If you don't want to allow ordering on your filter, just don't add `order_by` as a field and you are all set.
 
@@ -153,14 +153,18 @@ async def get_users(
     return result.scalars().all()
 ```
 
+Valid urls:
+
 ```bash
-curl /users?order_by=age,-created_at
-curl /users
-curl /users?order_by=-name
-curl /users?order_by=+id
+/users?order_by=age,-created_at
+/users
+/users?order_by=-name
+/users?order_by=+id
 ```
 
 ### Example - Custom name
+
+If for some reason you can't or don't want to use `order_by` as the field name for ordering, you can override it:
 
 ```python
 from fastapi_filter.contrib.sqlalchemy import Filter
@@ -183,6 +187,8 @@ async def get_users(
     return result.scalars().all()
 ```
 
+Valid urls:
+
 ```bash
 curl /users?custom_order_by=age,-created_at
 curl /users
@@ -190,7 +196,7 @@ curl /users?custom_order_by=-name
 curl /users?custom_order_by=+id
 ```
 
-### Restrict the order_by values
+### Restrict the `order_by` values
 
 Add the following validator to your filter class:
 
