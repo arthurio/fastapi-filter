@@ -200,6 +200,13 @@ async def test_api_order_by(test_client, users, order_by, assert_function):
 
 
 @pytest.mark.asyncio
+async def test_api_order_by_invalid_field(test_client, session):
+    endpoint = "/users_with_order_by?order_by=invalid"
+    response = await test_client.get(endpoint)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.asyncio
 async def test_api_no_order_by(test_client, session):
     endpoint = "/users_with_no_order_by?order_by=age"
     with pytest.raises(
