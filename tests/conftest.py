@@ -1,11 +1,12 @@
 from datetime import datetime
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def test_client(app):
     async with AsyncClient(app=app, base_url="http://test") as async_test_client:
         yield async_test_client
@@ -14,32 +15,52 @@ async def test_client(app):
 @pytest.fixture(scope="package")
 def UserFilterOrderByWithDefault(User, UserFilter):
     class UserFilterOrderByWithDefault(UserFilter):
-        class Constants(UserFilter.Constants):
-            model = User
-
         order_by: list[str] = ["age"]
 
-    yield UserFilterOrderByWithDefault
+    return UserFilterOrderByWithDefault
 
 
 @pytest.fixture(scope="package")
 def UserFilterOrderBy(User, UserFilter):
     class UserFilterOrderBy(UserFilter):
-        class Constants(UserFilter.Constants):
-            model = User
-
         order_by: list[str] | None
 
-    yield UserFilterOrderBy
+    return UserFilterOrderBy
 
 
 @pytest.fixture(scope="package")
 def UserFilterNoOrderBy(User, UserFilter):
-    class UserFilterNoOrderBy(UserFilter):
-        class Constants(UserFilter.Constants):
-            model = User
+    return UserFilter
 
-    yield UserFilterNoOrderBy
+
+@pytest.fixture(scope="package")
+def UserFilterCustomOrderBy(UserFilter):
+    class UserFilterCustomOrderBy(UserFilter):
+        class Constants(UserFilter.Constants):
+            ordering_field_name = "custom_order_by"
+
+        custom_order_by: list[str] | None
+
+    return UserFilterCustomOrderBy
+
+
+@pytest.fixture(scope="package")
+def UserFilterRestrictedOrderBy(UserFilter):
+    class UserFilterRestrictedOrderBy(UserFilter):
+        order_by: list[str] | None
+
+        @validator("order_by", allow_reuse=True)
+        def restrict_sortable_fields(cls, value):
+            if value is None:
+                return None
+
+            for field_name in value:
+                if field_name not in ["age", "id"]:
+                    raise ValueError(f"You may only sort by: {', '.join(['age', 'id'])}")
+
+            return value
+
+    return UserFilterRestrictedOrderBy
 
 
 @pytest.fixture(scope="session")
@@ -53,7 +74,7 @@ def AddressOut():
         class Config:
             orm_mode = True
 
-    yield AddressOut
+    return AddressOut
 
 
 @pytest.fixture(scope="session")
@@ -69,4 +90,4 @@ def UserOut(AddressOut):
         class Config:
             orm_mode = True
 
-    yield UserOut
+    return UserOut

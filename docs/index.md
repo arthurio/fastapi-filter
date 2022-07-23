@@ -123,30 +123,94 @@ class UserFilter(Filter):
 
 ## Order by
 
-Simply define an order by class and link to your model/collection. You may defined a default ordering or not.
+There is a specific field on the filter class that can be used for ordering. The default name is `order_by` and it
+takes a list of string. From an API call perspective, just like the `__in` filters, you simply pass a comma separated
+list of strings.
+
+You can change the **direction** of the sorting (asc or desc) by prefixing with `-` or `+` (Optional, it's the default
+behavior if omitted).
+
+If you don't want to allow ordering on your filter, just don't add `order_by` as a field and you are all set.
 
 
-### Example (sqlalchemy)
+### Example - Basic
+
 
 ```python
-from fastapi_filter.contrib.sqlalchemy import OrderBy
+from fastapi_filter.contrib.sqlalchemy import Filter
 
-class UserOrderBy(OrderBy):
-
-    class Constants(Filter.Constants):
-        model = User
-        allowed_fields = ["age", "name"]
-
-    order_by: str = "age"
+class UserFilter(Filter):
+    order_by: list[str] | None
 
 @app.get("/users", response_model=list[UserOut])
-
 async def get_users(
-    user_order_by: UserOrderBy = Depends(UserOrderBy),
+    user_filter: UserFilter = FilterDepends(UserFilter),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     query = select(User)
-    query = user_order_by.sort(query)
+    query = user_filter.sort(query)
     result = await db.execute(query)
     return result.scalars().all()
+```
+
+```bash
+curl /users?order_by=age,-created_at
+curl /users
+curl /users?order_by=-name
+curl /users?order_by=+id
+```
+
+### Example - Custom name
+
+```python
+from fastapi_filter.contrib.sqlalchemy import Filter
+
+class UserFilter(Filter):
+    class Constants(Filter.Constants):
+        model = User
+        ordering_field_name = "custom_order_by"
+
+    custom_order_by: list[str] | None
+
+@app.get("/users", response_model=list[UserOut])
+async def get_users(
+    user_filter: UserFilter = FilterDepends(UserFilter),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    query = select(User)
+    query = user_filter.sort(query)
+    result = await db.execute(query)
+    return result.scalars().all()
+```
+
+```bash
+curl /users?custom_order_by=age,-created_at
+curl /users
+curl /users?custom_order_by=-name
+curl /users?custom_order_by=+id
+```
+
+### Restrict the order_by values
+
+Add the following validator to your filter class:
+
+```python
+from fastapi_filter.contrib.sqlalchemy import Filter
+from pydantic import validator
+
+class MyFilter(Filter):
+  order_by: list[str] | None
+
+  @validator("order_by")
+  def restrict_sortable_fields(cls, value):
+      if value is None:
+          return None
+
+      allowed_field_names = ["age", "id"]
+
+      for field_name in value:
+          if field_name not in allowed_field_names:
+              raise ValueError(f"You may only sort by: {', '.join(allowed_field_names)}")
+
+      return value
 ```

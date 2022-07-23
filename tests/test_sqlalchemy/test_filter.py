@@ -24,6 +24,7 @@ from sqlalchemy.future import select
         [{"address_id__isnull": True}, 1],
     ],
 )
+@pytest.mark.asyncio
 async def test_filter(session, Address, User, UserFilter, users, filter_, expected_count):
     query = select(User).outerjoin(Address)
     query = UserFilter(**filter_).filter(query)
@@ -52,6 +53,7 @@ async def test_filter(session, Address, User, UserFilter, users, filter_, expect
         [{"address_id__isnull": True}, 1],
     ],
 )
+@pytest.mark.asyncio
 async def test_api(test_client, users, filter_, expected_count):
     response = await test_client.get(f"/users?{urlencode(filter_)}")
     assert len(response.json()) == expected_count

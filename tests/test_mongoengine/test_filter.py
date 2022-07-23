@@ -45,6 +45,7 @@ def test_basic_filter(User, UserFilter, Address, users, filter_, expected_count)
         [{"address__city": "San Francisco"}, 1],
     ],
 )
+@pytest.mark.asyncio
 async def test_api(test_client, Address, User, UserFilter, users, filter_, expected_count):
     response = await test_client.get(f"/users?{urlencode(filter_)}")
     assert len(response.json()) == expected_count

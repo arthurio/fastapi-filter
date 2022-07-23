@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import AsyncIterator
 
 import pytest
+import pytest_asyncio
 from fastapi import Depends, FastAPI
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -33,7 +34,7 @@ def SessionLocal(engine):
     return sessionmaker(autoflush=True, bind=engine, class_=AsyncSession)
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def session(engine, SessionLocal, Base):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -80,7 +81,7 @@ def Address(Base):
     return Address
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def users(session, User, Address):
     session.add_all(
         [
