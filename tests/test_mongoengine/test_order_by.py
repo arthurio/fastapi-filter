@@ -1,7 +1,61 @@
 import pytest
+from fastapi import status
 from pydantic import ValidationError
 
-from fastapi_filter.contrib.mongoengine import OrderBy
+
+@pytest.mark.parametrize(
+    "order_by,assert_function",
+    [
+        [None, lambda previous_user, user: True],
+        [
+            "name",
+            lambda previous_user, user: previous_user.name <= user.name if previous_user.name and user.name else True,
+        ],
+        [
+            "-created_at",
+            lambda previous_user, user: previous_user.created_at >= user.created_at,
+        ],
+        [
+            "age,-created_at",
+            lambda previous_user, user: (previous_user.age < user.age)
+            or (previous_user.age == user.age and previous_user.created_at >= user.created_at),
+        ],
+    ],
+)
+def test_order_by(User, users, UserFilterOrderBy, order_by, assert_function):
+    query = User.objects().all()
+    query = UserFilterOrderBy(order_by=order_by).sort(query)
+    previous_user = None
+    for user in query:
+        if not previous_user:
+            previous_user = user
+            continue
+        assert assert_function(previous_user, user)
+        previous_user = user
+
+
+def test_order_by_with_default(User, users, UserFilterOrderByWithDefault):
+    query = User.objects().all()
+    query = UserFilterOrderByWithDefault().sort(query)
+    previous_user = None
+    for user in query:
+        if not previous_user:
+            previous_user = user
+            continue
+        assert previous_user.age <= user.age
+        previous_user = user
+
+
+def test_invalid_order_by(User, users, UserFilterOrderBy):
+    with pytest.raises(ValidationError):
+        UserFilterOrderBy(order_by="invalid")
+
+
+def test_missing_order_by_field(User, UserFilterNoOrderBy):
+    query = User.objects().all()
+
+    with pytest.raises(AttributeError):
+        UserFilterNoOrderBy().sort(query)
 
 
 @pytest.mark.parametrize(
@@ -26,13 +80,9 @@ from fastapi_filter.contrib.mongoengine import OrderBy
         ],
     ],
 )
-def test_basic_order_by(User, users, order_by, assert_function):
-    class UserOrderBy(OrderBy):
-        class Constants:
-            collection = User
-
+def test_custom_order_by(User, users, UserFilterCustomOrderBy, order_by, assert_function):
     query = User.objects().all()
-    query = UserOrderBy(order_by=order_by).sort(query)
+    query = UserFilterCustomOrderBy(custom_order_by=order_by).sort(query)
     previous_user = None
     for user in query:
         if not previous_user:
@@ -42,28 +92,132 @@ def test_basic_order_by(User, users, order_by, assert_function):
         previous_user = user
 
 
-def test_order_by_with_default(User, users):
-    class UserOrderBy(OrderBy):
-        class Constants:
-            collection = User
+@pytest.mark.parametrize(
+    "order_by",
+    [
+        ["+age", "name"],
+        ["name"],
+        ["created_at", "-name"],
+    ],
+)
+def test_restricted_order_by_failure(User, UserFilterRestrictedOrderBy, order_by):
+    with pytest.raises(ValidationError):
+        UserFilterRestrictedOrderBy(order_by=order_by)
 
-        order_by: str = "age"
 
-    query = User.objects().all()
-    query = UserOrderBy().sort(query)
+@pytest.mark.parametrize(
+    "order_by",
+    [
+        None,
+        [],
+        ["-created_at"],
+        ["created_at", "+age"],
+    ],
+)
+def test_restricted_order_by_success(User, UserFilterRestrictedOrderBy, order_by):
+    assert UserFilterRestrictedOrderBy(order_by=order_by)
+
+
+@pytest.mark.parametrize(
+    "order_by,assert_function",
+    [
+        [None, lambda previous_user, user: True],
+        [
+            "name",
+            lambda previous_user, user: previous_user["name"] <= user["name"]
+            if previous_user["name"] and user["name"]
+            else True,
+        ],
+        [
+            "-created_at",
+            lambda previous_user, user: previous_user["created_at"] >= user["created_at"],
+        ],
+        [
+            "age,-created_at",
+            lambda previous_user, user: (previous_user["age"] < user["age"])
+            or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"]),
+        ],
+    ],
+)
+@pytest.mark.asyncio
+async def test_api_order_by(test_client, users, order_by, assert_function):
+    endpoint = "/users_with_order_by"
+    if order_by is not None:
+        endpoint = f"{endpoint}?order_by={order_by}"
+    response = await test_client.get(endpoint)
     previous_user = None
-    for user in query:
+    for user in response.json():
         if not previous_user:
             previous_user = user
             continue
-        assert previous_user.age <= user.age
+        assert assert_function(previous_user, user)
         previous_user = user
 
 
-def test_invalid_order_by(User, users):
-    class UserOrderBy(OrderBy):
-        class Constants:
-            collection = User
+@pytest.mark.asyncio
+async def test_api_order_by_invalid_field(test_client):
+    endpoint = "/users_with_order_by?order_by=invalid"
+    response = await test_client.get(endpoint)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    with pytest.raises(ValidationError):
-        UserOrderBy(order_by="invalid")
+
+@pytest.mark.asyncio
+async def test_api_no_order_by(test_client):
+    endpoint = "/users_with_no_order_by?order_by=age"
+    with pytest.raises(
+        AttributeError, match="Ordering field order_by is not defined. Make sure to add it to your filter class."
+    ):
+        await test_client.get(endpoint)
+
+
+@pytest.mark.parametrize(
+    "order_by,assert_function,status_code",
+    [
+        [None, lambda previous_user, user: True, status.HTTP_200_OK],
+        ["name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
+        ["age,-name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
+        ["-age", lambda previous_user, user: previous_user["age"] >= user["age"], status.HTTP_200_OK],
+        [
+            "age,-created_at",
+            lambda previous_user, user: (previous_user["age"] < user["age"])
+            or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"]),
+            status.HTTP_200_OK,
+        ],
+    ],
+)
+@pytest.mark.asyncio
+async def test_api_restricted_order_by(test_client, users, order_by, assert_function, status_code):
+    endpoint = "/users_with_restricted_order_by"
+    if order_by is not None:
+        endpoint = f"{endpoint}?order_by={order_by}"
+    response = await test_client.get(endpoint)
+    assert response.status_code == status_code
+    if status_code == status.HTTP_200_OK:
+        previous_user = None
+        for user in response.json():
+            if not previous_user:
+                previous_user = user
+                continue
+            assert assert_function(previous_user, user)
+            previous_user = user
+
+
+@pytest.mark.asyncio
+async def test_api_custom_order_by(test_client):
+    endpoint = "/users_with_custom_order_by?custom_order_by=age"
+    response = await test_client.get(endpoint)
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.parametrize(
+    "order_by, ambiguous_field_names",
+    [
+        (["age", "age"], "age, age."),
+        (["-age", "age"], "-age, age."),
+        (["name", "-age", "-name", "name"], "name, -name, name"),
+        (["name", "-age", "name", "age"], "-age, age, name, name"),
+    ],
+)
+def test_order_by_with_duplicates_fail(UserFilterOrderBy, order_by, ambiguous_field_names):
+    with pytest.raises(ValidationError, match=f"The following was ambiguous: {ambiguous_field_names}."):
+        UserFilterOrderBy(order_by=order_by)

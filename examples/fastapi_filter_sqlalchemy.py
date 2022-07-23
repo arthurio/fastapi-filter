@@ -10,7 +10,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
 from fastapi_filter import FilterDepends, with_prefix
-from fastapi_filter.contrib.sqlalchemy import Filter, OrderBy
+from fastapi_filter.contrib.sqlalchemy import Filter
 
 engine = create_async_engine("sqlite+aiosqlite:///fastapi_filter.sqlite")
 async_session = sessionmaker(engine, class_=AsyncSession)
@@ -69,9 +69,11 @@ class AddressFilter(Filter):
     country: str | None
     city: str | None
     city__in: list[str] | None
+    custom_order_by: list[str] | None
 
-    class Constants:
+    class Constants(Filter.Constants):
         model = Address
+        ordering_field_name = "custom_order_by"
 
 
 class UserFilter(Filter):
@@ -79,21 +81,10 @@ class UserFilter(Filter):
     address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: int | None
     age__gte: int = 10  # <-- NOTE(arthurio): This filter required
+    order_by: list[str] = ["age"]
 
-    class Constants:
+    class Constants(Filter.Constants):
         model = User
-
-
-class UserOrderBy(OrderBy):
-    class Constants:
-        model = User
-
-    order_by: str = "age"
-
-
-class AddressOrderBy(OrderBy):
-    class Constants:
-        model = Address
 
 
 app = FastAPI()
@@ -128,11 +119,10 @@ async def get_db() -> AsyncIterator[AsyncSession]:
 @app.get("/users", response_model=list[UserOut])
 async def get_users(
     user_filter: UserFilter = FilterDepends(UserFilter),
-    user_order_by: UserOrderBy = Depends(UserOrderBy),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     query = user_filter.filter(select(User).outerjoin(Address))
-    query = user_order_by.sort(query)
+    query = user_filter.sort(query)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -140,11 +130,10 @@ async def get_users(
 @app.get("/addresses", response_model=list[AddressOut])
 async def get_addresses(
     address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
-    address_order_by: AddressOrderBy = Depends(AddressOrderBy),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     query = address_filter.filter(select(Address))
-    query = address_order_by.sort(query)
+    query = address_filter.sort(query)
     result = await db.execute(query)
     return result.scalars().all()
 
