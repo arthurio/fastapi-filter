@@ -181,23 +181,53 @@ def Filter():
 
 
 @pytest.fixture(scope="package")
-def app(Address, User, UserOut, UserFilterOrderBy, UserFilterOrderByWithDefault):
+def app(
+    Address,
+    User,
+    UserFilter,
+    UserFilterCustomOrderBy,
+    UserFilterOrderBy,
+    UserFilterOrderByWithDefault,
+    UserFilterRestrictedOrderBy,
+    UserOut,
+):
     app = FastAPI()
 
     @app.get("/users", response_model=list[UserOut])
-    async def get_users(user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy)):
+    async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):
+        query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
+        query = query.select_related()
+        return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
+
+    @app.get("/users_with_order_by", response_model=list[UserOut])
+    async def get_users_with_order_by(user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy)):
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = user_filter.sort(query)  # type: ignore[attr-defined]
         query = query.select_related()
         return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
 
-    @app.get("/users_with_default", response_model=list[UserOut])
-    async def get_users_with_default(
+    @app.get("/users_with_no_order_by", response_model=list[UserOut])
+    async def get_users_with_no_order_by(
+        user_filter: UserFilter = FilterDepends(UserFilter),
+    ):
+        return await get_users_with_order_by(user_filter)
+
+    @app.get("/users_with_default_order_by", response_model=list[UserOut])
+    async def get_users_with_default_order_by(
         user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
     ):
-        query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
-        query = user_filter.sort(query)  # type: ignore[attr-defined]
-        query = query.select_related()
-        return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
+        return await get_users_with_order_by(user_filter)
+
+    @app.get("/users_with_restricted_order_by", response_model=list[UserOut])
+    async def get_users_with_restricted_order_by(
+        user_filter: UserFilterRestrictedOrderBy = FilterDepends(UserFilterRestrictedOrderBy),
+    ):
+        return await get_users_with_order_by(user_filter)
+
+    @app.get("/users_with_custom_order_by", response_model=list[UserOut])
+    async def get_users_with_custom_order_by(
+        user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
+    ):
+        return await get_users_with_order_by(user_filter)
 
     yield app

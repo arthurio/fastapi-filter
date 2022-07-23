@@ -54,9 +54,12 @@ def UserFilterRestrictedOrderBy(UserFilter):
             if value is None:
                 return None
 
+            allowed_field_names = ["age", "created_at"]
             for field_name in value:
-                if field_name not in ["age", "id"]:
-                    raise ValueError(f"You may only sort by: {', '.join(['age', 'id'])}")
+                field_name = field_name.replace("-", "").replace("+", "")
+
+                if field_name not in allowed_field_names:
+                    raise ValueError(f"You may only sort by: {', '.join(allowed_field_names)}")
 
             return value
 

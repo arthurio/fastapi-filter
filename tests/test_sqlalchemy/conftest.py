@@ -168,7 +168,17 @@ def UserFilter(User, Filter, AddressFilter):
 
 
 @pytest.fixture(scope="package")
-def app(SessionLocal, Address, User, UserOut, UserFilterOrderBy, UserFilterOrderByWithDefault):
+def app(
+    Address,
+    SessionLocal,
+    User,
+    UserFilter,
+    UserFilterCustomOrderBy,
+    UserFilterOrderBy,
+    UserFilterOrderByWithDefault,
+    UserFilterRestrictedOrderBy,
+    UserOut,
+):
     app = FastAPI()
 
     async def get_db() -> AsyncIterator[AsyncSession]:
@@ -177,21 +187,48 @@ def app(SessionLocal, Address, User, UserOut, UserFilterOrderBy, UserFilterOrder
 
     @app.get("/users", response_model=list[UserOut])
     async def get_users(
-        user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy), db: AsyncSession = Depends(get_db)
+        user_filter: UserFilter = FilterDepends(UserFilter),
+        db: AsyncSession = Depends(get_db),
     ):
         query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
-        query = user_filter.sort(query)  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().all()
 
-    @app.get("/users_with_default", response_model=list[UserOut])
-    async def get_users_with_default(
-        user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
+    @app.get("/users_with_order_by", response_model=list[UserOut])
+    async def get_users_with_order_by(
+        user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),
         db: AsyncSession = Depends(get_db),
     ):
         query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
         query = user_filter.sort(query)  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().all()
+
+    @app.get("/users_with_no_order_by", response_model=list[UserOut])
+    async def get_users_with_no_order_by(
+        user_filter: UserFilter = FilterDepends(UserFilter),
+    ):
+        return await get_users_with_order_by(user_filter)
+
+    @app.get("/users_with_default_order_by", response_model=list[UserOut])
+    async def get_users_with_default_order_by(
+        user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
+        db: AsyncSession = Depends(get_db),
+    ):
+        return await get_users_with_order_by(user_filter, db)
+
+    @app.get("/users_with_restricted_order_by", response_model=list[UserOut])
+    async def get_users_with_restricted_order_by(
+        user_filter: UserFilterRestrictedOrderBy = FilterDepends(UserFilterRestrictedOrderBy),
+        db: AsyncSession = Depends(get_db),
+    ):
+        return await get_users_with_order_by(user_filter, db)
+
+    @app.get("/users_with_custom_order_by", response_model=list[UserOut])
+    async def get_users_with_custom_order_by(
+        user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
+        db: AsyncSession = Depends(get_db),
+    ):
+        return await get_users_with_order_by(user_filter, db)
 
     yield app
