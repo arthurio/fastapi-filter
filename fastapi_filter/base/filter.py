@@ -89,7 +89,7 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
             ambiguous_field_names = ", ".join(
                 [
                     field_name_with_direction
-                    for field_name in duplicated_field_names
+                    for field_name in sorted(duplicated_field_names)
                     for field_name_with_direction in field_name_usages[field_name]
                 ]
             )
