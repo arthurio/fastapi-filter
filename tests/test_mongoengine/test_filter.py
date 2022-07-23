@@ -1,66 +1,6 @@
 from urllib.parse import urlencode
 
 import pytest
-from fastapi import FastAPI
-from httpx import AsyncClient
-
-from fastapi_filter import FilterDepends, with_prefix
-from fastapi_filter.contrib.mongoengine import Filter
-
-
-@pytest.fixture(scope="function")
-def app(db_connect, Address, User, UserFilter, UserOut):
-    app = FastAPI()
-
-    @app.get("/users", response_model=list[UserOut])
-    async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):
-        query = user_filter.filter(User.objects()).select_related()  # type: ignore[attr-defined]
-        return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
-
-    yield app
-
-
-@pytest.fixture(scope="function")
-async def test_client(app):
-    async with AsyncClient(app=app, base_url="http://test") as async_test_client:
-        yield async_test_client
-
-
-@pytest.fixture(scope="session")
-def AddressFilter(Address):
-    class AddressFilter(Filter):
-        street__isnull: bool | None
-        country: str | None
-        city: str | None
-        city__in: list[str] | None
-        country__nin: list[str] | None
-
-        class Constants(Filter.Constants):
-            model = Address
-
-    yield AddressFilter
-
-
-@pytest.fixture(scope="session")
-def UserFilter(User, AddressFilter):
-    class UserFilter(Filter):
-        name: str | None
-        name__in: list[str] | None
-        name__nin: list[str] | None
-        name__ne: str | None
-        name__isnull: bool | None
-        age: int | None
-        age__lt: int | None
-        age__lte: int | None
-        age__gt: int | None
-        age__gte: int | None
-        age__in: list[int] | None
-        address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
-
-        class Constants(Filter.Constants):
-            model = User
-
-    yield UserFilter
 
 
 @pytest.mark.parametrize(
