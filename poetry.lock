@@ -240,7 +240,7 @@ python-versions = "*"
 
 [[package]]
 name = "faker"
-version = "13.15.0"
+version = "13.15.1"
 description = "Faker is a Python package that generates fake data for you."
 category = "dev"
 optional = false
@@ -1045,7 +1045,7 @@ python-versions = "*"
 ujson = ">=3.0.0"
 
 [package.extras]
-test = ["pylint", "pycodestyle", "pyflakes", "pytest", "pytest-cov", "coverage"]
+test = ["coverage", "pytest-cov", "pytest", "pyflakes", "pycodestyle", "pylint"]
 
 [[package]]
 name = "python-lsp-server"
@@ -1062,18 +1062,18 @@ python-lsp-jsonrpc = ">=1.0.0"
 ujson = ">=3.0.0"
 
 [package.extras]
-all = ["autopep8 (>=1.6.0,<1.7.0)", "flake8 (>=4.0.0,<4.1.0)", "mccabe (>=0.6.0,<0.7.0)", "pycodestyle (>=2.8.0,<2.9.0)", "pydocstyle (>=2.0.0)", "pyflakes (>=2.4.0,<2.5.0)", "pylint (>=2.5.0)", "rope (>=0.10.5)", "yapf", "whatthepatch"]
-autopep8 = ["autopep8 (>=1.6.0,<1.7.0)"]
-flake8 = ["flake8 (>=4.0.0,<4.1.0)"]
-mccabe = ["mccabe (>=0.6.0,<0.7.0)"]
-pycodestyle = ["pycodestyle (>=2.8.0,<2.9.0)"]
-pydocstyle = ["pydocstyle (>=2.0.0)"]
-pyflakes = ["pyflakes (>=2.4.0,<2.5.0)"]
-pylint = ["pylint (>=2.5.0)"]
-rope = ["rope (>0.10.5)"]
-test = ["pylint (>=2.5.0)", "pytest", "pytest-cov", "coverage", "numpy (<1.23)", "pandas", "matplotlib", "pyqt5", "flaky"]
+yapf = ["whatthepatch (>=1.0.2,<2.0.0)", "yapf"]
 websockets = ["websockets (>=10.3)"]
-yapf = ["yapf", "whatthepatch (>=1.0.2,<2.0.0)"]
+test = ["flaky", "pyqt5", "matplotlib", "pandas", "numpy (<1.23)", "coverage", "pytest-cov", "pytest", "pylint (>=2.5.0)"]
+rope = ["rope (>0.10.5)"]
+pylint = ["pylint (>=2.5.0)"]
+pyflakes = ["pyflakes (>=2.4.0,<2.5.0)"]
+pydocstyle = ["pydocstyle (>=2.0.0)"]
+pycodestyle = ["pycodestyle (>=2.8.0,<2.9.0)"]
+mccabe = ["mccabe (>=0.6.0,<0.7.0)"]
+flake8 = ["flake8 (>=4.0.0,<4.1.0)"]
+autopep8 = ["autopep8 (>=1.6.0,<1.7.0)"]
+all = ["whatthepatch", "yapf", "rope (>=0.10.5)", "pylint (>=2.5.0)", "pyflakes (>=2.4.0,<2.5.0)", "pydocstyle (>=2.0.0)", "pycodestyle (>=2.8.0,<2.9.0)", "mccabe (>=0.6.0,<0.7.0)", "flake8 (>=4.0.0,<4.1.0)", "autopep8 (>=1.6.0,<1.7.0)"]
 
 [[package]]
 name = "pyyaml"
@@ -1240,7 +1240,7 @@ executing = "*"
 pure-eval = "*"
 
 [package.extras]
-tests = ["pytest", "typeguard", "pygments", "littleutils", "cython"]
+tests = ["cython", "littleutils", "pygments", "typeguard", "pytest"]
 
 [[package]]
 name = "starlette"
@@ -1374,7 +1374,7 @@ click = ">=7.0"
 h11 = ">=0.8"
 
 [package.extras]
-standard = ["colorama (>=0.4)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "PyYAML (>=5.1)", "python-dotenv (>=0.13)", "watchfiles (>=0.13)", "httptools (>=0.4.0)", "websockets (>=10.0)"]
+standard = ["websockets (>=10.0)", "httptools (>=0.4.0)", "watchfiles (>=0.13)", "python-dotenv (>=0.13)", "PyYAML (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "colorama (>=0.4)"]
 
 [[package]]
 name = "virtualenv"
@@ -1433,7 +1433,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "776578ac8fcabc756d972dfea4bd7886e72bfe8c1351d30b6da9efcf4dc1055b"
+content-hash = "667ba656557b446c475d95004dfaac41f576ef7ac9938f4004ced9b1572f8883"
 
 [metadata.files]
 aiosqlite = [
@@ -1581,8 +1581,8 @@ executing = [
     {file = "executing-0.8.3.tar.gz", hash = "sha256:c6554e21c6b060590a6d3be4b82fb78f8f0194d809de5ea7df1c093763311501"},
 ]
 faker = [
-    {file = "Faker-13.15.0-py3-none-any.whl", hash = "sha256:8e94a749d2f3d9b367f61eb33be6a534f0a2d305c54e912ee6618370e3278db7"},
-    {file = "Faker-13.15.0.tar.gz", hash = "sha256:a126fa66f54e65a67f913dcc698c9d023def7277882536bde2968fcac701bfd5"},
+    {file = "Faker-13.15.1-py3-none-any.whl", hash = "sha256:172e45220b7a46743f4fb58cf380adb306d5c3ab1c0b0d97062508474cec5ff8"},
+    {file = "Faker-13.15.1.tar.gz", hash = "sha256:7c3f8ee807d3916415568169a172bf0893ea9cc3371ab55e4e5f5170d2185bea"},
 ]
 fastapi = [
     {file = "fastapi-0.79.0-py3-none-any.whl", hash = "sha256:d337563424ceada23857f73d5abe8dae0c28e4cccb53b2af06e78b7bb4a1c7d7"},
