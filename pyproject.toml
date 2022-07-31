@@ -45,7 +45,6 @@ fastapi = ">=0.78,<0.80"
 pydantic = "^1.9.0"
 mongoengine = {version = "^0.24.1", optional = true}
 SQLAlchemy = {version = "^1.4.36", optional = true}
-greenlet = {version = "^2.0.0a2", allow-prereleases = true}
 
 [tool.poetry.dev-dependencies]
 pudb = "^2022.1.2"
@@ -80,6 +79,7 @@ aiosqlite = "^0.17.0"
 requests = "^2.28.1"
 httpx = "^0.23.0"
 pydantic = {extras = ["email"], version = "^1.9.1"}
+greenlet = {version = "^2.0.0a2", allow-prereleases = true}
 
 [tool.poetry.extras]
 mongoengine = ["mongoengine"]
