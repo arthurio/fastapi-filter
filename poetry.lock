@@ -1222,7 +1222,7 @@ url = ["furl (>=0.4.1)"]
 
 [[package]]
 name = "sqlalchemy2-stubs"
-version = "0.0.2a26"
+version = "0.0.2a27"
 description = "Typing Stubs for SQLAlchemy 1.4"
 category = "dev"
 optional = false
@@ -1438,7 +1438,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "d412ffa36bc61ecb352740cd026a2fb57012f176b6f8b825d38bdd34b569ca90"
+content-hash = "d9f720f93b5f80469f994799bb68580cfb4113a134ec94dad9714b40e6439b3d"
 
 [metadata.files]
 aiosqlite = [
@@ -2193,8 +2193,8 @@ sqlalchemy-utils = [
     {file = "SQLAlchemy_Utils-0.38.3-py3-none-any.whl", hash = "sha256:5c13b5d08adfaa85f3d4e8ec09a75136216fad41346980d02974a70a77988bf9"},
 ]
 sqlalchemy2-stubs = [
-    {file = "sqlalchemy2-stubs-0.0.2a26.tar.gz", hash = "sha256:2848755b30e177a3d39cd10c52c0fcbbbecb227a6a608fa53b0ce11070b156f7"},
-    {file = "sqlalchemy2_stubs-0.0.2a26-py3-none-any.whl", hash = "sha256:bb2e2cd88cb7c3710c2361ad0b085c86a287667a4a51b640c66711dd83fce82b"},
+    {file = "sqlalchemy2-stubs-0.0.2a27.tar.gz", hash = "sha256:f79bce50b7837a2c2374ef4480b41e2b8a8226f313f347dc2a70526a4191db93"},
+    {file = "sqlalchemy2_stubs-0.0.2a27-py3-none-any.whl", hash = "sha256:6cea12fec3c261f6e0e14a95d2cc4914e373095e68ec4fc2eb473183ac2b17a2"},
 ]
 stack-data = [
     {file = "stack_data-0.2.0-py3-none-any.whl", hash = "sha256:999762f9c3132308789affa03e9271bbbe947bf78311851f4d485d8402ed858e"},
