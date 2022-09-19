@@ -1,7 +1,7 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import Any, Type
+from typing import Any, Optional, Type, Union
 
 from fastapi import Depends, HTTPException, status
 from pydantic import BaseModel, Extra, ValidationError, create_model, fields, validator
@@ -177,16 +177,16 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
 
 
 def _list_to_str_fields(Filter: Type[BaseFilterModel]):
-    ret: dict[str, tuple[object | Type, FieldInfo | None]] = {}
+    ret: dict[str, tuple[Union[object, Type], Optional[FieldInfo]]] = {}
     for f in Filter.__fields__.values():
         field_info = deepcopy(f.field_info)
         if f.shape == fields.SHAPE_LIST:
             if isinstance(field_info.default, Iterable):
                 field_info.default = ",".join(field_info.default)
-            ret[f.name] = (str | None, field_info)
+            ret[f.name] = (Optional[str], field_info)
         else:
             field_type = Filter.__annotations__.get(f.name, f.outer_type_)
-            ret[f.name] = (field_type | None, field_info)
+            ret[f.name] = (Optional[field_type], field_info)
 
     return ret
 
@@ -194,7 +194,7 @@ def _list_to_str_fields(Filter: Type[BaseFilterModel]):
 def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True) -> Any:
     """This is a hack to support lists in filters.
 
-    Fastapi doesn't support it yet: https://github.com/tiangolo/fastapi/issues/50
+    FastAPI doesn't support it yet: https://github.com/tiangolo/fastapi/issues/50
 
     What we do is loop through the fields of a filter and change any `list` field to a `str` one so that it won't be
     excluded from the possible query parameters.

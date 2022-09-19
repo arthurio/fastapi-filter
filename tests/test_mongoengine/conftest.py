@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Generator
+from typing import Any, Generator, Optional
 
 import pytest
 from bson.objectid import ObjectId
@@ -105,11 +105,11 @@ def users(User, Address):
 @pytest.fixture(scope="package")
 def AddressFilter(Address, Filter):
     class AddressFilter(Filter):
-        street__isnull: bool | None
-        country: str | None
-        city: str | None
-        city__in: list[str] | None
-        country__nin: list[str] | None
+        street__isnull: Optional[bool]
+        country: Optional[str]
+        city: Optional[str]
+        city__in: Optional[list[str]]
+        country__nin: Optional[list[str]]
 
         class Constants(Filter.Constants):
             model = Address
@@ -120,18 +120,18 @@ def AddressFilter(Address, Filter):
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
     class UserFilter(Filter):
-        name: str | None
-        name__in: list[str] | None
-        name__nin: list[str] | None
-        name__ne: str | None
-        name__isnull: bool | None
-        age: int | None
-        age__lt: int | None
-        age__lte: int | None
-        age__gt: int | None
-        age__gte: int | None
-        age__in: list[int] | None
-        address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
+        name: Optional[str]
+        name__in: Optional[list[str]]
+        name__nin: Optional[list[str]]
+        name__ne: Optional[str]
+        name__isnull: Optional[bool]
+        age: Optional[int]
+        age__lt: Optional[int]
+        age__lte: Optional[int]
+        age__gt: Optional[int]
+        age__gte: Optional[int]
+        age__in: Optional[list[int]]
+        address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
 
         class Constants(Filter.Constants):
             model = User
@@ -143,7 +143,7 @@ def UserFilter(User, Filter, AddressFilter):
 def AddressOut(PydanticObjectId):
     class AddressOut(BaseModel):
         id: PydanticObjectId = Field(..., alias="_id")
-        street: str | None
+        street: Optional[str]
         city: str
         country: str
 
@@ -158,7 +158,7 @@ def UserOut(PydanticObjectId, AddressOut):
     class UserOut(BaseModel):
         id: PydanticObjectId = Field(..., alias="_id")
         created_at: datetime
-        name: str | None
+        name: Optional[str]
         age: int
         address: AddressOut | None
 

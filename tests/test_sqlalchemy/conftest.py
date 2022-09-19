@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import AsyncIterator
+from typing import AsyncIterator, Optional
 
 import pytest
 import pytest_asyncio
@@ -133,10 +133,10 @@ def Filter():
 @pytest.fixture(scope="package")
 def AddressFilter(Address, Filter):
     class AddressFilter(Filter):
-        street__isnull: bool | None
-        city: str | None
-        city__in: list[str] | None
-        country__not_in: list[str] | None
+        street__isnull: Optional[bool]
+        city: Optional[str]
+        city__in: Optional[list[str]]
+        country__not_in: Optional[list[str]]
 
         class Constants(Filter.Constants):
             model = Address
@@ -147,19 +147,19 @@ def AddressFilter(Address, Filter):
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
     class UserFilter(Filter):
-        name: str | None
-        name__in: list[str] | None
-        name__not: str | None
-        name__not_in: list[str] | None
-        name__isnull: bool | None
-        age: int | None
-        age__lt: int | None
-        age__lte: int | None
-        age__gt: int | None
-        age__gte: int | None
-        age__in: list[int] | None
-        address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
-        address_id__isnull: bool | None
+        name: Optional[str]
+        name__in: Optional[list[str]]
+        name__not: Optional[str]
+        name__not_in: Optional[list[str]]
+        name__isnull: Optional[bool]
+        age: Optional[int]
+        age__lt: Optional[int]
+        age__lte: Optional[int]
+        age__gt: Optional[int]
+        age__gte: Optional[int]
+        age__in: Optional[list[int]]
+        address: Optional[AddressFilter]= FilterDepends(with_prefix("address", AddressFilter))
+        address_id__isnull: Optional[bool]
 
         class Constants(Filter.Constants):
             model = User

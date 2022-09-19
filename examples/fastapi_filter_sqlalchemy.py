@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Optional
 
 import uvicorn
 from faker import Faker
@@ -58,18 +58,18 @@ class UserIn(BaseModel):
 
 class UserOut(UserIn):
     id: int
-    address: AddressOut | None
+    address: Optional[AddressOut] 
 
     class Config:
         orm_mode = True
 
 
 class AddressFilter(Filter):
-    street: str | None
-    country: str | None
-    city: str | None
-    city__in: list[str] | None
-    custom_order_by: list[str] | None
+    street: Optional[str] 
+    country: Optional[str] 
+    city: Optional[str] 
+    city__in: Optional[list[str]]
+    custom_order_by: Optional[list[str]]
 
     class Constants(Filter.Constants):
         model = Address
@@ -77,9 +77,9 @@ class AddressFilter(Filter):
 
 
 class UserFilter(Filter):
-    name: str | None
-    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
-    age__lt: int | None
+    name: Optional[str] 
+    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
+    age__lt: Optional[int]
     age__gte: int = 10  # <-- NOTE(arthurio): This filter required
     order_by: list[str] = ["age"]
 

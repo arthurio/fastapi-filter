@@ -27,7 +27,7 @@ class Filter(BaseFilterModel):
         ```
     """
 
-    def sort(self, query: QuerySet):
+    def sort(self, query: QuerySet) -> QuerySet:
         if not self.ordering_values:
             return query
         return query.order_by(*self.ordering_values)
@@ -42,7 +42,7 @@ class Filter(BaseFilterModel):
             return [field.type_(v) for v in value.split(",")]
         return value
 
-    def filter(self, query: QuerySet):
+    def filter(self, query: QuerySet) -> QuerySet:
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
