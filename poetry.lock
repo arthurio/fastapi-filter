@@ -638,7 +638,7 @@ i18n = ["babel (>=2.9.0)"]
 
 [[package]]
 name = "mkdocs-material"
-version = "8.5.1"
+version = "8.5.2"
 description = "Documentation that simply works"
 category = "dev"
 optional = false
@@ -1439,7 +1439,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "8509cafdce699b89e138add35ced6c34b3824cfb3f7a9aa01df707f7dc8d7380"
+content-hash = "538d30c640aac64300d61b0bf7c681209703d40603f5589877086cb2743bd5d2"
 
 [metadata.files]
 aiosqlite = [
@@ -1806,8 +1806,8 @@ mkdocs = [
     {file = "mkdocs-1.3.1.tar.gz", hash = "sha256:a41a2ff25ce3bbacc953f9844ba07d106233cd76c88bac1f59cb1564ac0d87ed"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-8.5.1.tar.gz", hash = "sha256:2daf604d00d554d5496c02b4c4d14dfa57dd689c90f639da5020601baef4b235"},
-    {file = "mkdocs_material-8.5.1-py2.py3-none-any.whl", hash = "sha256:79e9b65e481edb539eda6a3a939a0e02609a5c54afc315c3b05f57ff40db3188"},
+    {file = "mkdocs-material-8.5.2.tar.gz", hash = "sha256:16ca1304a93b085e5dfb0dbcc681b74dad1587d8ba727c89c8fd4259dd8fe004"},
+    {file = "mkdocs_material-8.5.2-py2.py3-none-any.whl", hash = "sha256:1962099d8c6eb7571896a0e7fdc52ff4fda1e906969d0e42ae3537418e807868"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
