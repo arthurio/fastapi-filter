@@ -130,11 +130,11 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
         from fastapi_filter.filter import FilterDepends
 
         class NumberFilter(BaseModel):
-            count: int | None
+            count: Optional[int]
 
         class MainFilter(BaseModel):
             name: str
-            number_filter: Filter | None = FilterDepends(with_prefix("number_filter", Filter))
+            number_filter: Optional[Filter] = FilterDepends(with_prefix("number_filter", Filter))
         ```
 
     As a result, you'll get the following filters:
@@ -151,11 +151,11 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
          from pydantic import BaseModel
 
         class NumberFilter(BaseModel):
-            count: int | None = Query(default=10, alias=counter)
+            count: Optional[int] = Query(default=10, alias=counter)
 
         class MainFilter(BaseModel):
             name: str
-            number_filter: Filter | None = FilterDepends(with_prefix("number_filter", Filter))
+            number_filter: Optional[Filter] = FilterDepends(with_prefix("number_filter", Filter))
         ```
 
     As a result, you'll get the following filters:

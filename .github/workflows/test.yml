@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - "main"
+  workflow_dispatch:
 
 jobs:
   test:
@@ -26,7 +27,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Poetry
-        run: pip install -U pip poetry=1.2.0
+        run: pip install -U pip poetry==1.2.0
 
       - name: Set up MongoDB
         uses: supercharge/mongodb-github-action@1.6.0

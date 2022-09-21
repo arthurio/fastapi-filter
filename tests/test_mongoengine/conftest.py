@@ -160,7 +160,7 @@ def UserOut(PydanticObjectId, AddressOut):
         created_at: datetime
         name: Optional[str]
         age: int
-        address: AddressOut | None
+        address: Optional[AddressOut]
 
         class Config:
             orm_mode = True
