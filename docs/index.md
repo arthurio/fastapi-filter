@@ -48,19 +48,21 @@ and even re-use existing filters for their models.
 
 As you can see in the examples, all it takes is something along the lines of:
 
-```python hl_lines="19"
+```python hl_lines="21"
+from typing import Optional
+
 class AddressFilter(Filter):
-    street: str | None
-    country: str | None
-    city__in: list[str] | None
+    street: Optional[str]
+    country: Optional[str]
+    city__in: Optional[list[str]]
 
     class Constants(Filter.Constants):
         model = Address
 
 
 class UserFilter(Filter):
-    name: str | None
-    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
+    name: Optional[str]
+    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
 
     class Constants(Filter.Constants):
         model = User
@@ -96,17 +98,19 @@ used for filtering related fields.
 The following would be equivalent:
 
 ```python
+from typing import Optional
+
 class AddressFilter(Filter):
-    street: str | None
-    country: str | None
+    street: Optional[str]
+    country: Optional[str]
 
     class Constants(Filter.Constants):
         model = Address
 
 
 class UserFilter(Filter):
-    name: str | None
-    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
+    name: Optional[str]
+    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
 
     class Constants(Filter.Constants):
         model = User
@@ -116,9 +120,9 @@ AND
 
 ```python
 class UserFilter(Filter):
-    name: str | None
-    address__street: str | None
-    address__country: str | None
+    name: Optional[str]
+    address__street: Optional[str]
+    address__country: Optional[str]
 ```
 
 ## Order by
@@ -135,12 +139,12 @@ If you don't want to allow ordering on your filter, just don't add `order_by` as
 
 ### Example - Basic
 
-
 ```python
+from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
 
 class UserFilter(Filter):
-    order_by: list[str] | None
+    order_by: Optional[list[str]]
 
 @app.get("/users", response_model=list[UserOut])
 async def get_users(
@@ -167,6 +171,7 @@ Valid urls:
 If for some reason you can't or don't want to use `order_by` as the field name for ordering, you can override it:
 
 ```python
+from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
 
 class UserFilter(Filter):
@@ -174,7 +179,7 @@ class UserFilter(Filter):
         model = User
         ordering_field_name = "custom_order_by"
 
-    custom_order_by: list[str] | None
+    custom_order_by: Optional[list[str]]
 
 @app.get("/users", response_model=list[UserOut])
 async def get_users(
@@ -201,25 +206,26 @@ curl /users?custom_order_by=+id
 Add the following validator to your filter class:
 
 ```python
+from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import validator
 
 class MyFilter(Filter):
-  order_by: list[str] | None
+    order_by: Optional[list[str]]
 
-  @validator("order_by")
-  def restrict_sortable_fields(cls, value):
-      if value is None:
-          return None
+    @validator("order_by")
+    def restrict_sortable_fields(cls, value):
+        if value is None:
+            return None
 
-      allowed_field_names = ["age", "id"]
+        allowed_field_names = ["age", "id"]
 
-      for field_name in value:
-          field_name = field_name.replace("+", "").replace("-", "")  # (1)
-          if field_name not in allowed_field_names:
-              raise ValueError(f"You may only sort by: {', '.join(allowed_field_names)}")
+        for field_name in value:
+            field_name = field_name.replace("+", "").replace("-", "")  # (1)
+            if field_name not in allowed_field_names:
+                raise ValueError(f"You may only sort by: {', '.join(allowed_field_names)}")
 
-      return value
+        return value
 ```
 
 1. If you want to restrict only on specific directions, like `-created_at` and `name` for example, you can remove this
