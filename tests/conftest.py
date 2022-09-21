@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 import pytest
 import pytest_asyncio
@@ -23,7 +24,7 @@ def UserFilterOrderByWithDefault(User, UserFilter):
 @pytest.fixture(scope="package")
 def UserFilterOrderBy(User, UserFilter):
     class UserFilterOrderBy(UserFilter):
-        order_by: list[str] | None
+        order_by: Optional[list[str]]
 
     return UserFilterOrderBy
 
@@ -39,7 +40,7 @@ def UserFilterCustomOrderBy(UserFilter):
         class Constants(UserFilter.Constants):
             ordering_field_name = "custom_order_by"
 
-        custom_order_by: list[str] | None
+        custom_order_by: Optional[list[str]]
 
     return UserFilterCustomOrderBy
 
@@ -47,7 +48,7 @@ def UserFilterCustomOrderBy(UserFilter):
 @pytest.fixture(scope="package")
 def UserFilterRestrictedOrderBy(UserFilter):
     class UserFilterRestrictedOrderBy(UserFilter):
-        order_by: list[str] | None
+        order_by: Optional[list[str]]
 
         @validator("order_by", allow_reuse=True)
         def restrict_sortable_fields(cls, value):
@@ -70,7 +71,7 @@ def UserFilterRestrictedOrderBy(UserFilter):
 def AddressOut():
     class AddressOut(BaseModel):
         id: int
-        street: str | None
+        street: Optional[str]
         city: str
         country: str
 
@@ -86,9 +87,9 @@ def UserOut(AddressOut):
         id: int
         created_at: datetime
         updated_at: datetime
-        name: str | None
+        name: Optional[str]
         age: int
-        address: AddressOut | None
+        address: Optional[AddressOut]
 
         class Config:
             orm_mode = True

@@ -1,4 +1,4 @@
-from typing import Any, Generator
+from typing import Any, Generator, Optional
 
 import uvicorn
 from bson.objectid import ObjectId
@@ -63,18 +63,18 @@ class UserOut(UserIn):
     name: str
     email: EmailStr
     age: int
-    address: AddressOut | None
+    address: Optional[AddressOut]
 
     class Config:
         orm_mode = True
 
 
 class AddressFilter(Filter):
-    street: str | None
-    country: str | None
-    city: str | None
-    city__in: list[str] | None
-    custom_order_by: list[str] | None
+    street: Optional[str]
+    country: Optional[str]
+    city: Optional[str]
+    city__in: Optional[list[str]]
+    custom_order_by: Optional[list[str]]
 
     class Constants(Filter.Constants):
         model = Address
@@ -82,9 +82,9 @@ class AddressFilter(Filter):
 
 
 class UserFilter(Filter):
-    name: str | None
-    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
-    age__lt: int | None
+    name: Optional[str]
+    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
+    age__lt: Optional[int]
     age__gte: int = 10  # <-- NOTE(arthurio): This filter required
     order_by: list[str] = ["age"]
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
+from typing import Union
 
 from pydantic import validator
 from sqlalchemy.orm import Query
@@ -48,12 +49,12 @@ class Filter(BaseFilterModel):
             created_at: DatetimeField()
 
         class MyModelFilter(Filter):
-            id: int | None
-            id__in: str | None
-            count: int | None
-            count__lte: int | None
-            created_at__gt: datetime | None
-            name__isnull: bool | None
+            id: Optional[int]
+            id__in: Optional[str]
+            count: Optional[int]
+            count__lte: Optional[int]
+            created_at__gt: Optional[datetime]
+            name__isnull: Optional[bool]
     """
 
     class Direction(str, Enum):
@@ -70,7 +71,7 @@ class Filter(BaseFilterModel):
             return [field.type_(v) for v in value.split(",")]
         return value
 
-    def filter(self, query: Query | Select):
+    def filter(self, query: Union[Query, Select]) -> Union[Query, Select]:
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
@@ -87,7 +88,7 @@ class Filter(BaseFilterModel):
 
         return query
 
-    def sort(self, query: Query | Select):
+    def sort(self, query: Union[Query, Select]) -> Union[Query, Select]:
         if not self.ordering_values:
             return query
 
