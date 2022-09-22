@@ -67,4 +67,4 @@ jobs:
         run: poetry install --extras all
 
       - name: Run pre-commit
-        run: pre-commit run --all
+        run: source $HOME/.poetry/env && pre-commit run --all-files
