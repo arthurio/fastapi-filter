@@ -158,7 +158,7 @@ def UserFilter(User, Filter, AddressFilter):
         age__gt: Optional[int]
         age__gte: Optional[int]
         age__in: Optional[list[int]]
-        address: Optional[AddressFilter]= FilterDepends(with_prefix("address", AddressFilter))
+        address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
         address_id__isnull: Optional[bool]
 
         class Constants(Filter.Constants):

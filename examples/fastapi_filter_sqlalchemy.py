@@ -58,16 +58,16 @@ class UserIn(BaseModel):
 
 class UserOut(UserIn):
     id: int
-    address: Optional[AddressOut] 
+    address: Optional[AddressOut]
 
     class Config:
         orm_mode = True
 
 
 class AddressFilter(Filter):
-    street: Optional[str] 
-    country: Optional[str] 
-    city: Optional[str] 
+    street: Optional[str]
+    country: Optional[str]
+    city: Optional[str]
     city__in: Optional[list[str]]
     custom_order_by: Optional[list[str]]
 
@@ -77,7 +77,7 @@ class AddressFilter(Filter):
 
 
 class UserFilter(Filter):
-    name: Optional[str] 
+    name: Optional[str]
     address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: Optional[int]
     age__gte: int = 10  # <-- NOTE(arthurio): This filter required
