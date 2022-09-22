@@ -55,7 +55,6 @@ jobs:
 
       - name: Run unit tests
         run: |
-          source .venv/bin/activate
           poetry run pytest tests --cov-report=xml
 
       - name: Upload coverage to Codecov
