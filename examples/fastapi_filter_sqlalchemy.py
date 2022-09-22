@@ -58,16 +58,16 @@ class UserIn(BaseModel):
 
 class UserOut(UserIn):
     id: int
-    address: Optional[AddressOut] 
+    address: Optional[AddressOut]
 
     class Config:
         orm_mode = True
 
 
 class AddressFilter(Filter):
-    street: Optional[str] 
-    country: Optional[str] 
-    city: Optional[str] 
+    street: Optional[str]
+    country: Optional[str]
+    city: Optional[str]
     city__in: Optional[list[str]]
     custom_order_by: Optional[list[str]]
 
@@ -77,7 +77,7 @@ class AddressFilter(Filter):
 
 
 class UserFilter(Filter):
-    name: Optional[str] 
+    name: Optional[str]
     address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: Optional[int]
     age__gte: int = 10  # <-- NOTE(arthurio): This filter required
@@ -121,7 +121,8 @@ async def get_users(
     user_filter: UserFilter = FilterDepends(UserFilter),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
-    query = user_filter.filter(select(User).outerjoin(Address))
+    query = select(User).outerjoin(Address)
+    query = user_filter.filter(query)
     query = user_filter.sort(query)
     result = await db.execute(query)
     return result.scalars().all()
@@ -132,7 +133,8 @@ async def get_addresses(
     address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
-    query = address_filter.filter(select(Address))
+    query = select(Address)
+    query = address_filter.filter(query)
     query = address_filter.sort(query)
     result = await db.execute(query)
     return result.scalars().all()

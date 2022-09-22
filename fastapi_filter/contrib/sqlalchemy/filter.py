@@ -71,7 +71,7 @@ class Filter(BaseFilterModel):
             return [field.type_(v) for v in value.split(",")]
         return value
 
-    def filter(self, query: Union[Query, Select]) -> Union[Query, Select]:
+    def filter(self, query: Union[Query, Select]):
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
@@ -88,7 +88,7 @@ class Filter(BaseFilterModel):
 
         return query
 
-    def sort(self, query: Union[Query, Select]) -> Union[Query, Select]:
+    def sort(self, query: Union[Query, Select]):
         if not self.ordering_values:
             return query
 
