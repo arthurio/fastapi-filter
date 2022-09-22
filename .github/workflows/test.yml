@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.9.14", "3.10.7" ]
+        python-version: [ "3.9", "3.10" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +31,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.local
-          key: poetry-1.2.0-0
+          key: poetry-${{ steps.setup-python.outputs.python-version }}-1.2.0-0
 
       - uses: snok/install-poetry@v1
         with:
@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.9.14", "3.10.7" ]
+        python-version: [ "3.9", "3.10" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -84,7 +84,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.local
-          key: poetry-1.2.0-0
+          key: poetry-${{ steps.setup-python.outputs.python-version }}-1.2.0-0
 
       - uses: snok/install-poetry@v1
         with:
