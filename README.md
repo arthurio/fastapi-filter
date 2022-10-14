@@ -10,7 +10,7 @@
 **Required:**
   * Python: 3.9+
   * Fastapi: 0.78+
-  * Pydantic: 1.9+
+  * Pydantic: 1.10+
 
 **Optional**
   * MongoEngine: 0.24.1+
