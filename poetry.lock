@@ -1324,7 +1324,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-setuptools"
-version = "65.4.0.0"
+version = "65.5.0.1"
 description = "Typing stubs for setuptools"
 category = "dev"
 optional = false
@@ -1452,7 +1452,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.12"
-content-hash = "29a0c92e17fa0aafc904293a41a17b2cfa9debe76730e0d83f034df34dfb7049"
+content-hash = "fac007e7167653e1526d88abaa8004811230bcaf4a39eefdce5e9c47b67a2161"
 
 [metadata.files]
 aiosqlite = [
@@ -2242,8 +2242,8 @@ types-click = [
     {file = "types_click-7.1.8-py3-none-any.whl", hash = "sha256:8cb030a669e2e927461be9827375f83c16b8178c365852c060a34e24871e7e81"},
 ]
 types-setuptools = [
-    {file = "types-setuptools-65.4.0.0.tar.gz", hash = "sha256:d9021d6a70690b34e7bd2947e7ab10167c646fbf062508cb56581be2e2a1615e"},
-    {file = "types_setuptools-65.4.0.0-py3-none-any.whl", hash = "sha256:ce178b3f7dbd6c0e67f8eee7ae29c1be280ade7e5188bdd9e620843de4060d85"},
+    {file = "types-setuptools-65.5.0.1.tar.gz", hash = "sha256:5b297081c8f1fbd992cd8b305a97ed96ee6ffc765e9115124029597dd10b8a71"},
+    {file = "types_setuptools-65.5.0.1-py3-none-any.whl", hash = "sha256:601d45b5e9979d2b931de5403aa11153626a1eadd1ce9727b21f24673ced5ceb"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.4.0-py3-none-any.whl", hash = "sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e"},
