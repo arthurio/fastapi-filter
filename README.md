@@ -8,13 +8,14 @@
 ## Compatibilty
 
 **Required:**
-  * Python: 3.9+
-  * Fastapi: 0.78+
-  * Pydantic: 1.10+
+  * Python: >=3.9, <3.12
+  * Fastapi: >=0.78, <0.86
+  * Pydantic: >=1.10.0 <2.0.0
+
 
 **Optional**
-  * MongoEngine: 0.24.1+
-  * SQLAlchemy: 1.4.36+
+  * MongoEngine: >=0.24.1, <0.25.0
+  * SQLAlchemy: >=1.4.36, <1.5.0
 
 ## Installation
 
