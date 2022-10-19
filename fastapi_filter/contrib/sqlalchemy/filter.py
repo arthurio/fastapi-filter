@@ -9,12 +9,15 @@ from sqlalchemy.sql.selectable import Select
 from ...base.filter import BaseFilterModel
 
 _orm_operator_transformer = {
+    "neq": lambda value: ("__ne__", value),
     "gt": lambda value: ("__gt__", value),
     "gte": lambda value: ("__ge__", value),
     "in": lambda value: ("in_", value),
     "isnull": lambda value: ("is_", None) if value is True else ("is_not", None),
     "lt": lambda value: ("__lt__", value),
     "lte": lambda value: ("__le__", value),
+    "like": lambda value: ("like", f"%{value}%"),
+    "ilike": lambda value: ("ilike", f"%{value}%"),
     # XXX(arthurio): Mysql excludes None values when using `in` or `not in` filters.
     "not": lambda value: ("is_not", value),
     "not_in": lambda value: ("not_in", value),
