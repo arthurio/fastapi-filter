@@ -25,6 +25,7 @@ as well as the type of operator, then tie your filter to a specific model.
 
 By default, **fastapi_filter** supports the following operators:
 
+  - `neq`
   - `gt`
   - `gte`
   - `in`
@@ -33,6 +34,7 @@ By default, **fastapi_filter** supports the following operators:
   - `lte`
   - `not`/`ne`
   - `not_in`/`nin`
+  - `like`/`ilike`
 
 _**Note:** Mysql excludes `None` values when using `in` filter_
 

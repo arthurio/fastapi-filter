@@ -148,6 +148,9 @@ def AddressFilter(Address, Filter):
 def UserFilter(User, Filter, AddressFilter):
     class UserFilter(Filter):
         name: Optional[str]
+        name__neq: Optional[str]
+        name__like: Optional[str]
+        name__ilike: Optional[str]
         name__in: Optional[list[str]]
         name__not: Optional[str]
         name__not_in: Optional[list[str]]

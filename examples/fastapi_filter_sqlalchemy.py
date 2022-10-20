@@ -4,7 +4,8 @@ import uvicorn
 from faker import Faker
 from fastapi import Depends, FastAPI
 from pydantic import BaseModel
-from sqlalchemy import Column, ForeignKey, Integer, String, select
+from sqlalchemy import Column, ForeignKey, Integer, String, event, select
+from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -12,7 +13,16 @@ from sqlalchemy.orm import relationship, sessionmaker
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter
 
+
+@event.listens_for(Engine, "connect")
+def _set_sqlite_case_sensitive_pragma(dbapi_con, connection_record):
+    cursor = dbapi_con.cursor()
+    cursor.execute("PRAGMA case_sensitive_like=ON;")
+    cursor.close()
+
+
 engine = create_async_engine("sqlite+aiosqlite:///fastapi_filter.sqlite")
+
 async_session = sessionmaker(engine, class_=AsyncSession)
 
 Base = declarative_base()
@@ -78,6 +88,9 @@ class AddressFilter(Filter):
 
 class UserFilter(Filter):
     name: Optional[str]
+    name__ilike: Optional[str]
+    name__like: Optional[str]
+    name__neq: Optional[str]
     address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: Optional[int]
     age__gte: int = 10  # <-- NOTE(arthurio): This filter required
