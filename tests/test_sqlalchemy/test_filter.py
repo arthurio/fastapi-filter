@@ -31,7 +31,6 @@ from sqlalchemy.future import select
 async def test_filter(session, Address, User, UserFilter, users, filter_, expected_count):
     query = select(User).outerjoin(Address)
     query = UserFilter(**filter_).filter(query)
-    # print(session.query(User).filter(User.name.like('Mr')))
     result = await session.execute(query)
     assert len(result.scalars().all()) == expected_count
 
