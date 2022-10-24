@@ -183,10 +183,10 @@ def _list_to_str_fields(Filter: Type[BaseFilterModel]):
         if f.shape == fields.SHAPE_LIST:
             if isinstance(field_info.default, Iterable):
                 field_info.default = ",".join(field_info.default)
-            ret[f.name] = (Optional[str], field_info)
+            ret[f.name] = (str if f.required else Optional[str], field_info)
         else:
             field_type = Filter.__annotations__.get(f.name, f.outer_type_)
-            ret[f.name] = (Optional[field_type], field_info)
+            ret[f.name] = (field_type if f.required else Optional[field_type], field_info)
 
     return ret
 
