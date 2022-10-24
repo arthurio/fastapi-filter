@@ -95,3 +95,17 @@ def UserOut(AddressOut):
             orm_mode = True
 
     return UserOut
+
+
+@pytest.fixture(scope="session")
+def SportOut(UserOut):
+    class SportOut(BaseModel):
+        id: int
+        name: str
+        is_individual: bool
+        users: list[UserOut] | None
+
+        class Config:
+            orm_mode = True
+
+    return SportOut

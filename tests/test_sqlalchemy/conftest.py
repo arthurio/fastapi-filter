@@ -3,11 +3,13 @@ from typing import AsyncIterator, Optional
 
 import pytest
 import pytest_asyncio
-from fastapi import Depends, FastAPI
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, select
+from fastapi import Depends, FastAPI, Query
+from pydantic import Field
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import Mapped, backref, relationship, sessionmaker
+from sqlalchemy.schema import UniqueConstraint
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter as SQLAlchemyFilter
@@ -53,7 +55,7 @@ def Base(engine):
 
 
 @pytest.fixture(scope="session")
-def User(Base, Address):
+def User(Base, Address, FavoriteSport, Sport):
     class User(Base):
         __tablename__ = "users"
 
@@ -64,6 +66,10 @@ def User(Base, Address):
         age = Column(Integer, nullable=False)
         address_id = Column(Integer, ForeignKey("addresses.id"))
         address: Address = relationship(Address, backref="users", lazy="joined")
+
+        favorite_sports: Mapped[Sport] = relationship(
+            Sport, secondary="favorite_sports", backref=backref("user", lazy="joined"), lazy="joined"
+        )
 
     return User
 
@@ -79,6 +85,31 @@ def Address(Base):
         country = Column(String, nullable=False)
 
     return Address
+
+
+@pytest.fixture(scope="session")
+def Sport(Base):
+    class Sport(Base):
+        __tablename__ = "sports"
+
+        id = Column(Integer, primary_key=True, autoincrement=True)
+        name = Column(String, nullable=False)
+        is_individual = Column(Boolean, nullable=False)
+
+    return Sport
+
+
+@pytest.fixture(scope="session")
+def FavoriteSport(Base):
+    class FavoriteSport(Base):
+        __tablename__ = "favorite_sports"
+        __table_args__ = (UniqueConstraint("user_id", "sport_id"),)
+
+        id = Column(Integer, primary_key=True, autoincrement=True)
+        user_id = Column(Integer, ForeignKey("users.id"))
+        sport_id = Column(Integer, ForeignKey("sports.id"))
+
+    return FavoriteSport
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -119,6 +150,23 @@ async def users(session, User, Address):
                 age=50,
                 created_at=datetime(2021, 12, 4),
                 address=Address(street="4567 avenue", city="Denver", country="United States"),
+            ),
+        ]
+    )
+    await session.commit()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def sports(session, Sport):
+    session.add_all(
+        [
+            Sport(
+                name="Ice Hockey",
+                is_individual=False,
+            ),
+            Sport(
+                name="Tennis",
+                is_individual=True,
             ),
         ]
     )
@@ -171,9 +219,25 @@ def UserFilter(User, Filter, AddressFilter):
 
 
 @pytest.fixture(scope="package")
+def SportFilter(Sport, Filter):
+    class SportFilter(Filter):
+        name: Optional[str] = Field(Query(description="Name of the sport", default=None))
+        is_individual: bool
+
+        class Constants(Filter.Constants):
+            model = Sport
+
+    yield SportFilter
+
+
+@pytest.fixture(scope="package")
 def app(
     Address,
+    FavoriteSport,
     SessionLocal,
+    Sport,
+    SportFilter,
+    SportOut,
     User,
     UserFilter,
     UserFilterCustomOrderBy,
@@ -233,5 +297,16 @@ def app(
         db: AsyncSession = Depends(get_db),
     ):
         return await get_users_with_order_by(user_filter, db)
+
+    @app.get("/sports", response_model=list[SportOut])
+    async def get_sports(
+        sport_filter: SportFilter = FilterDepends(SportFilter),
+        db: AsyncSession = Depends(get_db),
+    ):
+        query = sport_filter.filter(  # type: ignore[attr-defined]
+            select(Sport).outerjoin(FavoriteSport).outerjoin(User).outerjoin(Address).distinct()
+        )
+        result = await db.execute(query)
+        return result.scalars().unique().all()
 
     yield app
