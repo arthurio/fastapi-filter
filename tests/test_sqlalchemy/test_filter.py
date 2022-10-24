@@ -33,7 +33,7 @@ async def test_filter(session, Address, User, UserFilter, users, filter_, expect
     query = select(User).outerjoin(Address)
     query = UserFilter(**filter_).filter(query)
     result = await session.execute(query)
-    assert len(result.scalars().all()) == expected_count
+    assert len(result.scalars().unique().all()) == expected_count
 
 
 @pytest.mark.parametrize(

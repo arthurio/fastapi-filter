@@ -8,8 +8,7 @@ from pydantic import Field
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, backref, relationship, sessionmaker
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.orm import Mapped, relationship, sessionmaker
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter as SQLAlchemyFilter
@@ -68,7 +67,10 @@ def User(Base, Address, FavoriteSport, Sport):
         address: Address = relationship(Address, backref="users", lazy="joined")
 
         favorite_sports: Mapped[Sport] = relationship(
-            Sport, secondary="favorite_sports", backref=backref("user", lazy="joined"), lazy="joined"
+            Sport,
+            secondary="favorite_sports",
+            backref="users",
+            lazy="joined",
         )
 
     return User
@@ -103,74 +105,97 @@ def Sport(Base):
 def FavoriteSport(Base):
     class FavoriteSport(Base):
         __tablename__ = "favorite_sports"
-        __table_args__ = (UniqueConstraint("user_id", "sport_id"),)
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        user_id = Column(Integer, ForeignKey("users.id"))
-        sport_id = Column(Integer, ForeignKey("sports.id"))
+        user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+        sport_id = Column(Integer, ForeignKey("sports.id"), primary_key=True)
 
     return FavoriteSport
 
 
 @pytest_asyncio.fixture(scope="function")
-async def users(session, User, Address):
-    session.add_all(
-        [
-            User(
-                name=None,
-                age=21,
-                created_at=datetime(2021, 12, 1),
-            ),
-            User(
-                name="Mr Praline",
-                age=33,
-                created_at=datetime(2021, 12, 1),
-                address=Address(street="22 rue Bellier", city="Nantes", country="France"),
-            ),
-            User(
-                name="The colonel",
-                age=90,
-                created_at=datetime(2021, 12, 2),
-                address=Address(street="Wrench", city="Bathroom", country="Clue"),
-            ),
-            User(
-                name="Mr Creosote",
-                age=21,
-                created_at=datetime(2021, 12, 3),
-                address=Address(city="Nantes", country="France"),
-            ),
-            User(
-                name="Rabbit of Caerbannog",
-                age=1,
-                created_at=datetime(2021, 12, 4),
-                address=Address(street="1234 street", city="San Francisco", country="United States"),
-            ),
-            User(
-                name="Gumbys",
-                age=50,
-                created_at=datetime(2021, 12, 4),
-                address=Address(street="4567 avenue", city="Denver", country="United States"),
-            ),
-        ]
-    )
+async def users(session, sports, User, Address):
+    user_instances = [
+        User(
+            name=None,
+            age=21,
+            created_at=datetime(2021, 12, 1),
+        ),
+        User(
+            name="Mr Praline",
+            age=33,
+            created_at=datetime(2021, 12, 1),
+            address=Address(street="22 rue Bellier", city="Nantes", country="France"),
+        ),
+        User(
+            name="The colonel",
+            age=90,
+            created_at=datetime(2021, 12, 2),
+            address=Address(street="Wrench", city="Bathroom", country="Clue"),
+        ),
+        User(
+            name="Mr Creosote",
+            age=21,
+            created_at=datetime(2021, 12, 3),
+            address=Address(city="Nantes", country="France"),
+        ),
+        User(
+            name="Rabbit of Caerbannog",
+            age=1,
+            created_at=datetime(2021, 12, 4),
+            address=Address(street="1234 street", city="San Francisco", country="United States"),
+        ),
+        User(
+            name="Gumbys",
+            age=50,
+            created_at=datetime(2021, 12, 4),
+            address=Address(street="4567 avenue", city="Denver", country="United States"),
+        ),
+    ]
+    session.add_all(user_instances)
     await session.commit()
+    yield user_instances
 
 
 @pytest_asyncio.fixture(scope="function")
 async def sports(session, Sport):
-    session.add_all(
-        [
-            Sport(
-                name="Ice Hockey",
-                is_individual=False,
-            ),
-            Sport(
-                name="Tennis",
-                is_individual=True,
-            ),
-        ]
-    )
+    sport_instances = [
+        Sport(
+            name="Ice Hockey",
+            is_individual=False,
+        ),
+        Sport(
+            name="Tennis",
+            is_individual=True,
+        ),
+    ]
+    session.add_all(sport_instances)
     await session.commit()
+    yield sports
+
+
+@pytest_asyncio.fixture(scope="function")
+async def favorite_sports(session, sports, users, FavoriteSport):
+    favorite_sport_instances = [
+        FavoriteSport(
+            user_id=users[0].id,
+            sport_id=sports[0].id,
+        ),
+        FavoriteSport(
+            user_id=users[0].id,
+            sport_id=sports[1].id,
+        ),
+        FavoriteSport(
+            user_id=users[1].id,
+            sport_id=sports[0].id,
+        ),
+        FavoriteSport(
+            user_id=users[2].id,
+            sport_id=sports[1].id,
+        ),
+    ]
+    session.add_all(favorite_sport_instances)
+    await session.commit()
+    yield favorite_sport_instances
 
 
 @pytest.fixture(scope="package")
@@ -259,7 +284,7 @@ def app(
     ):
         query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
         result = await db.execute(query)
-        return result.scalars().all()
+        return result.scalars().unique().all()
 
     @app.get("/users_with_order_by", response_model=list[UserOut])
     async def get_users_with_order_by(
@@ -269,7 +294,7 @@ def app(
         query = user_filter.sort(select(User).outerjoin(Address))  # type: ignore[attr-defined]
         query = user_filter.filter(query)  # type: ignore[attr-defined]
         result = await db.execute(query)
-        return result.scalars().all()
+        return result.scalars().unique().all()
 
     @app.get("/users_with_no_order_by", response_model=list[UserOut])
     async def get_users_with_no_order_by(
@@ -307,6 +332,6 @@ def app(
             select(Sport).outerjoin(FavoriteSport).outerjoin(User).outerjoin(Address).distinct()
         )
         result = await db.execute(query)
-        return result.scalars().unique().all()
+        return result.scalars().all()
 
     yield app

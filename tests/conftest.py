@@ -82,7 +82,7 @@ def AddressOut():
 
 
 @pytest.fixture(scope="session")
-def UserOut(AddressOut):
+def UserOut(AddressOut, SportOut):
     class UserOut(BaseModel):
         id: int
         created_at: datetime
@@ -90,6 +90,7 @@ def UserOut(AddressOut):
         name: Optional[str]
         age: int
         address: Optional[AddressOut]
+        favorite_sports: Optional[list[SportOut]]
 
         class Config:
             orm_mode = True
@@ -98,12 +99,11 @@ def UserOut(AddressOut):
 
 
 @pytest.fixture(scope="session")
-def SportOut(UserOut):
+def SportOut():
     class SportOut(BaseModel):
         id: int
         name: str
         is_individual: bool
-        users: list[UserOut] | None
 
         class Config:
             orm_mode = True
