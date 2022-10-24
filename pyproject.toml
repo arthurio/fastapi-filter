@@ -17,6 +17,7 @@ plugins = [
 
 [[tool.mypy.overrides]]
 module = [
+  "bson.objectid",
   "mongoengine.*",
   "sqlalchemy_utils.*",
   "uvicorn.*",

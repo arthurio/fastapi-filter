@@ -30,7 +30,7 @@ async def test_order_by(session, User, UserFilterOrderBy, users, order_by, asser
     query = UserFilterOrderBy(order_by=order_by).sort(query)
     result = await session.execute(query)
     previous_user = None
-    for user in result.scalars().all():
+    for user in result.scalars().unique().all():
         if not previous_user:
             previous_user = user
             continue
@@ -44,7 +44,7 @@ async def test_order_by_with_default(session, User, UserFilterOrderByWithDefault
     query = UserFilterOrderByWithDefault().sort(query)
     result = await session.execute(query)
     previous_user = None
-    for user in result.scalars().all():
+    for user in result.scalars().unique().all():
         if not previous_user:
             previous_user = user
             continue
@@ -132,7 +132,7 @@ async def test_custom_order_by(User, users, UserFilterCustomOrderBy, session, or
     query = UserFilterCustomOrderBy(custom_order_by=order_by).sort(query)
     result = await session.execute(query)
     previous_user = None
-    for user in result.scalars().all():
+    for user in result.scalars().unique().all():
         if not previous_user:
             previous_user = user
             continue

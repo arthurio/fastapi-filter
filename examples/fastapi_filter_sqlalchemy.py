@@ -2,8 +2,8 @@ from typing import Any, AsyncIterator, Optional
 
 import uvicorn
 from faker import Faker
-from fastapi import Depends, FastAPI
-from pydantic import BaseModel
+from fastapi import Depends, FastAPI, Query
+from pydantic import BaseModel, Field
 from sqlalchemy import Column, ForeignKey, Integer, String, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -93,7 +93,11 @@ class UserFilter(Filter):
     name__neq: Optional[str]
     address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: Optional[int]
-    age__gte: int = 10  # <-- NOTE(arthurio): This filter required
+    age__gte: int = Field(Query(description="this is a nice description"))
+    """Required field with a custom description.
+
+    See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
+    """
     order_by: list[str] = ["age"]
 
     class Constants(Filter.Constants):
