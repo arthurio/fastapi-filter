@@ -3,7 +3,7 @@ from typing import Any, Generator, Optional
 import uvicorn
 from bson.objectid import ObjectId
 from faker import Faker
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from mongoengine import Document, connect, fields
 from pydantic import BaseModel, EmailStr, Field
 
@@ -85,7 +85,11 @@ class UserFilter(Filter):
     name: Optional[str]
     address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: Optional[int]
-    age__gte: int = 10  # <-- NOTE(arthurio): This filter required
+    age__gte: int = Field(Query(description="this is a nice description"))
+    """Required field with a custom description.
+
+    See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
+    """
     order_by: list[str] = ["age"]
 
     class Constants(Filter.Constants):
