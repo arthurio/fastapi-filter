@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 
 import pytest
+from fastapi import status
 
 
 @pytest.mark.parametrize(
@@ -49,3 +50,18 @@ def test_basic_filter(User, UserFilter, Address, users, filter_, expected_count)
 async def test_api(test_client, Address, User, UserFilter, users, filter_, expected_count):
     response = await test_client.get(f"/users?{urlencode(filter_)}")
     assert len(response.json()) == expected_count
+
+
+@pytest.mark.parametrize(
+    "filter_,expected_status_code",
+    (
+        ({"is_individual": True}, status.HTTP_200_OK),
+        ({"is_individual": False}, status.HTTP_200_OK),
+        ({}, status.HTTP_422_UNPROCESSABLE_ENTITY),
+        ({"is_individual": None}, status.HTTP_422_UNPROCESSABLE_ENTITY),
+    ),
+)
+@pytest.mark.asyncio
+async def test_required_filter(test_client, filter_, expected_status_code):
+    response = await (test_client.get(f"/sports?{urlencode(filter_)}"))
+    assert response.status_code == expected_status_code

@@ -3,7 +3,7 @@ from typing import Any, Generator, Optional
 
 import pytest
 from bson.objectid import ObjectId
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from mongoengine import Document, connect, fields
 from pydantic import BaseModel, Field
 
@@ -42,13 +42,14 @@ def PydanticObjectId():
 
 
 @pytest.fixture(scope="session")
-def User(db_connect, Address):
+def User(db_connect, Address, Sport):
     class User(Document):
         created_at = fields.DateTimeField()
         name = fields.StringField(null=True)
         email = fields.EmailField()
         age = fields.IntField()
         address = fields.ReferenceField(Address)
+        favorite_sports = fields.ListField(fields.ReferenceField(Sport))
 
     return User
 
@@ -63,43 +64,68 @@ def Address(db_connect):
     return Address
 
 
+@pytest.fixture(scope="session")
+def Sport(db_connect):
+    class Sport(Document):
+        name = fields.StringField()
+        is_individual = fields.BooleanField()
+
+    return Sport
+
+
 @pytest.fixture(scope="function")
-def users(User, Address):
-    User(
-        name=None,
-        age=21,
-        created_at=datetime(2021, 12, 1),
-    ).save()
-    User(
-        name="Mr Praline",
-        age=33,
-        created_at=datetime(2021, 12, 1),
-        address=Address(street="22 rue Bellier", city="Nantes", country="France").save(),
-    ).save()
-    User(
-        name="The colonel",
-        age=90,
-        created_at=datetime(2021, 12, 2),
-        address=Address(street="Wrench", city="Bathroom", country="Clue").save(),
-    ).save()
-    User(
-        name="Mr Creosote",
-        age=21,
-        created_at=datetime(2021, 12, 3),
-        address=Address(city="Nantes", country="France").save(),
-    ).save()
-    User(
-        name="Rabbit of Caerbannog",
-        age=1,
-        created_at=datetime(2021, 12, 4),
-        address=Address(street="1234 street", city="San Francisco", country="United States").save(),
-    ).save()
-    User(
-        name="Gumbys",
-        age=50,
-        created_at=datetime(2021, 12, 4),
-        address=Address(street="4567 avenue", city="Denver", country="United States").save(),
-    ).save()
+def sports(Sport):
+    sports = [
+        Sport(name="Ice Hockey", is_individual=False).save(),
+        Sport(name="Tennis", is_individual=True).save(),
+    ]
+
+    yield sports
+
+
+@pytest.fixture(scope="function")
+def users(User, Address, sports):
+    users = [
+        User(
+            name=None,
+            age=21,
+            created_at=datetime(2021, 12, 1),
+            favorite_sports=sports,
+        ).save(),
+        User(
+            name="Mr Praline",
+            age=33,
+            created_at=datetime(2021, 12, 1),
+            address=Address(street="22 rue Bellier", city="Nantes", country="France").save(),
+            favorite_sports=[sports[0]],
+        ).save(),
+        User(
+            name="The colonel",
+            age=90,
+            created_at=datetime(2021, 12, 2),
+            address=Address(street="Wrench", city="Bathroom", country="Clue").save(),
+            favorite_sports=[sports[1]],
+        ).save(),
+        User(
+            name="Mr Creosote",
+            age=21,
+            created_at=datetime(2021, 12, 3),
+            address=Address(city="Nantes", country="France").save(),
+        ).save(),
+        User(
+            name="Rabbit of Caerbannog",
+            age=1,
+            created_at=datetime(2021, 12, 4),
+            address=Address(street="1234 street", city="San Francisco", country="United States").save(),
+        ).save(),
+        User(
+            name="Gumbys",
+            age=50,
+            created_at=datetime(2021, 12, 4),
+            address=Address(street="4567 avenue", city="Denver", country="United States").save(),
+        ).save(),
+    ]
+    yield users
 
 
 @pytest.fixture(scope="package")
@@ -140,6 +166,18 @@ def UserFilter(User, Filter, AddressFilter):
 
 
 @pytest.fixture(scope="package")
+def SportFilter(Sport, Filter):
+    class SportFilter(Filter):
+        name: Optional[str] = Field(Query(description="Name of the sport", default=None))
+        is_individual: bool
+
+        class Constants(Filter.Constants):
+            model = Sport
+
+    yield SportFilter
+
+
+@pytest.fixture(scope="package")
 def AddressOut(PydanticObjectId):
     class AddressOut(BaseModel):
         id: PydanticObjectId = Field(..., alias="_id")
@@ -168,6 +206,19 @@ def UserOut(PydanticObjectId, AddressOut):
     yield UserOut
 
 
+@pytest.fixture(scope="package")
+def SportOut(PydanticObjectId):
+    class SportOut(BaseModel):
+        id: PydanticObjectId = Field(..., alias="_id")
+        name: str
+        is_individual: bool
+
+        class Config:
+            orm_mode = True
+
+    yield SportOut
+
+
 @pytest.fixture(scope="function", autouse=True)
 def clear_database(User):
     User.drop_collection()
@@ -184,6 +235,9 @@ def Filter():
 def app(
     Address,
     User,
+    SportFilter,
+    SportOut,
+    Sport,
     UserFilter,
     UserFilterCustomOrderBy,
     UserFilterOrderBy,
@@ -197,14 +251,24 @@ def app(
     async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = query.select_related()
-        return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
+        return [
+            user.to_mongo()
+            | {"address": user.address.to_mongo() if user.address else None}
+            | {"favorite_sports": [sport.to_mongo() for sport in user.favorite_sports]}
+            for user in query
+        ]
 
     @app.get("/users_with_order_by", response_model=list[UserOut])
     async def get_users_with_order_by(user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy)):
         query = user_filter.sort(User.objects())  # type: ignore[attr-defined]
         query = user_filter.filter(query)  # type: ignore[attr-defined]
         query = query.select_related()
-        return [user.to_mongo() | {"address": user.address.to_mongo() if user.address else None} for user in query]
+        return [
+            user.to_mongo()
+            | {"address": user.address.to_mongo() if user.address else None}
+            | {"favorite_sports": [sport.to_mongo() for sport in user.favorite_sports]}
+            for user in query
+        ]
 
     @app.get("/users_with_no_order_by", response_model=list[UserOut])
     async def get_users_with_no_order_by(
@@ -229,5 +293,12 @@ def app(
         user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
     ):
         return await get_users_with_order_by(user_filter)
+
+    @app.get("/sports", response_model=list[SportOut])
+    async def get_sports(
+        sport_filter: SportFilter = FilterDepends(SportFilter),
+    ):
+        query = sport_filter.filter(Sport.objects())  # type: ignore[attr-defined]
+        return [sport.to_mongo() for sport in query]
 
     yield app

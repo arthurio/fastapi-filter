@@ -1,10 +1,9 @@
-from datetime import datetime
 from typing import Optional
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from pydantic import BaseModel, validator
+from pydantic import validator
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -65,47 +64,3 @@ def UserFilterRestrictedOrderBy(UserFilter):
             return value
 
     return UserFilterRestrictedOrderBy
-
-
-@pytest.fixture(scope="session")
-def AddressOut():
-    class AddressOut(BaseModel):
-        id: int
-        street: Optional[str]
-        city: str
-        country: str
-
-        class Config:
-            orm_mode = True
-
-    return AddressOut
-
-
-@pytest.fixture(scope="session")
-def UserOut(AddressOut, SportOut):
-    class UserOut(BaseModel):
-        id: int
-        created_at: datetime
-        updated_at: datetime
-        name: Optional[str]
-        age: int
-        address: Optional[AddressOut]
-        favorite_sports: Optional[list[SportOut]]
-
-        class Config:
-            orm_mode = True
-
-    return UserOut
-
-
-@pytest.fixture(scope="session")
-def SportOut():
-    class SportOut(BaseModel):
-        id: int
-        name: str
-        is_individual: bool
-
-        class Config:
-            orm_mode = True
-
-    return SportOut

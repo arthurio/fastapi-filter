@@ -4,7 +4,7 @@ from typing import AsyncIterator, Optional
 import pytest
 import pytest_asyncio
 from fastapi import Depends, FastAPI, Query
-from pydantic import Field
+from pydantic import BaseModel, Field
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -199,6 +199,50 @@ async def favorite_sports(session, sports, users, FavoriteSport):
 
 
 @pytest.fixture(scope="package")
+def AddressOut():
+    class AddressOut(BaseModel):
+        id: int
+        street: Optional[str]
+        city: str
+        country: str
+
+        class Config:
+            orm_mode = True
+
+    return AddressOut
+
+
+@pytest.fixture(scope="package")
+def UserOut(AddressOut, SportOut):
+    class UserOut(BaseModel):
+        id: int
+        created_at: datetime
+        updated_at: datetime
+        name: Optional[str]
+        age: int
+        address: Optional[AddressOut]
+        favorite_sports: Optional[list[SportOut]]
+
+        class Config:
+            orm_mode = True
+
+    return UserOut
+
+
+@pytest.fixture(scope="package")
+def SportOut():
+    class SportOut(BaseModel):
+        id: int
+        name: str
+        is_individual: bool
+
+        class Config:
+            orm_mode = True
+
+    return SportOut
+
+
+@pytest.fixture(scope="package")
 def Filter():
     yield SQLAlchemyFilter
 
@@ -328,9 +372,7 @@ def app(
         sport_filter: SportFilter = FilterDepends(SportFilter),
         db: AsyncSession = Depends(get_db),
     ):
-        query = sport_filter.filter(  # type: ignore[attr-defined]
-            select(Sport).outerjoin(FavoriteSport).outerjoin(User).outerjoin(Address).distinct()
-        )
+        query = sport_filter.filter(select(Sport))  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().all()
 
