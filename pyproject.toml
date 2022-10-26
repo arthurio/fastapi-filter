@@ -26,13 +26,15 @@ ignore_missing_imports = true
 
 [tool.poetry]
 name = "fastapi-filter"
-version = "0.3.3"
+version = "0.3.4"
 description = "FastAPI filter"
 authors = ["Arthur Rio <arthur.rio44@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/arthurio/fastapi-filter"
 classifiers = [
+    "Natural Language :: English",
+    "Framework :: FastAPI",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
