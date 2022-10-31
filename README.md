@@ -8,7 +8,7 @@
 ## Compatibilty
 
 **Required:**
-  * Python: >=3.9, <3.12
+  * Python: >=3.8, <3.12
   * Fastapi: >=0.78, <0.86
   * Pydantic: >=1.10.0 <2.0.0
 
