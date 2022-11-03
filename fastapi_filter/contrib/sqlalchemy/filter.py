@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Union
 
 from pydantic import validator
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Query
 from sqlalchemy.sql.selectable import Select
 
@@ -86,8 +87,15 @@ class Filter(BaseFilterModel):
                 else:
                     operator = "__eq__"
 
-                model_field = getattr(self.Constants.model, field_name)
-                query = query.filter(getattr(model_field, operator)(value))
+                if field_name == self.Constants.search_param and hasattr(self.Constants, "search_fields"):
+
+                    def search_filter(field):
+                        return func.lower(getattr(self.Constants.model, field)).like("%" + value.lower() + "%")
+
+                    query = query.filter(or_(*list(map(search_filter, self.Constants.search_fields))))
+                else:
+                    model_field = getattr(self.Constants.model, field_name)
+                    query = query.filter(getattr(model_field, operator)(value))
 
         return query
 
