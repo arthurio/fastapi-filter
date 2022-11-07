@@ -5,7 +5,7 @@
 
 # FastAPI filter
 
-## Compatibilty
+## Compatibility
 
 **Required:**
   * Python: >=3.8, <3.12
