@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Generator, Optional
+from typing import Any, Dict, Generator, List, Optional
 
 import pytest
 from bson.objectid import ObjectId
@@ -134,8 +134,8 @@ def AddressFilter(Address, Filter):
         street__isnull: Optional[bool]
         country: Optional[str]
         city: Optional[str]
-        city__in: Optional[list[str]]
-        country__nin: Optional[list[str]]
+        city__in: Optional[List[str]]
+        country__nin: Optional[List[str]]
 
         class Constants(Filter.Constants):
             model = Address
@@ -147,8 +147,8 @@ def AddressFilter(Address, Filter):
 def UserFilter(User, Filter, AddressFilter):
     class UserFilter(Filter):
         name: Optional[str]
-        name__in: Optional[list[str]]
-        name__nin: Optional[list[str]]
+        name__in: Optional[List[str]]
+        name__nin: Optional[List[str]]
         name__ne: Optional[str]
         name__isnull: Optional[bool]
         age: Optional[int]
@@ -156,7 +156,7 @@ def UserFilter(User, Filter, AddressFilter):
         age__lte: Optional[int]
         age__gt: Optional[int]
         age__gte: Optional[int]
-        age__in: Optional[list[int]]
+        age__in: Optional[List[int]]
         address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
 
         class Constants(Filter.Constants):
@@ -247,7 +247,7 @@ def app(
 ):
     app = FastAPI()
 
-    @app.get("/users", response_model=list[UserOut])
+    @app.get("/users", response_model=List[UserOut])
     async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = query.select_related()
@@ -258,7 +258,7 @@ def app(
             for user in query
         ]
 
-    @app.get("/users_with_order_by", response_model=list[UserOut])
+    @app.get("/users_with_order_by", response_model=List[UserOut])
     async def get_users_with_order_by(user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy)):
         query = user_filter.sort(User.objects())  # type: ignore[attr-defined]
         query = user_filter.filter(query)  # type: ignore[attr-defined]
@@ -270,31 +270,31 @@ def app(
             for user in query
         ]
 
-    @app.get("/users_with_no_order_by", response_model=list[UserOut])
+    @app.get("/users_with_no_order_by", response_model=List[UserOut])
     async def get_users_with_no_order_by(
         user_filter: UserFilter = FilterDepends(UserFilter),
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_default_order_by", response_model=list[UserOut])
+    @app.get("/users_with_default_order_by", response_model=List[UserOut])
     async def get_users_with_default_order_by(
         user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_restricted_order_by", response_model=list[UserOut])
+    @app.get("/users_with_restricted_order_by", response_model=List[UserOut])
     async def get_users_with_restricted_order_by(
         user_filter: UserFilterRestrictedOrderBy = FilterDepends(UserFilterRestrictedOrderBy),
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_custom_order_by", response_model=list[UserOut])
+    @app.get("/users_with_custom_order_by", response_model=List[UserOut])
     async def get_users_with_custom_order_by(
         user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/sports", response_model=list[SportOut])
+    @app.get("/sports", response_model=List[SportOut])
     async def get_sports(
         sport_filter: SportFilter = FilterDepends(SportFilter),
     ):

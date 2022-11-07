@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterator, Optional
+from typing import Any, AsyncIterator, List, Optional
 
 import uvicorn
 from faker import Faker
@@ -78,8 +78,8 @@ class AddressFilter(Filter):
     street: Optional[str]
     country: Optional[str]
     city: Optional[str]
-    city__in: Optional[list[str]]
-    custom_order_by: Optional[list[str]]
+    city__in: Optional[List[str]]
+    custom_order_by: Optional[List[str]]
 
     class Constants(Filter.Constants):
         model = Address
@@ -98,7 +98,7 @@ class UserFilter(Filter):
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
-    order_by: list[str] = ["age"]
+    order_by: List[str] = ["age"]
 
     class Constants(Filter.Constants):
         model = User
@@ -133,7 +133,7 @@ async def get_db() -> AsyncIterator[AsyncSession]:
         yield session
 
 
-@app.get("/users", response_model=list[UserOut])
+@app.get("/users", response_model=List[UserOut])
 async def get_users(
     user_filter: UserFilter = FilterDepends(UserFilter),
     db: AsyncSession = Depends(get_db),
@@ -145,7 +145,7 @@ async def get_users(
     return result.scalars().all()
 
 
-@app.get("/addresses", response_model=list[AddressOut])
+@app.get("/addresses", response_model=List[AddressOut])
 async def get_addresses(
     address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
     db: AsyncSession = Depends(get_db),
