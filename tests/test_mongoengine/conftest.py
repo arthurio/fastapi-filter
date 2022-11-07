@@ -253,8 +253,9 @@ def app(
         query = query.select_related()
         return [
             {
-                **user.to_mongo(), "address": user.address.to_mongo() if user.address else None,
-                "favorite_sports": [sport.to_mongo() for sport in user.favorite_sports]
+                **user.to_mongo(),
+                "address": user.address.to_mongo() if user.address else None,
+                "favorite_sports": [sport.to_mongo() for sport in user.favorite_sports],
             }
             for user in query
         ]
@@ -268,7 +269,7 @@ def app(
             {
                 **user.to_mongo(),
                 "address": user.address.to_mongo() if user.address else None,
-                "favorite_sports": [sport.to_mongo() for sport in user.favorite_sports]
+                "favorite_sports": [sport.to_mongo() for sport in user.favorite_sports],
             }
             for user in query
         ]
