@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Generator, Optional
+from typing import Any, Dict, Generator, Optional
 
 import pytest
 from bson.objectid import ObjectId
@@ -35,7 +35,7 @@ def PydanticObjectId():
             return str(v)
 
         @classmethod
-        def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
+        def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
             field_schema.update(type="string")
 
     return PydanticObjectId
