@@ -252,9 +252,10 @@ def app(
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = query.select_related()
         return [
-            user.to_mongo()
-            | {"address": user.address.to_mongo() if user.address else None}
-            | {"favorite_sports": [sport.to_mongo() for sport in user.favorite_sports]}
+            {
+                **user.to_mongo(), "address": user.address.to_mongo() if user.address else None,
+                "favorite_sports": [sport.to_mongo() for sport in user.favorite_sports]
+            }
             for user in query
         ]
 
@@ -264,9 +265,11 @@ def app(
         query = user_filter.filter(query)  # type: ignore[attr-defined]
         query = query.select_related()
         return [
-            user.to_mongo()
-            | {"address": user.address.to_mongo() if user.address else None}
-            | {"favorite_sports": [sport.to_mongo() for sport in user.favorite_sports]}
+            {
+                **user.to_mongo(),
+                "address": user.address.to_mongo() if user.address else None,
+                "favorite_sports": [sport.to_mongo() for sport in user.favorite_sports]
+            }
             for user in query
         ]
 

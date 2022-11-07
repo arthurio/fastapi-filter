@@ -120,7 +120,7 @@ async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
     query = user_filter.filter(User.objects())
     query = user_filter.sort(query)
     query = query.select_related()
-    return [user.to_mongo() | {"address": user.address.to_mongo()} for user in query]
+    return [{**user.to_mongo(), "address": user.address.to_mongo()} for user in query]
 
 
 @app.get("/addresses", response_model=List[AddressOut])
