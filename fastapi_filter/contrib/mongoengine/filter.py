@@ -22,7 +22,7 @@ class Filter(BaseFilterModel):
             count__lte: Optional[int]
             created_at__gt: Optional[datetime]
             name__ne: Optional[str]
-            name__nin: Optional[List[str]]
+            name__nin: Optional[list[str]]
             name__isnull: Optional[bool]
         ```
     """
