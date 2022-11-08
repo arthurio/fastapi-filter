@@ -56,7 +56,7 @@ from typing import Optional
 class AddressFilter(Filter):
     street: Optional[str]
     country: Optional[str]
-    city__in: Optional[List[str]]
+    city__in: Optional[list[str]]
 
     class Constants(Filter.Constants):
         model = Address
@@ -69,7 +69,7 @@ class UserFilter(Filter):
     class Constants(Filter.Constants):
         model = User
 
-@app.get("/users", response_model=List[UserOut])
+@app.get("/users", response_model=list[UserOut])
 async def get_users(user_filter: UserFilter = FilterDepends(UserFilter), db: AsyncSession = Depends(get_db)) -> Any:
     query = user_filter.filter(select(User).outerjoin(Address))   # (1)
     result = await db.execute(query)
@@ -146,9 +146,9 @@ from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
 
 class UserFilter(Filter):
-    order_by: Optional[List[str]]
+    order_by: Optional[list[str]]
 
-@app.get("/users", response_model=List[UserOut])
+@app.get("/users", response_model=list[UserOut])
 async def get_users(
     user_filter: UserFilter = FilterDepends(UserFilter),
     db: AsyncSession = Depends(get_db),
@@ -181,9 +181,9 @@ class UserFilter(Filter):
         model = User
         ordering_field_name = "custom_order_by"
 
-    custom_order_by: Optional[List[str]]
+    custom_order_by: Optional[list[str]]
 
-@app.get("/users", response_model=List[UserOut])
+@app.get("/users", response_model=list[UserOut])
 async def get_users(
     user_filter: UserFilter = FilterDepends(UserFilter),
     db: AsyncSession = Depends(get_db),
@@ -213,7 +213,7 @@ from fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import validator
 
 class MyFilter(Filter):
-    order_by: Optional[List[str]]
+    order_by: Optional[list[str]]
 
     @validator("order_by")
     def restrict_sortable_fields(cls, value):
