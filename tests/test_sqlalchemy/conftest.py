@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import AsyncIterator, Optional
+from typing import AsyncIterator, List, Optional
 
 import pytest
 import pytest_asyncio
@@ -221,7 +221,7 @@ def UserOut(AddressOut, SportOut):
         name: Optional[str]
         age: int
         address: Optional[AddressOut]
-        favorite_sports: Optional[list[SportOut]]
+        favorite_sports: Optional[List[SportOut]]
 
         class Config:
             orm_mode = True
@@ -252,8 +252,8 @@ def AddressFilter(Address, Filter):
     class AddressFilter(Filter):
         street__isnull: Optional[bool]
         city: Optional[str]
-        city__in: Optional[list[str]]
-        country__not_in: Optional[list[str]]
+        city__in: Optional[List[str]]
+        country__not_in: Optional[List[str]]
 
         class Constants(Filter.Constants):
             model = Address
@@ -268,16 +268,16 @@ def UserFilter(User, Filter, AddressFilter):
         name__neq: Optional[str]
         name__like: Optional[str]
         name__ilike: Optional[str]
-        name__in: Optional[list[str]]
+        name__in: Optional[List[str]]
         name__not: Optional[str]
-        name__not_in: Optional[list[str]]
+        name__not_in: Optional[List[str]]
         name__isnull: Optional[bool]
         age: Optional[int]
         age__lt: Optional[int]
         age__lte: Optional[int]
         age__gt: Optional[int]
         age__gte: Optional[int]
-        age__in: Optional[list[int]]
+        age__in: Optional[List[int]]
         address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
         address_id__isnull: Optional[bool]
 
@@ -321,7 +321,7 @@ def app(
         async with SessionLocal() as session:
             yield session
 
-    @app.get("/users", response_model=list[UserOut])
+    @app.get("/users", response_model=List[UserOut])
     async def get_users(
         user_filter: UserFilter = FilterDepends(UserFilter),
         db: AsyncSession = Depends(get_db),
@@ -330,7 +330,7 @@ def app(
         result = await db.execute(query)
         return result.scalars().unique().all()
 
-    @app.get("/users_with_order_by", response_model=list[UserOut])
+    @app.get("/users_with_order_by", response_model=List[UserOut])
     async def get_users_with_order_by(
         user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),
         db: AsyncSession = Depends(get_db),
@@ -340,34 +340,34 @@ def app(
         result = await db.execute(query)
         return result.scalars().unique().all()
 
-    @app.get("/users_with_no_order_by", response_model=list[UserOut])
+    @app.get("/users_with_no_order_by", response_model=List[UserOut])
     async def get_users_with_no_order_by(
         user_filter: UserFilter = FilterDepends(UserFilter),
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_default_order_by", response_model=list[UserOut])
+    @app.get("/users_with_default_order_by", response_model=List[UserOut])
     async def get_users_with_default_order_by(
         user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
         db: AsyncSession = Depends(get_db),
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/users_with_restricted_order_by", response_model=list[UserOut])
+    @app.get("/users_with_restricted_order_by", response_model=List[UserOut])
     async def get_users_with_restricted_order_by(
         user_filter: UserFilterRestrictedOrderBy = FilterDepends(UserFilterRestrictedOrderBy),
         db: AsyncSession = Depends(get_db),
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/users_with_custom_order_by", response_model=list[UserOut])
+    @app.get("/users_with_custom_order_by", response_model=List[UserOut])
     async def get_users_with_custom_order_by(
         user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
         db: AsyncSession = Depends(get_db),
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/sports", response_model=list[SportOut])
+    @app.get("/sports", response_model=List[SportOut])
     async def get_sports(
         sport_filter: SportFilter = FilterDepends(SportFilter),
         db: AsyncSession = Depends(get_db),

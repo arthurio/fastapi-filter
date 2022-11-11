@@ -1466,8 +1466,8 @@ sqlalchemy = ["SQLAlchemy"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = ">=3.9,<3.12"
-content-hash = "27eead14829df355d8d002ce969c461ca843dc3d9e9c4e363c91f517b90f43fa"
+python-versions = ">=3.8,<3.12"
+content-hash = "75346c809be13c45c441a1327a027f2691ea460bc73cd615779a77a218c70a54"
 
 [metadata.files]
 aiosqlite = [

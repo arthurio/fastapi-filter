@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import pytest
 import pytest_asyncio
@@ -15,7 +15,7 @@ async def test_client(app):
 @pytest.fixture(scope="package")
 def UserFilterOrderByWithDefault(User, UserFilter):
     class UserFilterOrderByWithDefault(UserFilter):
-        order_by: list[str] = ["age"]
+        order_by: List[str] = ["age"]
 
     return UserFilterOrderByWithDefault
 
@@ -23,7 +23,7 @@ def UserFilterOrderByWithDefault(User, UserFilter):
 @pytest.fixture(scope="package")
 def UserFilterOrderBy(User, UserFilter):
     class UserFilterOrderBy(UserFilter):
-        order_by: Optional[list[str]]
+        order_by: Optional[List[str]]
 
     return UserFilterOrderBy
 
@@ -39,7 +39,7 @@ def UserFilterCustomOrderBy(UserFilter):
         class Constants(UserFilter.Constants):
             ordering_field_name = "custom_order_by"
 
-        custom_order_by: Optional[list[str]]
+        custom_order_by: Optional[List[str]]
 
     return UserFilterCustomOrderBy
 
@@ -47,7 +47,7 @@ def UserFilterCustomOrderBy(UserFilter):
 @pytest.fixture(scope="package")
 def UserFilterRestrictedOrderBy(UserFilter):
     class UserFilterRestrictedOrderBy(UserFilter):
-        order_by: Optional[list[str]]
+        order_by: Optional[List[str]]
 
         @validator("order_by", allow_reuse=True)
         def restrict_sortable_fields(cls, value):

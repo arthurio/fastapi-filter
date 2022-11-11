@@ -1,4 +1,4 @@
-from typing import Any, Generator, Optional
+from typing import Any, Dict, Generator, List, Optional
 
 import uvicorn
 from bson.objectid import ObjectId
@@ -25,7 +25,7 @@ class PydanticObjectId(ObjectId):
         return str(v)
 
     @classmethod
-    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
         field_schema.update(type="string")
 
 
@@ -73,8 +73,8 @@ class AddressFilter(Filter):
     street: Optional[str]
     country: Optional[str]
     city: Optional[str]
-    city__in: Optional[list[str]]
-    custom_order_by: Optional[list[str]]
+    city__in: Optional[List[str]]
+    custom_order_by: Optional[List[str]]
 
     class Constants(Filter.Constants):
         model = Address
@@ -90,7 +90,7 @@ class UserFilter(Filter):
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
-    order_by: list[str] = ["age"]
+    order_by: List[str] = ["age"]
 
     class Constants(Filter.Constants):
         model = User
@@ -115,15 +115,15 @@ async def on_shutdown() -> None:
     User.drop_collection()
 
 
-@app.get("/users", response_model=list[UserOut])
+@app.get("/users", response_model=List[UserOut])
 async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
     query = user_filter.filter(User.objects())
     query = user_filter.sort(query)
     query = query.select_related()
-    return [user.to_mongo() | {"address": user.address.to_mongo()} for user in query]
+    return [{**user.to_mongo(), "address": user.address.to_mongo()} for user in query]
 
 
-@app.get("/addresses", response_model=list[AddressOut])
+@app.get("/addresses", response_model=List[AddressOut])
 async def get_addresses(
     address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
 ) -> Any:

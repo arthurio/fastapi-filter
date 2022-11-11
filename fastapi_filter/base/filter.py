@@ -1,7 +1,7 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import Any, Optional, Type, Union
+from typing import Any, Dict, Optional, Tuple, Type, Union
 
 from fastapi import Depends, HTTPException, status
 from pydantic import BaseModel, Extra, ValidationError, create_model, fields, validator
@@ -177,7 +177,7 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
 
 
 def _list_to_str_fields(Filter: Type[BaseFilterModel]):
-    ret: dict[str, tuple[Union[object, Type], Optional[FieldInfo]]] = {}
+    ret: Dict[str, Tuple[Union[object, Type], Optional[FieldInfo]]] = {}
     for f in Filter.__fields__.values():
         field_info = deepcopy(f.field_info)
         if f.shape == fields.SHAPE_LIST:
