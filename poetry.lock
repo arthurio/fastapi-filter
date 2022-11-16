@@ -858,7 +858,7 @@ python-versions = "*"
 
 [[package]]
 name = "pudb"
-version = "2022.1.2"
+version = "2022.1.3"
 description = "A full-screen, console-based Python debugger"
 category = "dev"
 optional = false
@@ -870,6 +870,9 @@ packaging = ">=20.0"
 pygments = ">=2.7.4"
 urwid = ">=1.1.1"
 urwid_readline = "*"
+
+[package.extras]
+completion = ["shtab"]
 
 [[package]]
 name = "pure-eval"
@@ -1468,7 +1471,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "5f62a8905dd3ec288851c04a2102085f70cd1fc782d7ae0e3b44b0f04813a992"
+content-hash = "4d014370e75244aed871994410ebe0be0f1577884a93f9ae71e7d176ec84aa69"
 
 [metadata.files]
 aiosqlite = [
@@ -1943,7 +1946,7 @@ ptyprocess = [
     {file = "ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"},
 ]
 pudb = [
-    {file = "pudb-2022.1.2.tar.gz", hash = "sha256:6b83ab805bddb53710109690a2237e98bf83c0b3a00033c517cdf5f6a8fa470d"},
+    {file = "pudb-2022.1.3.tar.gz", hash = "sha256:58e83ada9e19ffe92c1fdc78ae5458ef91aeb892a5b8f0e7379e6fa61e0e664a"},
 ]
 pure-eval = [
     {file = "pure_eval-0.2.2-py3-none-any.whl", hash = "sha256:01eaab343580944bc56080ebe0a674b39ec44a945e6d09ba7db3cb8cec289350"},
