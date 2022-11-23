@@ -84,7 +84,7 @@ mkdocs-material = "^8.5.7"
 Faker = "^15.3.3"
 aiosqlite = "^0.17.0"
 requests = "^2.28.1"
-httpx = "^0.23.0"
+httpx = "^0.23.1"
 pydantic = {extras = ["email"], version = "^1.10.0"}
 
 [tool.poetry.extras]
