@@ -139,6 +139,13 @@ default behavior if omitted).
 If you don't want to allow ordering on your filter, just don't add `order_by` as a field and you are all set.
 
 
+## Search
+
+There is a specific field on the filter class that can be used for searching. The default name is `search` and it takes a string.
+
+You have to define what fields to search in with the `search_model_fields` constant.
+
+
 ### Example - Basic
 
 ```python
@@ -232,3 +239,34 @@ class MyFilter(Filter):
 
 1. If you want to restrict only on specific directions, like `-created_at` and `name` for example, you can remove this
 line. Your `allowed_field_names` would be something like `["age", "-age", "-created_at"]`.
+
+### Example - Search
+
+If for some reason you can't or don't want to use `order_by` as the field name for ordering, you can override it:
+
+```python
+from typing import Optional
+from fastapi_filter.contrib.sqlalchemy import Filter
+
+class UserFilter(Filter):
+    class Constants(Filter.Constants):
+        model = User
+        search_model_fields = ["name"]
+
+
+@app.get("/users", response_model=list[UserOut])
+async def get_users(
+    user_filter: UserFilter = FilterDepends(UserFilter),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    query = select(User)
+    query = user_filter.sort(query)
+    result = await db.execute(query)
+    return result.scalars().all()
+```
+
+Valid urls:
+
+```bash
+curl /users?search=Johnny
+```

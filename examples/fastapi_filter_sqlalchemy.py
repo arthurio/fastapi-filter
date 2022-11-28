@@ -84,6 +84,7 @@ class AddressFilter(Filter):
     class Constants(Filter.Constants):
         model = Address
         ordering_field_name = "custom_order_by"
+        search_model_fields = ["street", "country", "city"]
 
 
 class UserFilter(Filter):
@@ -102,6 +103,7 @@ class UserFilter(Filter):
 
     class Constants(Filter.Constants):
         model = User
+        search_model_fields = ["name"]
 
 
 app = FastAPI()
