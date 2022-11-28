@@ -87,12 +87,12 @@ class Filter(BaseFilterModel):
                 else:
                     operator = "__eq__"
 
-                if field_name == self.Constants.search_param and hasattr(self.Constants, "search_fields"):
+                if field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
 
                     def search_filter(field):
                         return func.lower(getattr(self.Constants.model, field)).like("%" + value.lower() + "%")
 
-                    query = query.filter(or_(*list(map(search_filter, self.Constants.search_fields))))
+                    query = query.filter(or_(*list(map(search_filter, self.Constants.search_model_fields))))
                 else:
                     model_field = getattr(self.Constants.model, field_name)
                     query = query.filter(getattr(model_field, operator)(value))

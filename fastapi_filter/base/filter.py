@@ -38,8 +38,8 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
     class Constants:  # pragma: no cover
         model: Type
         ordering_field_name: str = "order_by"
-        search_fields: List[str]
-        search_param: str = "search"
+        search_model_fields: List[str]
+        search_field_name: str = "search"
         prefix: str
 
     def filter(self, query):  # pragma: no cover

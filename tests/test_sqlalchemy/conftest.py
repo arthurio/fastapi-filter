@@ -284,8 +284,8 @@ def UserFilter(User, Filter, AddressFilter):
 
         class Constants(Filter.Constants):
             model = User
-            search_fields = ["name"]
-            search_param = "search"
+            search_model_fields = ["name"]
+            search_field_name = "search"
 
     yield UserFilter
 
