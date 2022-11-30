@@ -366,15 +366,18 @@ flake8 = ">=3.7"
 
 [[package]]
 name = "flynt"
-version = "0.76"
+version = "0.77"
 description = "CLI tool to convert a python project's %-formatted strings to f-strings."
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 astor = "*"
 tomli = ">=1.1.0"
+
+[package.extras]
+dev = ["build", "pre-commit", "pytest", "pytest-cov", "twine"]
 
 [[package]]
 name = "ghp-import"
@@ -1471,7 +1474,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "dd9d1ed51a992e48893d1d1f6fa6b5286cf727f5ead04d19d15d1f5caeb13949"
+content-hash = "528a88dabce2bb8f16b61f6ddd38bc7a228e348f1cc556f28274e262d7249925"
 
 [metadata.files]
 aiosqlite = [
@@ -1666,8 +1669,8 @@ flake8-simplify = [
     {file = "flake8_simplify-0.19.3.tar.gz", hash = "sha256:2fb083bf5142a98d9c9554755cf2f56f8926eb4a33eae30c0809041b1546879e"},
 ]
 flynt = [
-    {file = "flynt-0.76-py3-none-any.whl", hash = "sha256:fc122c5f589b0c4d019d7d33597f4925fd886a8e6fb3cbadb918e4baa3661687"},
-    {file = "flynt-0.76.tar.gz", hash = "sha256:7a99c5a550ea9e8c21203f6999ed8ce69cbad7bc8465268469777cf06413193a"},
+    {file = "flynt-0.77-py3-none-any.whl", hash = "sha256:2863ac8ec19d6ec8d29e760546e6ced644baf6dff3c7cdc77e03abbd29b80f14"},
+    {file = "flynt-0.77.tar.gz", hash = "sha256:2bd1b37043ad88a3f3c3c34a76fc0b64d24e5f03d36ea6b48cb69cc642bff17e"},
 ]
 ghp-import = [
     {file = "ghp-import-2.1.0.tar.gz", hash = "sha256:9c535c4c61193c2df8871222567d7fd7e5014d835f97dc7b7439069e2413d343"},
