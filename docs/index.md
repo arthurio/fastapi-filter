@@ -30,7 +30,7 @@ By default, **fastapi_filter** supports the following operators:
   - `gte`
   - `in`
   - `isnull`
-  - `it`
+  - `lt`
   - `lte`
   - `not`/`ne`
   - `not_in`/`nin`
