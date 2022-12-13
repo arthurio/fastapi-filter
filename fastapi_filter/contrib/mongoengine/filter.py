@@ -60,14 +60,11 @@ class Filter(BaseFilterModel):
                     value = None
 
                 if field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
+                    search_filter = Q()
+                    for search_field in self.Constants.search_model_fields:
+                        search_filter = search_filter | Q(**{f"{search_field}__icontains": value})
 
-                    for index, item in enumerate(self.Constants.search_model_fields):
-                        if index == 0:
-                            filters = Q(**{f"{item}__icontains": value})
-                        else:
-                            filters = filters | Q(**{f"{item}__icontains": value})
-
-                    query = query.filter(filters)
+                    query = query.filter(search_filter)
                 else:
                     query = query.filter(**{field_name: value})
 
