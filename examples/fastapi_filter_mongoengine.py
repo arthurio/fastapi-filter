@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, Generator, List, Optional
 
 import uvicorn
@@ -11,6 +12,8 @@ from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.mongoengine import Filter
 
 fake = Faker()
+
+logger = logging.getLogger("uvicorn")
 
 
 class PydanticObjectId(ObjectId):
@@ -101,6 +104,8 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def on_startup() -> None:
+    logger.info("Open http://127.0.0.1:8000/docs to start exploring 🎒 🧭 🗺️")
+
     connect(host="mongodb://localhost:27017/fastapi_filter")
     for _ in range(100):
         address = Address(street=fake.street_address(), city=fake.city(), country=fake.country())
