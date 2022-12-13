@@ -48,9 +48,8 @@ class Filter(BaseFilterModel):
             if isinstance(field_value, Filter):
                 if not field_value.dict(exclude_none=True, exclude_unset=True):
                     continue
-                query = query.filter(
-                    **{f"{field_value.Constants.prefix}__in": field_value.filter(field_value.Constants.model.objects())}
-                )
+
+                query = query.filter(**{f"{field_name}__in": field_value.filter(field_value.Constants.model.objects())})
             else:
                 if field_name.endswith("__isnull"):
                     field_name = field_name.replace("__isnull", "")
