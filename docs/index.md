@@ -136,14 +136,17 @@ list of strings.
 You can change the **direction** of the sorting (*asc* or *desc*) by prefixing with `-` or `+` (Optional, it's the
 default behavior if omitted).
 
-If you don't want to allow ordering on your filter, just don't add `order_by` as a field and you are all set.
+If you don't want to allow ordering on your filter, just don't add `order_by` (or custom `ordering_field_name`) as a field and you are all set.
 
 
 ## Search
 
-There is a specific field on the filter class that can be used for searching. The default name is `search` and it takes a string.
+There is a specific field on the filter class that can be used for searching. The default name is `search` and it takes
+a string.
 
-You have to define what fields to search in with the `search_model_fields` constant.
+You have to define what fields/columns to search in with the `search_model_fields` constant.
+
+If you don't want to allow searching on your filter, just don't add `search` (or custom `search_field_name`) as a field and you are all set.
 
 
 ### Example - Basic
@@ -242,7 +245,8 @@ line. Your `allowed_field_names` would be something like `["age", "-age", "-crea
 
 ### Example - Search
 
-If for some reason you can't or don't want to use `order_by` as the field name for ordering, you can override it:
+If for some reason you can't or don't want to use `search` as the field name for searching, you can override it by
+setting `search_field_name`:
 
 ```python
 from typing import Optional
@@ -251,7 +255,8 @@ from fastapi_filter.contrib.sqlalchemy import Filter
 class UserFilter(Filter):
     class Constants(Filter.Constants):
         model = User
-        search_model_fields = ["name"]
+        search_field_name = "custom_name_for_search"
+        search_model_fields = ["name", "email"]  # It will search in both `name` and `email` columns.
 
 
 @app.get("/users", response_model=list[UserOut])
@@ -268,5 +273,5 @@ async def get_users(
 Valid urls:
 
 ```bash
-curl /users?search=Johnny
+curl /users?custom_name_for_search=Johnny
 ```

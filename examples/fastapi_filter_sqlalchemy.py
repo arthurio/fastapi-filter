@@ -80,10 +80,12 @@ class AddressFilter(Filter):
     city: Optional[str]
     city__in: Optional[List[str]]
     custom_order_by: Optional[List[str]]
+    custom_search: Optional[str]
 
     class Constants(Filter.Constants):
         model = Address
         ordering_field_name = "custom_order_by"
+        search_field_name = "custom_search"
         search_model_fields = ["street", "country", "city"]
 
 
@@ -100,6 +102,7 @@ class UserFilter(Filter):
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
     order_by: List[str] = ["age"]
+    search: Optional[str]
 
     class Constants(Filter.Constants):
         model = User
@@ -140,7 +143,7 @@ async def get_users(
     user_filter: UserFilter = FilterDepends(UserFilter),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
-    query = select(User).outerjoin(Address)
+    query = select(User).join(Address)
     query = user_filter.filter(query)
     query = user_filter.sort(query)
     result = await db.execute(query)
