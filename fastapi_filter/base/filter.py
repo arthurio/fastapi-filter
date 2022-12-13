@@ -173,6 +173,9 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
             def alias_generator(cls, string: str) -> str:
                 return f"{prefix}__{string}"
 
+        class Constants(Filter.Constants):  # type: ignore[name-defined]
+            ...
+
     NestedFilter.Constants.prefix = prefix
 
     return NestedFilter
