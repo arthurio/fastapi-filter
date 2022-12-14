@@ -19,7 +19,6 @@ plugins = [
 module = [
   "bson.objectid",
   "mongoengine.*",
-  "sqlalchemy_utils.*",
   "uvicorn.*",
 ]
 ignore_missing_imports = true

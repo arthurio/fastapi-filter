@@ -4,7 +4,7 @@ from typing import AsyncIterator, List, Optional
 import pytest
 import pytest_asyncio
 from fastapi import Depends, FastAPI, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -295,9 +295,15 @@ def SportFilter(Sport, Filter):
     class SportFilter(Filter):
         name: Optional[str] = Field(Query(description="Name of the sport", default=None))
         is_individual: bool
+        bogus_filter: Optional[str]
 
         class Constants(Filter.Constants):
             model = Sport
+
+        @validator("bogus_filter")
+        def throw_exception(cls, value):
+            if value:
+                raise ValueError("You can't use this bogus filter")
 
     yield SportFilter
 

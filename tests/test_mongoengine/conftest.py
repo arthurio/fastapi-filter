@@ -5,7 +5,7 @@ import pytest
 from bson.objectid import ObjectId
 from fastapi import FastAPI, Query
 from mongoengine import Document, connect, fields
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.mongoengine import Filter as MongoFilter
@@ -173,9 +173,15 @@ def SportFilter(Sport, Filter):
     class SportFilter(Filter):
         name: Optional[str] = Field(Query(description="Name of the sport", default=None))
         is_individual: bool
+        bogus_filter: Optional[str]
 
         class Constants(Filter.Constants):
             model = Sport
+
+        @validator("bogus_filter")
+        def throw_exception(cls, value):
+            if value:
+                raise ValueError("You can't use this bogus filter")
 
     yield SportFilter
 
