@@ -136,7 +136,17 @@ list of strings.
 You can change the **direction** of the sorting (*asc* or *desc*) by prefixing with `-` or `+` (Optional, it's the
 default behavior if omitted).
 
-If you don't want to allow ordering on your filter, just don't add `order_by` as a field and you are all set.
+If you don't want to allow ordering on your filter, just don't add `order_by` (or custom `ordering_field_name`) as a field and you are all set.
+
+
+## Search
+
+There is a specific field on the filter class that can be used for searching. The default name is `search` and it takes
+a string.
+
+You have to define what fields/columns to search in with the `search_model_fields` constant.
+
+If you don't want to allow searching on your filter, just don't add `search` (or custom `search_field_name`) as a field and you are all set.
 
 
 ### Example - Basic
@@ -232,3 +242,36 @@ class MyFilter(Filter):
 
 1. If you want to restrict only on specific directions, like `-created_at` and `name` for example, you can remove this
 line. Your `allowed_field_names` would be something like `["age", "-age", "-created_at"]`.
+
+### Example - Search
+
+If for some reason you can't or don't want to use `search` as the field name for searching, you can override it by
+setting `search_field_name`:
+
+```python
+from typing import Optional
+from fastapi_filter.contrib.sqlalchemy import Filter
+
+class UserFilter(Filter):
+    class Constants(Filter.Constants):
+        model = User
+        search_field_name = "custom_name_for_search"
+        search_model_fields = ["name", "email"]  # It will search in both `name` and `email` columns.
+
+
+@app.get("/users", response_model=list[UserOut])
+async def get_users(
+    user_filter: UserFilter = FilterDepends(UserFilter),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    query = select(User)
+    query = user_filter.sort(query)
+    result = await db.execute(query)
+    return result.scalars().all()
+```
+
+Valid urls:
+
+```bash
+curl /users?custom_name_for_search=Johnny
+```

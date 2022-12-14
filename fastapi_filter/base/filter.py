@@ -1,7 +1,7 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import Any, Dict, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from fastapi import Depends, HTTPException, status
 from pydantic import BaseModel, Extra, ValidationError, create_model, fields, validator
@@ -38,6 +38,8 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
     class Constants:  # pragma: no cover
         model: Type
         ordering_field_name: str = "order_by"
+        search_model_fields: List[str]
+        search_field_name: str = "search"
         prefix: str
 
     def filter(self, query):  # pragma: no cover

@@ -26,6 +26,8 @@ from sqlalchemy.future import select
         [{"address": {"city__in": "Nantes,Denver"}}, 3],
         [{"address": {"city": "San Francisco"}}, 1],
         [{"address_id__isnull": True}, 1],
+        [{"search": "Mr"}, 2],
+        [{"search": "mr"}, 2],
     ],
 )
 @pytest.mark.asyncio

@@ -158,9 +158,12 @@ def UserFilter(User, Filter, AddressFilter):
         age__gte: Optional[int]
         age__in: Optional[List[int]]
         address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
+        search: Optional[str]
 
         class Constants(Filter.Constants):
             model = User
+            search_model_fields = ["name", "email"]
+            search_field_name = "search"
 
     yield UserFilter
 

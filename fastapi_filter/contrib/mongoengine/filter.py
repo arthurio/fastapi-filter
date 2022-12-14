@@ -1,4 +1,5 @@
 from mongoengine import QuerySet
+from mongoengine.queryset.visitor import Q
 from pydantic import validator
 
 from ...base.filter import BaseFilterModel
@@ -57,6 +58,13 @@ class Filter(BaseFilterModel):
                         field_name = f"{field_name}__ne"
                     value = None
 
-                query = query.filter(**{field_name: value})
+                if field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
+                    search_filter = Q()
+                    for search_field in self.Constants.search_model_fields:
+                        search_filter = search_filter | Q(**{f"{search_field}__icontains": value})
+
+                    query = query.filter(search_filter)
+                else:
+                    query = query.filter(**{field_name: value})
 
         return query

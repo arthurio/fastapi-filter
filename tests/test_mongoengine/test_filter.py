@@ -20,6 +20,8 @@ from fastapi import status
         [{"address": {"street__isnull": True}}, 1],
         [{"address": {"city__in": "Nantes,Denver"}}, 3],
         [{"address": {"city": "San Francisco"}}, 1],
+        [{"search": "Mr"}, 2],
+        [{"search": "mr"}, 2],
     ],
 )
 def test_basic_filter(User, UserFilter, Address, users, filter_, expected_count):
