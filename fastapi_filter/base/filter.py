@@ -3,7 +3,8 @@ from collections.abc import Iterable
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Extra, ValidationError, create_model, fields, validator
 from pydantic.fields import FieldInfo
 
@@ -215,14 +216,14 @@ def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_
             try:
                 original_filter = Filter(**self.dict(by_alias=by_alias))
             except ValidationError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+                raise RequestValidationError(e.raw_errors) from e
             return original_filter.filter(*args, **kwargs)
 
         def sort(self, *args, **kwargs):
             try:
                 original_filter = Filter(**self.dict(by_alias=by_alias))
             except ValidationError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+                raise RequestValidationError(e.raw_errors) from e
             return original_filter.sort(*args, **kwargs)
 
     return Depends(FilterWrapper)
