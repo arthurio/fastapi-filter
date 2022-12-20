@@ -1,13 +1,10 @@
 [[package]]
 name = "aiosqlite"
-version = "0.17.0"
+version = "0.18.0"
 description = "asyncio bridge to the standard sqlite3 module"
 category = "dev"
 optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-typing_extensions = ">=3.7.2"
+python-versions = ">=3.7"
 
 [[package]]
 name = "anyio"
@@ -1475,12 +1472,12 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "d807524e01b1ef7ea0c603b72d9fcc05c9a461ee3e060f86258548f38b5be3a9"
+content-hash = "42cf2ac4f1371d0a90d98bed945456fda3764c2d11bfb10b62bd0ffb263ee4e7"
 
 [metadata.files]
 aiosqlite = [
-    {file = "aiosqlite-0.17.0-py3-none-any.whl", hash = "sha256:6c49dc6d3405929b1d08eeccc72306d3677503cc5e5e43771efc1e00232e8231"},
-    {file = "aiosqlite-0.17.0.tar.gz", hash = "sha256:f0e6acc24bc4864149267ac82fb46dfb3be4455f99fe21df82609cc6e6baee51"},
+    {file = "aiosqlite-0.18.0-py3-none-any.whl", hash = "sha256:c3511b841e3a2c5614900ba1d179f366826857586f78abd75e7cbeb88e75a557"},
+    {file = "aiosqlite-0.18.0.tar.gz", hash = "sha256:faa843ef5fb08bafe9a9b3859012d3d9d6f77ce3637899de20606b7fc39aa213"},
 ]
 anyio = [
     {file = "anyio-3.6.1-py3-none-any.whl", hash = "sha256:cb29b9c70620506a9a8f87a309591713446953302d7d995344d0d7c6c0c9a7be"},
