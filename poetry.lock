@@ -317,7 +317,7 @@ flake8-plugin-utils = ">=1.0,<2.0"
 
 [[package]]
 name = "flake8-builtins"
-version = "2.0.1"
+version = "2.1.0"
 description = "Check for python builtins being used as variables or parameters."
 category = "dev"
 optional = false
@@ -1463,7 +1463,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "9b7d903aea195d9f10a5ccd47957a5042198a8bd720ef92e142ccaffa7ba5b25"
+content-hash = "2416f656431b1ab629cadf098e1af3c76917ee44d3d07664f697249e8d259597"
 
 [metadata.files]
 aiosqlite = [
@@ -1633,8 +1633,8 @@ flake8-breakpoint = [
     {file = "flake8_breakpoint-1.1.0-py3-none-any.whl", hash = "sha256:27e0cb132647f9ef348b4a3c3126e7350bedbb22e8e221cd11712a223855ea0b"},
 ]
 flake8-builtins = [
-    {file = "flake8-builtins-2.0.1.tar.gz", hash = "sha256:5aeb420130efe8acbdaf8708a582492413293a3ca25653518f687937879650a5"},
-    {file = "flake8_builtins-2.0.1-py3-none-any.whl", hash = "sha256:a5b9ca9cbc921c4455ea02e2e9963c990ac66d028c15b654625e012a1e3bbb4d"},
+    {file = "flake8-builtins-2.1.0.tar.gz", hash = "sha256:12ff1ee96dd4e1f3141141ee6c45a5c7d3b3c440d0949e9b8d345c42b39c51d4"},
+    {file = "flake8_builtins-2.1.0-py3-none-any.whl", hash = "sha256:469e8f03d6d0edf4b1e62b6d5a97dce4598592c8a13ec8f0952e7a185eba50a1"},
 ]
 flake8-docstrings = [
     {file = "flake8-docstrings-1.6.0.tar.gz", hash = "sha256:9fe7c6a306064af8e62a055c2f61e9eb1da55f84bb39caef2b84ce53708ac34b"},
