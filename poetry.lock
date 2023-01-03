@@ -1072,7 +1072,7 @@ test = ["coverage", "pycodestyle", "pyflakes", "pylint", "pytest", "pytest-cov"]
 
 [[package]]
 name = "python-lsp-server"
-version = "1.6.0"
+version = "1.7.0"
 description = "Python Language Server for the Language Server Protocol"
 category = "dev"
 optional = false
@@ -1087,15 +1087,15 @@ setuptools = ">=39.0.0"
 ujson = ">=3.0.0"
 
 [package.extras]
-all = ["autopep8 (>=1.6.0,<1.7.0)", "flake8 (>=5.0.0,<5.1.0)", "mccabe (>=0.7.0,<0.8.0)", "pycodestyle (>=2.9.0,<2.10.0)", "pydocstyle (>=2.0.0)", "pyflakes (>=2.5.0,<2.6.0)", "pylint (>=2.5.0)", "rope (>=0.10.5)", "whatthepatch", "yapf"]
+all = ["autopep8 (>=1.6.0,<1.7.0)", "flake8 (>=5.0.0,<7)", "mccabe (>=0.7.0,<0.8.0)", "pycodestyle (>=2.9.0,<2.11.0)", "pydocstyle (>=2.0.0)", "pyflakes (>=2.5.0,<3.1.0)", "pylint (>=2.5.0)", "rope (>1.2.0)", "whatthepatch", "yapf"]
 autopep8 = ["autopep8 (>=1.6.0,<1.7.0)"]
-flake8 = ["flake8 (>=5.0.0,<5.1.0)"]
+flake8 = ["flake8 (>=5.0.0,<7)"]
 mccabe = ["mccabe (>=0.7.0,<0.8.0)"]
-pycodestyle = ["pycodestyle (>=2.9.0,<2.10.0)"]
+pycodestyle = ["pycodestyle (>=2.9.0,<2.11.0)"]
 pydocstyle = ["pydocstyle (>=2.0.0)"]
-pyflakes = ["pyflakes (>=2.5.0,<2.6.0)"]
+pyflakes = ["pyflakes (>=2.5.0,<3.1.0)"]
 pylint = ["pylint (>=2.5.0)"]
-rope = ["rope (>0.10.5)"]
+rope = ["rope (>1.2.0)"]
 test = ["coverage", "flaky", "matplotlib", "numpy", "pandas", "pylint (>=2.5.0)", "pyqt5", "pytest", "pytest-cov"]
 websockets = ["websockets (>=10.3)"]
 yapf = ["whatthepatch (>=1.0.2,<2.0.0)", "yapf"]
@@ -1463,7 +1463,7 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12"
-content-hash = "4cdf548e039c805b757a274bac525c6c34af1bfc340a6ee98dbdd2cf72d50c24"
+content-hash = "dc658e68ef36f2241bf186bdaf2728f942b6376f8cc6f6007d341dcb49e63f1b"
 
 [metadata.files]
 aiosqlite = [
@@ -2091,8 +2091,8 @@ python-lsp-jsonrpc = [
     {file = "python_lsp_jsonrpc-1.0.0-py3-none-any.whl", hash = "sha256:079b143be64b0a378bdb21dff5e28a8c1393fe7e8a654ef068322d754e545fc7"},
 ]
 python-lsp-server = [
-    {file = "python-lsp-server-1.6.0.tar.gz", hash = "sha256:d75cdff9027c4212e5b9e861e9a0219219c8e2c69508d9f24949951dabd0dc1b"},
-    {file = "python_lsp_server-1.6.0-py3-none-any.whl", hash = "sha256:7ea502b1d392888efb841cbfdabb33e6ec96e44ab4cb81dd38aacefe657b1abf"},
+    {file = "python-lsp-server-1.7.0.tar.gz", hash = "sha256:401ce78ea2e98cadd02d94962eb32c92879caabc8055b9a2f36d7ef44acc5435"},
+    {file = "python_lsp_server-1.7.0-py3-none-any.whl", hash = "sha256:9468a34e56b840baa52bdf560e04f3e025ee9419aa5dba1f0b3941e86191a1b9"},
 ]
 pyyaml = [
     {file = "PyYAML-6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d4db7c7aef085872ef65a8fd7d6d09a14ae91f691dec3e87ee5ee0539d516f53"},
