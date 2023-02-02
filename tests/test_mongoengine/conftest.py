@@ -130,14 +130,14 @@ def users(User, Address, sports):
 
 @pytest.fixture(scope="package")
 def AddressFilter(Address, Filter):
-    class AddressFilter(Filter):
+    class AddressFilter(Filter):  # type: ignore[misc, valid-type]
         street__isnull: Optional[bool]
         country: Optional[str]
         city: Optional[str]
         city__in: Optional[List[str]]
         country__nin: Optional[List[str]]
 
-        class Constants(Filter.Constants):
+        class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Address
 
     yield AddressFilter
@@ -145,7 +145,7 @@ def AddressFilter(Address, Filter):
 
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
-    class UserFilter(Filter):
+    class UserFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str]
         name__in: Optional[List[str]]
         name__nin: Optional[List[str]]
@@ -157,10 +157,12 @@ def UserFilter(User, Filter, AddressFilter):
         age__gt: Optional[int]
         age__gte: Optional[int]
         age__in: Optional[List[int]]
-        address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
+        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
+            with_prefix("address", AddressFilter)
+        )
         search: Optional[str]
 
-        class Constants(Filter.Constants):
+        class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = User
             search_model_fields = ["name", "email"]
             search_field_name = "search"
@@ -170,12 +172,12 @@ def UserFilter(User, Filter, AddressFilter):
 
 @pytest.fixture(scope="package")
 def SportFilter(Sport, Filter):
-    class SportFilter(Filter):
+    class SportFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str] = Field(Query(description="Name of the sport", default=None))
         is_individual: bool
         bogus_filter: Optional[str]
 
-        class Constants(Filter.Constants):
+        class Constants(Filter.Constants):  # type: ignore [name-defined]
             model = Sport
 
         @validator("bogus_filter")
@@ -189,7 +191,7 @@ def SportFilter(Sport, Filter):
 @pytest.fixture(scope="package")
 def AddressOut(PydanticObjectId):
     class AddressOut(BaseModel):
-        id: PydanticObjectId = Field(..., alias="_id")
+        id: PydanticObjectId = Field(..., alias="_id")  # type: ignore[valid-type]
         street: Optional[str]
         city: str
         country: str
@@ -203,11 +205,11 @@ def AddressOut(PydanticObjectId):
 @pytest.fixture(scope="package")
 def UserOut(PydanticObjectId, AddressOut):
     class UserOut(BaseModel):
-        id: PydanticObjectId = Field(..., alias="_id")
+        id: PydanticObjectId = Field(..., alias="_id")  # type: ignore[valid-type]
         created_at: datetime
         name: Optional[str]
         age: int
-        address: Optional[AddressOut]
+        address: Optional[AddressOut]  # type: ignore[valid-type]
 
         class Config:
             orm_mode = True
@@ -218,7 +220,7 @@ def UserOut(PydanticObjectId, AddressOut):
 @pytest.fixture(scope="package")
 def SportOut(PydanticObjectId):
     class SportOut(BaseModel):
-        id: PydanticObjectId = Field(..., alias="_id")
+        id: PydanticObjectId = Field(..., alias="_id")  # type: ignore[valid-type]
         name: str
         is_individual: bool
 
@@ -256,8 +258,8 @@ def app(
 ):
     app = FastAPI()
 
-    @app.get("/users", response_model=List[UserOut])
-    async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):
+    @app.get("/users", response_model=List[UserOut])  # type: ignore[valid-type]
+    async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):  # type: ignore[valid-type]
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = query.select_related()
         return [
@@ -269,8 +271,10 @@ def app(
             for user in query
         ]
 
-    @app.get("/users_with_order_by", response_model=List[UserOut])
-    async def get_users_with_order_by(user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy)):
+    @app.get("/users_with_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    async def get_users_with_order_by(
+        user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),  # type: ignore[valid-type]
+    ):
         query = user_filter.sort(User.objects())  # type: ignore[attr-defined]
         query = user_filter.filter(query)  # type: ignore[attr-defined]
         query = query.select_related()
@@ -283,33 +287,37 @@ def app(
             for user in query
         ]
 
-    @app.get("/users_with_no_order_by", response_model=List[UserOut])
+    @app.get("/users_with_no_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_no_order_by(
-        user_filter: UserFilter = FilterDepends(UserFilter),
+        user_filter: UserFilter = FilterDepends(UserFilter),  # type: ignore[valid-type]
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_default_order_by", response_model=List[UserOut])
+    @app.get("/users_with_default_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_default_order_by(
-        user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
+        user_filter: UserFilterOrderByWithDefault = FilterDepends(  # type: ignore[valid-type]
+            UserFilterOrderByWithDefault
+        ),
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_restricted_order_by", response_model=List[UserOut])
+    @app.get("/users_with_restricted_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_restricted_order_by(
-        user_filter: UserFilterRestrictedOrderBy = FilterDepends(UserFilterRestrictedOrderBy),
+        user_filter: UserFilterRestrictedOrderBy = FilterDepends(  # type: ignore[valid-type]
+            UserFilterRestrictedOrderBy
+        ),
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_custom_order_by", response_model=List[UserOut])
+    @app.get("/users_with_custom_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_custom_order_by(
-        user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
+        user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),  # type: ignore[valid-type]
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/sports", response_model=List[SportOut])
+    @app.get("/sports", response_model=List[SportOut])  # type: ignore[valid-type]
     async def get_sports(
-        sport_filter: SportFilter = FilterDepends(SportFilter),
+        sport_filter: SportFilter = FilterDepends(SportFilter),  # type: ignore[valid-type]
     ):
         query = sport_filter.filter(Sport.objects())  # type: ignore[attr-defined]
         return [sport.to_mongo() for sport in query]

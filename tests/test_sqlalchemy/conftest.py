@@ -32,7 +32,7 @@ def engine(database_url):
 
 @pytest.fixture(scope="session")
 def SessionLocal(engine):
-    return sessionmaker(autoflush=True, bind=engine, class_=AsyncSession)
+    return sessionmaker(engine, autoflush=True, class_=AsyncSession)
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -49,13 +49,13 @@ async def session(engine, SessionLocal, Base):
 
 
 @pytest.fixture(scope="session")
-def Base(engine):
-    return declarative_base(bind=engine)
+def Base():
+    return declarative_base()
 
 
 @pytest.fixture(scope="session")
 def User(Base, Address, FavoriteSport, Sport):
-    class User(Base):
+    class User(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "users"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
@@ -64,9 +64,9 @@ def User(Base, Address, FavoriteSport, Sport):
         name = Column(String)
         age = Column(Integer, nullable=False)
         address_id = Column(Integer, ForeignKey("addresses.id"))
-        address: Address = relationship(Address, backref="users", lazy="joined")
+        address: Address = relationship(Address, backref="users", lazy="joined")  # type: ignore[valid-type]
 
-        favorite_sports: Mapped[Sport] = relationship(
+        favorite_sports: Mapped[Sport] = relationship(  # type: ignore[assignment, valid-type]
             Sport,
             secondary="favorite_sports",
             backref="users",
@@ -78,7 +78,7 @@ def User(Base, Address, FavoriteSport, Sport):
 
 @pytest.fixture(scope="session")
 def Address(Base):
-    class Address(Base):
+    class Address(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "addresses"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
@@ -91,7 +91,7 @@ def Address(Base):
 
 @pytest.fixture(scope="session")
 def Sport(Base):
-    class Sport(Base):
+    class Sport(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "sports"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
@@ -103,7 +103,7 @@ def Sport(Base):
 
 @pytest.fixture(scope="session")
 def FavoriteSport(Base):
-    class FavoriteSport(Base):
+    class FavoriteSport(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "favorite_sports"
 
         user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
@@ -220,8 +220,8 @@ def UserOut(AddressOut, SportOut):
         updated_at: datetime
         name: Optional[str]
         age: int
-        address: Optional[AddressOut]
-        favorite_sports: Optional[List[SportOut]]
+        address: Optional[AddressOut]  # type: ignore[valid-type]
+        favorite_sports: Optional[List[SportOut]]  # type: ignore[valid-type]
 
         class Config:
             orm_mode = True
@@ -249,13 +249,13 @@ def Filter():
 
 @pytest.fixture(scope="package")
 def AddressFilter(Address, Filter):
-    class AddressFilter(Filter):
+    class AddressFilter(Filter):  # type: ignore[misc, valid-type]
         street__isnull: Optional[bool]
         city: Optional[str]
         city__in: Optional[List[str]]
         country__not_in: Optional[List[str]]
 
-        class Constants(Filter.Constants):
+        class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Address
 
     yield AddressFilter
@@ -263,7 +263,7 @@ def AddressFilter(Address, Filter):
 
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
-    class UserFilter(Filter):
+    class UserFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str]
         name__neq: Optional[str]
         name__like: Optional[str]
@@ -278,11 +278,13 @@ def UserFilter(User, Filter, AddressFilter):
         age__gt: Optional[int]
         age__gte: Optional[int]
         age__in: Optional[List[int]]
-        address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
+        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
+            with_prefix("address", AddressFilter)
+        )
         address_id__isnull: Optional[bool]
         search: Optional[str]
 
-        class Constants(Filter.Constants):
+        class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = User
             search_model_fields = ["name"]
             search_field_name = "search"
@@ -292,12 +294,12 @@ def UserFilter(User, Filter, AddressFilter):
 
 @pytest.fixture(scope="package")
 def SportFilter(Sport, Filter):
-    class SportFilter(Filter):
+    class SportFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str] = Field(Query(description="Name of the sport", default=None))
         is_individual: bool
         bogus_filter: Optional[str]
 
-        class Constants(Filter.Constants):
+        class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Sport
 
         @validator("bogus_filter")
@@ -330,18 +332,18 @@ def app(
         async with SessionLocal() as session:
             yield session
 
-    @app.get("/users", response_model=List[UserOut])
+    @app.get("/users", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users(
-        user_filter: UserFilter = FilterDepends(UserFilter),
+        user_filter: UserFilter = FilterDepends(UserFilter),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
         query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().unique().all()
 
-    @app.get("/users_with_order_by", response_model=List[UserOut])
+    @app.get("/users_with_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_order_by(
-        user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),
+        user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
         query = user_filter.sort(select(User).outerjoin(Address))  # type: ignore[attr-defined]
@@ -349,36 +351,40 @@ def app(
         result = await db.execute(query)
         return result.scalars().unique().all()
 
-    @app.get("/users_with_no_order_by", response_model=List[UserOut])
+    @app.get("/users_with_no_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_no_order_by(
-        user_filter: UserFilter = FilterDepends(UserFilter),
+        user_filter: UserFilter = FilterDepends(UserFilter),  # type: ignore[valid-type]
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_default_order_by", response_model=List[UserOut])
+    @app.get("/users_with_default_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_default_order_by(
-        user_filter: UserFilterOrderByWithDefault = FilterDepends(UserFilterOrderByWithDefault),
+        user_filter: UserFilterOrderByWithDefault = FilterDepends(  # type: ignore[valid-type]
+            UserFilterOrderByWithDefault
+        ),
         db: AsyncSession = Depends(get_db),
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/users_with_restricted_order_by", response_model=List[UserOut])
+    @app.get("/users_with_restricted_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_restricted_order_by(
-        user_filter: UserFilterRestrictedOrderBy = FilterDepends(UserFilterRestrictedOrderBy),
+        user_filter: UserFilterRestrictedOrderBy = FilterDepends(  # type: ignore[valid-type]
+            UserFilterRestrictedOrderBy
+        ),
         db: AsyncSession = Depends(get_db),
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/users_with_custom_order_by", response_model=List[UserOut])
+    @app.get("/users_with_custom_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users_with_custom_order_by(
-        user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),
+        user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/sports", response_model=List[SportOut])
+    @app.get("/sports", response_model=List[SportOut])  # type: ignore[valid-type]
     async def get_sports(
-        sport_filter: SportFilter = FilterDepends(SportFilter),
+        sport_filter: SportFilter = FilterDepends(SportFilter),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
         query = sport_filter.filter(select(Sport))  # type: ignore[attr-defined]
