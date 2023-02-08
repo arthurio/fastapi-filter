@@ -5,7 +5,7 @@ import uvicorn
 from faker import Faker
 from fastapi import Depends, FastAPI, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, ForeignKey, Integer, String, event, select
+from sqlalchemy import Column, ForeignKey, Integer, String, event, nulls_last, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -48,9 +48,10 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)
-    age = Column(Integer, nullable=False)
+    age = Column(Integer, nullable=True)
     address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
     address: Address = relationship(Address, backref="users", lazy="joined")
+    phone = Column(String, nullable=True)
 
 
 class AddressOut(BaseModel):
@@ -66,7 +67,8 @@ class AddressOut(BaseModel):
 class UserIn(BaseModel):
     name: str
     email: str
-    age: int
+    age: Optional[int]
+    phone: Optional[str]
 
 
 class UserOut(UserIn):
@@ -104,12 +106,16 @@ class UserFilter(Filter):
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
+    phone: Optional[str]
     order_by: List[str] = ["age"]
     search: Optional[str]
 
     class Constants(Filter.Constants):
         model = User
         search_model_fields = ["name"]
+
+    def apply_ordering_parameters(self, order_by_field, direction):
+        return nulls_last(super().apply_ordering_parameters(order_by_field, direction))
 
 
 app = FastAPI()
@@ -126,7 +132,13 @@ async def on_startup() -> None:
     async with async_session() as session:
         for _ in range(100):
             address = Address(street=fake.street_address(), city=fake.city(), country=fake.country())
-            user = User(name=fake.name(), email=fake.email(), age=fake.random_int(min=5, max=120), address=address)
+            age = fake.random_int(min=0, max=120)
+            if age % 10 == 0:
+                phone = None
+            else:
+                phone = fake.phone_number()
+
+            user = User(name=fake.name(), email=fake.email(), age=age, phone=phone, address=address)
 
             session.add_all([address, user])
         await session.commit()

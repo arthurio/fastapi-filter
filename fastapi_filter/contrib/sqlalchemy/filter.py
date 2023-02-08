@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
+from functools import partial
 from typing import Union
 
 from pydantic import validator
-from sqlalchemy import or_
+from sqlalchemy import Column, asc, desc, or_
 from sqlalchemy.orm import Query
 from sqlalchemy.sql.selectable import Select
 
@@ -61,9 +62,9 @@ class Filter(BaseFilterModel):
             name__isnull: Optional[bool]
     """
 
-    class Direction(str, Enum):
-        asc = "asc"
-        desc = "desc"
+    class Direction(Enum):
+        asc = partial(asc)
+        desc = partial(desc)
 
     @validator("*", pre=True)
     def split_str(cls, value, field):
@@ -99,18 +100,23 @@ class Filter(BaseFilterModel):
 
         return query
 
+    def apply_ordering_parameters(self, order_by_field: Column, direction: Direction):
+        return direction.value(order_by_field)
+
     def sort(self, query: Union[Query, Select]):
         if not self.ordering_values:
             return query
 
         for field_name in self.ordering_values:
-            direction = Filter.Direction.asc
             if field_name.startswith("-"):
                 direction = Filter.Direction.desc
+            else:
+                direction = Filter.Direction.asc
+
             field_name = field_name.replace("-", "").replace("+", "")
 
             order_by_field = getattr(self.Constants.model, field_name)
 
-            query = query.order_by(getattr(order_by_field, direction)())
+            query = query.order_by(self.apply_ordering_parameters(order_by_field, direction))
 
         return query
