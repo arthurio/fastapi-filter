@@ -2118,14 +2118,14 @@ files = [
 
 [[package]]
 name = "types-setuptools"
-version = "65.7.0.4"
+version = "67.1.0.2"
 description = "Typing stubs for setuptools"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-setuptools-65.7.0.4.tar.gz", hash = "sha256:147809433301fe7e0f4ef5c0782f9a0453788960575e1efb6da5fe8cb2493c9f"},
-    {file = "types_setuptools-65.7.0.4-py3-none-any.whl", hash = "sha256:522067dfd8e1771f8d7e047e451de2740dc4e0c9f48a22302a6cc96e6c964a13"},
+    {file = "types-setuptools-67.1.0.2.tar.gz", hash = "sha256:947ea9d25222330e47f56e8960955b36ae6b4d589da09ab50561f1ed5e22ab2f"},
+    {file = "types_setuptools-67.1.0.2-py3-none-any.whl", hash = "sha256:b6e908d8da75ae6f2e7ff854fc67d3c869a5edab9810798568228ea691d64050"},
 ]
 
 [package.dependencies]
@@ -2377,4 +2377,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "6d6d4acfda55b4a29c93e98d75201796266b1a4f6a1acc44a52fb3bdd94e765b"
+content-hash = "d703c47587d26ed865b55a0c6e2c9e1ce6a831ada2d2530f378f21753c58314c"
