@@ -65,6 +65,10 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
                 "Make sure to add it to your filter class."
             )
 
+    @validator("*", pre=True)
+    def split_str(cls, value, field):  # pragma: no cover
+        return value
+
     @validator("*", pre=True, allow_reuse=True, check_fields=False)
     def strip_order_by_values(cls, value, values, field):
         if field.name != cls.Constants.ordering_field_name:

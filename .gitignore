@@ -1,8 +1,24 @@
 *.sqlite-journal
 .DS_Store
-.coverage
 .pypirc
-coverage.xml
 dist/
 fastapi_filter.sqlite
 poetry.toml
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Unit test / coverage reports
+test-results/
+junit.xml
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+*.cover
+.hypothesis/
+.pytest_cache/
