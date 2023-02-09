@@ -36,16 +36,15 @@ Examples:
 class Filter(BaseFilterModel):
     """Base filter for orm related filters.
 
-    All children must set:
-        ```python
+    All children must set::
+
         class Constants(Filter.Constants):
             model = MyModel
-        ```
 
     It can handle regular field names and Django style operators.
 
-    Example:
-        ```python
+    Example::
+
         class MyModel:
             id: PrimaryKey()
             name: StringField(nullable=True)

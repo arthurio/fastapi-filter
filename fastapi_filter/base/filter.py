@@ -14,23 +14,22 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
 
     Provides the interface for filtering and ordering.
 
+    ## Ordering
 
-    # Ordering
-
-    ## Query string examples:
+    ### Query string examples::
 
         >>> "?order_by=-created_at"
         >>> "?order_by=created_at,updated_at"
         >>> "?order_by=+created_at,-name"
 
-    ## Limitation
+    ### Limitation
 
     Sorting doesn't support related fields, you can only use the attributes of the targeted model/collection.
     For example, you can't use `related_model__attribute`.
 
-    # Filtering
+    ## Filtering
 
-    ## Query string examples:
+    ### Query string examples::
 
         >>> "?my_field__gt=12&my_other_field=Tomato"
         >>> "?my_field__in=12,13,15&my_other_field__not_in=Tomato,Pepper"
@@ -44,7 +43,7 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
         prefix: str
 
     def filter(self, query):  # pragma: no cover
-        ...
+        return query
 
     @property
     def filtering_fields(self):
@@ -53,7 +52,7 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
         return fields.items()
 
     def sort(self, query):  # pragma: no cover
-        ...
+        return query
 
     @property
     def ordering_values(self):
@@ -65,10 +64,6 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
                 f"Ordering field {self.Constants.ordering_field_name} is not defined. "
                 "Make sure to add it to your filter class."
             )
-
-    @validator("*", pre=True)
-    def split_str(cls, value, field):  # pragma: no cover
-        ...
 
     @validator("*", pre=True, allow_reuse=True, check_fields=False)
     def strip_order_by_values(cls, value, values, field):
@@ -126,10 +121,9 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
 def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
     """Allow re-using existing filter under a prefix.
 
-    Example:
-        ```python
-        from pydantic import BaseModel
+    Example::
 
+        from pydantic import BaseModel
         from fastapi_filter.filter import FilterDepends
 
         class NumberFilter(BaseModel):
@@ -138,20 +132,19 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
         class MainFilter(BaseModel):
             name: str
             number_filter: Optional[Filter] = FilterDepends(with_prefix("number_filter", Filter))
-        ```
 
     As a result, you'll get the following filters:
         * name
         * number_filter__count
 
-    # Limitation
+    ## Limitation
 
     The alias generator is the last to be picked in order of prevalence. So if one of the fields has a `Query` as
     default and declares an alias already, this will be picked first and you won't get the prefix.
 
-    Example:
-        ```python
-         from pydantic import BaseModel
+    Example::
+
+        from pydantic import BaseModel
 
         class NumberFilter(BaseModel):
             count: Optional[int] = Query(default=10, alias=counter)
@@ -159,7 +152,6 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
         class MainFilter(BaseModel):
             name: str
             number_filter: Optional[Filter] = FilterDepends(with_prefix("number_filter", Filter))
-        ```
 
     As a result, you'll get the following filters:
         * name
