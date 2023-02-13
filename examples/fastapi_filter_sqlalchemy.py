@@ -9,7 +9,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import Mapped, relationship, sessionmaker
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter
@@ -50,7 +50,7 @@ class User(Base):
     email = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
     address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
-    address: Address = relationship(Address, backref="users", lazy="joined")
+    address: Mapped[Address] = relationship(Address, backref="users", lazy="joined")
 
 
 class AddressOut(BaseModel):
