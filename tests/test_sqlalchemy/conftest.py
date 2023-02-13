@@ -64,8 +64,14 @@ def User(Base, Address, FavoriteSport, Sport):
         name = Column(String)
         age = Column(Integer, nullable=False)
         address_id = Column(Integer, ForeignKey("addresses.id"))
-        address: Address = relationship(Address, backref="users", lazy="joined")  # type: ignore[valid-type]
+        # TODO(arthurio): Remove ignore assignment in sqlalchemy 2.0
+        address: Mapped[Address] = relationship(  # type: ignore[assignment, valid-type]
+            Address,
+            backref="users",
+            lazy="joined",
+        )
 
+        # TODO(arthurio): Remove ignore assignment in sqlalchemy 2.0
         favorite_sports: Mapped[Sport] = relationship(  # type: ignore[assignment, valid-type]
             Sport,
             secondary="favorite_sports",
