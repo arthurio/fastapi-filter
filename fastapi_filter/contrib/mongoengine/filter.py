@@ -8,8 +8,8 @@ from ...base.filter import BaseFilterModel
 class Filter(BaseFilterModel):
     """Base filter for mongoengine related filters.
 
-    Example:
-        ```python
+    Example::
+
         class MyModel:
             id: PrimaryKey()
             name: StringField(null=True)
@@ -25,7 +25,6 @@ class Filter(BaseFilterModel):
             name__ne: Optional[str]
             name__nin: Optional[list[str]]
             name__isnull: Optional[bool]
-        ```
     """
 
     def sort(self, query: QuerySet) -> QuerySet:
