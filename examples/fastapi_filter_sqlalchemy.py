@@ -7,9 +7,8 @@ from fastapi import Depends, FastAPI, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import Column, ForeignKey, Integer, String, event, select
 from sqlalchemy.engine import Engine
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, relationship, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Mapped, declarative_base, relationship
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter
@@ -25,8 +24,7 @@ def _set_sqlite_case_sensitive_pragma(dbapi_con, connection_record):
 
 
 engine = create_async_engine("sqlite+aiosqlite:///fastapi_filter.sqlite")
-
-async_session = sessionmaker(engine, class_=AsyncSession)
+async_session = async_sessionmaker(engine, class_=AsyncSession)
 
 Base = declarative_base()
 

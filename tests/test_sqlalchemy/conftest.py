@@ -6,9 +6,8 @@ import pytest_asyncio
 from fastapi import Depends, FastAPI, Query
 from pydantic import BaseModel, Field, validator
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, select
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, relationship, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Mapped, declarative_base, relationship
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter as SQLAlchemyFilter
@@ -32,7 +31,7 @@ def engine(database_url):
 
 @pytest.fixture(scope="session")
 def SessionLocal(engine):
-    return sessionmaker(engine, autoflush=True, class_=AsyncSession)
+    return async_sessionmaker(engine, autoflush=True, class_=AsyncSession)
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -64,15 +63,8 @@ def User(Base, Address, FavoriteSport, Sport):
         name = Column(String)
         age = Column(Integer, nullable=False)
         address_id = Column(Integer, ForeignKey("addresses.id"))
-        # TODO(arthurio): Remove ignore assignment in sqlalchemy 2.0
-        address: Mapped[Address] = relationship(  # type: ignore[assignment, valid-type]
-            Address,
-            backref="users",
-            lazy="joined",
-        )
-
-        # TODO(arthurio): Remove ignore assignment in sqlalchemy 2.0
-        favorite_sports: Mapped[Sport] = relationship(  # type: ignore[assignment, valid-type]
+        address: Mapped[Address] = relationship(Address, backref="users", lazy="joined")  # type: ignore[valid-type]
+        favorite_sports: Mapped[Sport] = relationship(  # type: ignore[valid-type]
             Sport,
             secondary="favorite_sports",
             backref="users",
