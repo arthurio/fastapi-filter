@@ -55,7 +55,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          poetry run pytest tests --cov-report=xml
+          nox -- tests --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
