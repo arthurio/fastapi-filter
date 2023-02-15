@@ -54,8 +54,7 @@ jobs:
         uses: supercharge/mongodb-github-action@1.6.0
 
       - name: Run unit tests
-        run: |
-          nox -- tests --cov-report=xml
+        run: poetry run nox -- tests --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
