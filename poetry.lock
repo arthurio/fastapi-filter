@@ -1082,14 +1082,14 @@ min-versions = ["babel (==2.9.0)", "click (==7.0)", "colorama (==0.4)", "ghp-imp
 
 [[package]]
 name = "mkdocs-material"
-version = "9.0.12"
+version = "9.0.14"
 description = "Documentation that simply works"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "mkdocs_material-9.0.12-py3-none-any.whl", hash = "sha256:ff4233e4f4da0c879db0dbcb532a690a3f86f5a66a0cfcce99a124e82a462afb"},
-    {file = "mkdocs_material-9.0.12.tar.gz", hash = "sha256:4da07b1390c6b78844f1566d723dd045572e645f31b108a1b5062fa7d11aa241"},
+    {file = "mkdocs_material-9.0.14-py3-none-any.whl", hash = "sha256:e6b1abc3527ece8522abd8fd76bf30c535f3420b20e11095fc7a8818b31385e5"},
+    {file = "mkdocs_material-9.0.14.tar.gz", hash = "sha256:eff6c2c2ebe89bb99b8bf2167f546bdd35c8d5130694d1823361d6cf9c701c22"},
 ]
 
 [package.dependencies]
@@ -2519,4 +2519,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "ff06d71813d592e6b9e84d79ddc52eb7e5eee87b6f1fbaf6286d3f3179ee33b0"
+content-hash = "55904d7ff75f81e7b08bb62f8e713d18f2cfa0bc01824cdd177b345c47e85bfe"
