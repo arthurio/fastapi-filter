@@ -17,8 +17,8 @@ _orm_operator_transformer = {
     "isnull": lambda value: ("is_", None) if value is True else ("is_not", None),
     "lt": lambda value: ("__lt__", value),
     "lte": lambda value: ("__le__", value),
-    "like": lambda value: ("like", f"%{value}%"),
-    "ilike": lambda value: ("ilike", f"%{value}%"),
+    "like": lambda value: ("like", value),
+    "ilike": lambda value: ("ilike", value),
     # XXX(arthurio): Mysql excludes None values when using `in` or `not in` filters.
     "not": lambda value: ("is_not", value),
     "not_in": lambda value: ("not_in", value),
