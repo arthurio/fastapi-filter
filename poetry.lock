@@ -447,14 +447,14 @@ tests = ["asttokens", "littleutils", "pytest", "rich"]
 
 [[package]]
 name = "faker"
-version = "17.0.0"
+version = "17.3.0"
 description = "Faker is a Python package that generates fake data for you."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "Faker-17.0.0-py3-none-any.whl", hash = "sha256:21c3c6c45183308151c14f62afe59bf54ace68f663e0180973698ba2a9a3b2c4"},
-    {file = "Faker-17.0.0.tar.gz", hash = "sha256:17cf85aeb0363a3384ccd4c1f52b52ec8f414c7afaab74ae1f4c3e09a06e14de"},
+    {file = "Faker-17.3.0-py3-none-any.whl", hash = "sha256:1dfffa43b4492b899a839619f2056060b585ba0bc76f329525194ca04dde0988"},
+    {file = "Faker-17.3.0.tar.gz", hash = "sha256:26b2864a5332094f2c7f3968deebabce69be39ed5db4dbf22b4fa0ba3d1acdae"},
 ]
 
 [package.dependencies]
@@ -2519,4 +2519,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "55904d7ff75f81e7b08bb62f8e713d18f2cfa0bc01824cdd177b345c47e85bfe"
+content-hash = "da2d56296aee8e929e876319770b97ade1b694b66ffe765eef9a4f0b12c6635a"
