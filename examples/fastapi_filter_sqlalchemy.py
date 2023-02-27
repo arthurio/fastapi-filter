@@ -1,6 +1,7 @@
 import logging
 from typing import Any, AsyncIterator, List, Optional
 
+import click
 import uvicorn
 from faker import Faker
 from fastapi import Depends, FastAPI, Query
@@ -115,7 +116,9 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def on_startup() -> None:
-    logger.info("Open http://127.0.0.1:8000/docs to start exploring 🎒 🧭 🗺️")
+    message = "Open http://127.0.0.1:8000/docs to start exploring 🎒 🧭 🗺️"
+    color_message = "Open " + click.style("http://127.0.0.1:8000/docs", bold=True) + " to start exploring 🎒 🧭 🗺️"
+    logger.info(message, extra={"color_message": color_message})
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)

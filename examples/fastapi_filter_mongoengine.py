@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Dict, Generator, List, Optional
 
+import click
 import uvicorn
 from bson.objectid import ObjectId
 from faker import Faker
@@ -109,7 +110,9 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def on_startup() -> None:
-    logger.info("Open http://127.0.0.1:8000/docs to start exploring 🎒 🧭 🗺️")
+    message = "Open http://127.0.0.1:8000/docs to start exploring 🎒 🧭 🗺️"
+    color_message = "Open " + click.style("http://127.0.0.1:8000/docs", bold=True) + " to start exploring 🎒 🧭 🗺️"
+    logger.info(message, extra={"color_message": color_message})
 
     connect(host="mongodb://localhost:27017/fastapi_filter")
     for _ in range(100):
