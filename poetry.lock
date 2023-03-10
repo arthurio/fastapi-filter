@@ -1117,14 +1117,14 @@ files = [
 
 [[package]]
 name = "mongoengine"
-version = "0.26.0"
+version = "0.27.0"
 description = "MongoEngine is a Python Object-Document Mapper for working with MongoDB."
 category = "main"
 optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "mongoengine-0.26.0-py3-none-any.whl", hash = "sha256:020a0779d1830affc649f2760d8c408e998981f18898e425eb041915181d3a53"},
-    {file = "mongoengine-0.26.0.tar.gz", hash = "sha256:3f284bdcbe8d1a3a9b8ab7d3c3ed672d10b8fd2e545447cd1d75e40d6e978332"},
+    {file = "mongoengine-0.27.0-py3-none-any.whl", hash = "sha256:c3523b8f886052f3deb200b3218bcc13e4b781661e3bea38587cc936c80ea358"},
+    {file = "mongoengine-0.27.0.tar.gz", hash = "sha256:8f38df7834dc4b192d89f2668dcf3091748d12f74d55648ce77b919167a4a49b"},
 ]
 
 [package.dependencies]
@@ -2504,4 +2504,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "83dd59457ce2c99657ee4d2fff9d07c1e668e6fb53d7198985f29cb56d390a56"
+content-hash = "67aa38b6f06d0f275e81596d5f34af40301982ab34daab023499f39a409f2d1f"
