@@ -26,7 +26,7 @@ ignore_missing_imports = true
 
 [tool.poetry]
 name = "fastapi-filter"
-version = "0.5.2"
+version = "0.5.3"
 description = "FastAPI filter"
 authors = ["Arthur Rio <arthur.rio44@gmail.com>"]
 license = "MIT"

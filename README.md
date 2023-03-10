@@ -14,7 +14,7 @@
 
 
 **Optional**
-  * MongoEngine: >=0.24.1, <0.25.0
+  * MongoEngine: >=0.24.1, <0.28.0
   * SQLAlchemy: >=1.4.36, <2.1.0
 
 ## Installation
