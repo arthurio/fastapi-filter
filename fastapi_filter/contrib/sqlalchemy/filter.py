@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
 from typing import Union
+from warnings import warn
 
 from pydantic import validator
 from sqlalchemy import or_
@@ -8,6 +9,26 @@ from sqlalchemy.orm import Query
 from sqlalchemy.sql.selectable import Select
 
 from ...base.filter import BaseFilterModel
+
+
+def _backward_compatible_value_for_like_and_ilike(value):
+    """Adds % if not in value to be backward compatible.
+
+    Args:
+        value: The value to filter.
+
+    Returns:
+        Either the unmodified value if a percent sign is present, the value wrapped in % otherwise to preserve
+        current behavior.
+    """
+    if "%" not in value:
+        warn(
+            "You must pass the % character explicitly to use the like and ilike operators.",
+            DeprecationWarning,
+        )
+        value = f"%{value}%"
+    return value
+
 
 _orm_operator_transformer = {
     "neq": lambda value: ("__ne__", value),
@@ -17,8 +38,8 @@ _orm_operator_transformer = {
     "isnull": lambda value: ("is_", None) if value is True else ("is_not", None),
     "lt": lambda value: ("__lt__", value),
     "lte": lambda value: ("__le__", value),
-    "like": lambda value: ("like", f"%{value}%"),
-    "ilike": lambda value: ("ilike", f"%{value}%"),
+    "like": lambda value: ("like", _backward_compatible_value_for_like_and_ilike(value)),
+    "ilike": lambda value: ("ilike", _backward_compatible_value_for_like_and_ilike(value)),
     # XXX(arthurio): Mysql excludes None values when using `in` or `not in` filters.
     "not": lambda value: ("is_not", value),
     "not_in": lambda value: ("not_in", value),
