@@ -13,6 +13,8 @@ from sqlalchemy.future import select
         [{"name__in": "Mr Praline,Mr Creosote,Gumbys,Knight"}, 3],
         [{"name__like": "%Mr%"}, 2],
         [{"name__ilike": "%mr%"}, 2],
+        [{"name__like": "%colonel"}, 1],
+        [{"name__like": "Mr %"}, 2],
         [{"name__isnull": True}, 1],
         [{"name__isnull": False}, 5],
         [{"name__not_in": "Mr Praline,Mr Creosote,Gumbys,Knight"}, 2],
@@ -34,6 +36,22 @@ from sqlalchemy.future import select
 async def test_filter(session, Address, User, UserFilter, users, filter_, expected_count):
     query = select(User).outerjoin(Address)
     query = UserFilter(**filter_).filter(query)
+    result = await session.execute(query)
+    assert len(result.scalars().unique().all()) == expected_count
+
+
+@pytest.mark.parametrize(
+    "filter_,expected_count",
+    [
+        [{"name__like": "Mr"}, 2],
+        [{"name__ilike": "mr"}, 2],
+    ],
+)
+@pytest.mark.asyncio
+async def test_filter_deprecation_like_and_ilike(session, Address, User, UserFilter, users, filter_, expected_count):
+    query = select(User).outerjoin(Address)
+    with pytest.warns(DeprecationWarning, match="like and ilike operators."):
+        query = UserFilter(**filter_).filter(query)
     result = await session.execute(query)
     assert len(result.scalars().unique().all()) == expected_count
 
