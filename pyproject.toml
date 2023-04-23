@@ -6,6 +6,9 @@ profile = "black"
 line_length=120
 skip_gitignore = true
 
+[tool.flynt]
+line-length = 120
+
 [tool.mypy]
 mypy_path = [
   "fastapi_filter",
@@ -23,6 +26,46 @@ module = [
   "uvicorn.*",
 ]
 ignore_missing_imports = true
+
+[tool.ruff]
+select = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F"
+]
+ignore = [
+  "A003",  # Argument name should be lowercase.
+  "B008",  # Do not perform function calls in argument defaults.
+  "D1",  # Missing docstring https://www.pydocstyle.org/en/2.1.1/error_codes.html.
+  "D203",  # 1 blank line required before class docstring.
+  "D213",  # Multi-line docstring summary should start at the second line.
+]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "B", "C", "D", "E", "F"]
+unfixable = []
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".nox",
+    ".ruff_cache",
+]
+
+line-length = 120
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Assume Python 3.11.
+target-version = "py311"
+
+[tool.ruff.pydocstyle]
+convention = "google"
 
 [tool.poetry]
 name = "fastapi-filter"
@@ -58,11 +101,6 @@ SQLAlchemy-Utils = "^0.41.0"
 aiosqlite = "^0.18.0"
 bandit = "^1.7.5"
 black = "^23.1.0"
-flake8 = "^5.0.4"
-flake8-breakpoint = "^1.1.0"
-flake8-builtins = "^2.1.0"
-flake8-docstrings = "^1.7.0"
-flake8-simplify = "^0.20.0"
 flynt = "^0.77"
 greenlet = "^2.0.2"
 httpx = "^0.24.0"
@@ -93,6 +131,7 @@ all = ["mongoengine", "SQLAlchemy"]
 
 [tool.poetry.group.dev.dependencies]
 nox = "^2023.0.0"
+ruff = "^0.0.262"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
