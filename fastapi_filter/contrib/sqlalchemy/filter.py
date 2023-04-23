@@ -11,11 +11,11 @@ from sqlalchemy.sql.selectable import Select
 from ...base.filter import BaseFilterModel
 
 
-def _backward_compatible_value_for_like_and_ilike(value):
-    """Adds % if not in value to be backward compatible.
+def _backward_compatible_value_for_like_and_ilike(value: str):
+    """Add % if not in value to be backward compatible.
 
     Args:
-        value: The value to filter.
+        value (str): The value to filter.
 
     Returns:
         Either the unmodified value if a percent sign is present, the value wrapped in % otherwise to preserve
@@ -25,6 +25,7 @@ def _backward_compatible_value_for_like_and_ilike(value):
         warn(
             "You must pass the % character explicitly to use the like and ilike operators.",
             DeprecationWarning,
+            stacklevel=2,
         )
         value = f"%{value}%"
     return value
@@ -109,11 +110,11 @@ class Filter(BaseFilterModel):
                     operator = "__eq__"
 
                 if field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
-
-                    def search_filter(field):
-                        return getattr(self.Constants.model, field).ilike("%" + value + "%")
-
-                    query = query.filter(or_(*list(map(search_filter, self.Constants.search_model_fields))))
+                    search_filters = [
+                        getattr(self.Constants.model, field).ilike(f"%{value}%")
+                        for field in self.Constants.search_model_fields
+                    ]
+                    query = query.filter(or_(*search_filters))
                 else:
                     model_field = getattr(self.Constants.model, field_name)
                     query = query.filter(getattr(model_field, operator)(value))
