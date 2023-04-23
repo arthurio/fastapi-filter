@@ -127,7 +127,6 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
     """Allow re-using existing filter under a prefix.
 
     Example:
-    -------
         ```python
         from pydantic import BaseModel
 
@@ -151,7 +150,6 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
     default and declares an alias already, this will be picked first and you won't get the prefix.
 
     Example:
-    -------
         ```python
          from pydantic import BaseModel
 

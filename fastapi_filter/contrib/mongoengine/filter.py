@@ -9,7 +9,6 @@ class Filter(BaseFilterModel):
     """Base filter for mongoengine related filters.
 
     Example:
-    -------
         ```python
         class MyModel:
             id: PrimaryKey()

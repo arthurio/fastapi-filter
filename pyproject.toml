@@ -44,7 +44,6 @@ ignore = [
   "D213",  # Multi-line docstring summary should start at the second line.
 ]
 
-convention = "google"
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = ["A", "B", "C", "D", "E", "F"]
 unfixable = []
@@ -64,6 +63,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 # Assume Python 3.11.
 target-version = "py311"
+
+[tool.ruff.pydocstyle]
+convention = "google"
 
 [tool.poetry]
 name = "fastapi-filter"
