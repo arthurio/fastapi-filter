@@ -60,11 +60,11 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
         """Check that the ordering field is present on the class definition."""
         try:
             return getattr(self, self.Constants.ordering_field_name)
-        except AttributeError:
+        except AttributeError as e:
             raise AttributeError(
                 f"Ordering field {self.Constants.ordering_field_name} is not defined. "
                 "Make sure to add it to your filter class."
-            )
+            ) from e
 
     @validator("*", pre=True)
     def split_str(cls, value, field):  # pragma: no cover
@@ -127,6 +127,7 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
     """Allow re-using existing filter under a prefix.
 
     Example:
+    -------
         ```python
         from pydantic import BaseModel
 
@@ -150,6 +151,7 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
     default and declares an alias already, this will be picked first and you won't get the prefix.
 
     Example:
+    -------
         ```python
          from pydantic import BaseModel
 
@@ -198,7 +200,7 @@ def _list_to_str_fields(Filter: Type[BaseFilterModel]):
 
 
 def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True) -> Any:
-    """This is a hack to support lists in filters.
+    """Use a hack to support lists in filters.
 
     FastAPI doesn't support it yet: https://github.com/tiangolo/fastapi/issues/50
 

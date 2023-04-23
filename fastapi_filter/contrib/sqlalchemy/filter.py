@@ -12,12 +12,14 @@ from ...base.filter import BaseFilterModel
 
 
 def _backward_compatible_value_for_like_and_ilike(value):
-    """Adds % if not in value to be backward compatible.
+    """Add % if not in value to be backward compatible.
 
-    Args:
+    Arguments:
+    ---------
         value: The value to filter.
 
     Returns:
+    -------
         Either the unmodified value if a percent sign is present, the value wrapped in % otherwise to preserve
         current behavior.
     """
@@ -25,6 +27,7 @@ def _backward_compatible_value_for_like_and_ilike(value):
         warn(
             "You must pass the % character explicitly to use the like and ilike operators.",
             DeprecationWarning,
+            stacklevel=2,
         )
         value = f"%{value}%"
     return value
@@ -66,6 +69,7 @@ class Filter(BaseFilterModel):
     It can handle regular field names and Django style operators.
 
     Example:
+    -------
         ```python
         class MyModel:
             id: PrimaryKey()
