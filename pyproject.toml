@@ -92,7 +92,7 @@ sqlalchemy = ["SQLAlchemy"]
 all = ["mongoengine", "SQLAlchemy"]
 
 [tool.poetry.group.dev.dependencies]
-nox = "^2022.11.21"
+nox = "^2023.0.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
