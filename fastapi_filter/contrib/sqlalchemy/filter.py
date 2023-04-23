@@ -111,7 +111,19 @@ class Filter(BaseFilterModel):
                 if field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
 
                     def search_filter(field):
-                        return getattr(self.Constants.model, field).ilike("%" + value + "%")
+                        if "__" in field:
+                            related_fields = field.split("__")
+                            related_field_name = related_fields.pop()
+                            base_model = self.Constants.model
+
+                            for related_field in related_fields:
+                                base_model = getattr(base_model, related_field).property.mapper.class_
+
+                            search_field = getattr(base_model, related_field_name)
+                        else:
+                            search_field = getattr(self.Constants.model, field)
+
+                        return search_field.ilike("%" + value + "%")
 
                     query = query.filter(or_(*list(map(search_filter, self.Constants.search_model_fields))))
                 else:

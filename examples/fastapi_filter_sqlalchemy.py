@@ -108,7 +108,7 @@ class UserFilter(Filter):
 
     class Constants(Filter.Constants):
         model = User
-        search_model_fields = ["name"]
+        search_model_fields = ["name", "address__city"]
 
 
 app = FastAPI()
