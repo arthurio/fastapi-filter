@@ -98,7 +98,7 @@ python = ">=3.8,<3.12"
 [tool.poetry.dev-dependencies]
 Faker = "^18.0.0"
 SQLAlchemy-Utils = "^0.41.0"
-aiosqlite = "^0.18.0"
+aiosqlite = "^0.19.0"
 bandit = "^1.7.5"
 black = "^23.1.0"
 flynt = "^0.77"
