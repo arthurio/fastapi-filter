@@ -1623,14 +1623,14 @@ test = ["coverage", "pycodestyle", "pyflakes", "pylint", "pytest", "pytest-cov"]
 
 [[package]]
 name = "python-lsp-server"
-version = "1.7.2"
+version = "1.7.3"
 description = "Python Language Server for the Language Server Protocol"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "python-lsp-server-1.7.2.tar.gz", hash = "sha256:b2433467d0fcb8fd45828463ff1cc805837c08731fcea5d7d953d9be776881e1"},
-    {file = "python_lsp_server-1.7.2-py3-none-any.whl", hash = "sha256:eb57ce2f119b8f952eb0af4566b5251b5e6ff14150b6180ba9828966e0e4faaa"},
+    {file = "python-lsp-server-1.7.3.tar.gz", hash = "sha256:a31b0525be6ec831c7d2b476b744e5aa5074633e1d1b77ee97f332cde15983ea"},
+    {file = "python_lsp_server-1.7.3-py3-none-any.whl", hash = "sha256:f4ae64834da1d4312067a8ee05a76c7652167c3c90d1cef44022366d695c4c0e"},
 ]
 
 [package.dependencies]
@@ -1642,7 +1642,7 @@ setuptools = ">=39.0.0"
 ujson = ">=3.0.0"
 
 [package.extras]
-all = ["autopep8 (>=1.6.0,<2.1.0)", "flake8 (>=5.0.0,<7)", "mccabe (>=0.7.0,<0.8.0)", "pycodestyle (>=2.9.0,<2.11.0)", "pydocstyle (>=6.3.0,<6.4.0)", "pyflakes (>=2.5.0,<3.1.0)", "pylint (>=2.5.0,<3)", "rope (>1.2.0)", "toml", "whatthepatch (>=1.0.2,<2.0.0)", "yapf (<=0.32.0)"]
+all = ["autopep8 (>=1.6.0,<2.1.0)", "flake8 (>=5.0.0,<7)", "mccabe (>=0.7.0,<0.8.0)", "pycodestyle (>=2.9.0,<2.11.0)", "pydocstyle (>=6.3.0,<6.4.0)", "pyflakes (>=2.5.0,<3.1.0)", "pylint (>=2.5.0,<3)", "rope (>1.2.0)", "whatthepatch (>=1.0.2,<2.0.0)", "yapf (>=0.33.0)"]
 autopep8 = ["autopep8 (>=1.6.0,<2.1.0)"]
 flake8 = ["flake8 (>=5.0.0,<7)"]
 mccabe = ["mccabe (>=0.7.0,<0.8.0)"]
@@ -1653,7 +1653,7 @@ pylint = ["pylint (>=2.5.0,<3)"]
 rope = ["rope (>1.2.0)"]
 test = ["coverage", "flaky", "matplotlib", "numpy", "pandas", "pylint (>=2.5.0,<3)", "pyqt5", "pytest", "pytest-cov"]
 websockets = ["websockets (>=10.3)"]
-yapf = ["toml", "whatthepatch (>=1.0.2,<2.0.0)", "yapf (<=0.32.0)"]
+yapf = ["whatthepatch (>=1.0.2,<2.0.0)", "yapf (>=0.33.0)"]
 
 [[package]]
 name = "pyyaml"
