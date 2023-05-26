@@ -95,6 +95,7 @@ class UserFilter(Filter):
     name: Optional[str]
     name__ilike: Optional[str]
     name__like: Optional[str]
+    name__contains: Optional[str]
     name__neq: Optional[str]
     address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
     age__lt: Optional[int]

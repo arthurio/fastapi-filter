@@ -9,6 +9,8 @@ from sqlalchemy.future import select
     "filter_,expected_count",
     [
         [{"name": "Mr Praline"}, 1],
+        [{"name__contains": "Mr"}, 2],
+        [{"name__contains": "mR"}, 2],
         [{"name__neq": "Mr Praline"}, 4],
         [{"name__in": "Mr Praline,Mr Creosote,Gumbys,Knight"}, 3],
         [{"name__like": "%Mr%"}, 2],
@@ -60,6 +62,8 @@ async def test_filter_deprecation_like_and_ilike(session, Address, User, UserFil
     "filter_,expected_count",
     [
         [{"name": "Mr Praline"}, 1],
+        [{"name__contains": "Mr"}, 2],
+        [{"name__contains": "mR"}, 2],
         [{"name__in": "Mr Praline,Mr Creosote,Gumbys,Knight"}, 3],
         [{"name__isnull": True}, 1],
         [{"name__isnull": False}, 5],
@@ -89,7 +93,8 @@ async def test_api(test_client, users, filter_, expected_count):
         [{"is_individual": False}, status.HTTP_200_OK],
         [{}, status.HTTP_422_UNPROCESSABLE_ENTITY],
         [{"is_individual": None}, status.HTTP_422_UNPROCESSABLE_ENTITY],
-        [{"is_individual": True, "bogus_filter": "bad"}, status.HTTP_422_UNPROCESSABLE_ENTITY],
+        [{"is_individual": True, "bogus_filter": "bad"},
+            status.HTTP_422_UNPROCESSABLE_ENTITY],
     ],
 )
 @pytest.mark.asyncio
