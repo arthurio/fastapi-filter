@@ -131,7 +131,7 @@ all = ["mongoengine", "SQLAlchemy"]
 
 [tool.poetry.group.dev.dependencies]
 nox = "^2023.0.0"
-ruff = "^0.0.270"
+ruff = "^0.0.271"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
