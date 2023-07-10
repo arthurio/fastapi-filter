@@ -461,18 +461,18 @@ testing = ["covdefaults (>=2.2)", "coverage (>=6.4.2)", "pytest (>=7.1.2)", "pyt
 
 [[package]]
 name = "flynt"
-version = "0.77"
+version = "1.0.0"
 description = "CLI tool to convert a python project's %-formatted strings to f-strings."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "flynt-0.77-py3-none-any.whl", hash = "sha256:2863ac8ec19d6ec8d29e760546e6ced644baf6dff3c7cdc77e03abbd29b80f14"},
-    {file = "flynt-0.77.tar.gz", hash = "sha256:2bd1b37043ad88a3f3c3c34a76fc0b64d24e5f03d36ea6b48cb69cc642bff17e"},
+    {file = "flynt-1.0.0-py3-none-any.whl", hash = "sha256:8975913426a096750fb427701ed59f2f381fac7aa0afc9b6eff433a651d1f5d6"},
+    {file = "flynt-1.0.0.tar.gz", hash = "sha256:38fd2ff64acf67c58a09ec17c4ffdf673075fad5f3249e7f7221cb3ddf42cc34"},
 ]
 
 [package.dependencies]
 astor = "*"
-tomli = ">=1.1.0"
+tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
 dev = ["build", "pre-commit", "pytest", "pytest-cov", "twine"]
@@ -2290,4 +2290,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "eb0effd1e5e5914bc04cbaa945d1119f9d2a946badc82cd5c8c12cdf93e3bc1d"
+content-hash = "d09a1248823a655f3d4f471d7a125d90457dc5791fe9369311509c81063bb065"
