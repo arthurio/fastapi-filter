@@ -69,7 +69,7 @@ convention = "google"
 
 [tool.poetry]
 name = "fastapi-filter"
-version = "0.6.0"
+version = "0.6.1"
 description = "FastAPI filter"
 authors = ["Arthur Rio <arthur.rio44@gmail.com>"]
 license = "MIT"
