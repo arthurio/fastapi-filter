@@ -96,7 +96,7 @@ pydantic = ">=1.10.0,<2.0.0"
 python = ">=3.8,<4.0"
 
 [tool.poetry.dev-dependencies]
-Faker = "^18.0.0"
+Faker = "^19.0.0"
 SQLAlchemy-Utils = "^0.41.0"
 aiosqlite = "^0.19.0"
 bandit = "^1.7.5"
