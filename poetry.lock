@@ -2181,13 +2181,13 @@ dev = ["black", "pytest"]
 
 [[package]]
 name = "uvicorn"
-version = "0.22.0"
+version = "0.23.0"
 description = "The lightning-fast ASGI server."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "uvicorn-0.22.0-py3-none-any.whl", hash = "sha256:e9434d3bbf05f310e762147f769c9f21235ee118ba2d2bf1155a7196448bd996"},
-    {file = "uvicorn-0.22.0.tar.gz", hash = "sha256:79277ae03db57ce7d9aa0567830bbb51d7a612f54d6e1e3e92da3ef24c2c8ed8"},
+    {file = "uvicorn-0.23.0-py3-none-any.whl", hash = "sha256:479599b2c0bb1b9b394c6d43901a1eb0c1ec72c7d237b5bafea23c5b2d4cdf10"},
+    {file = "uvicorn-0.23.0.tar.gz", hash = "sha256:d38ab90c0e2c6fe3a054cddeb962cfd5d0e0e6608eaaff4a01d5c36a67f3168c"},
 ]
 
 [package.dependencies]
@@ -2288,4 +2288,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "1687e0f2a4fde8bbb9074f55fad3d2c7069d99b2ec7ea2fdb5b2d15dc47eceb4"
+content-hash = "674b20cdafcec5a016d86e8069ce772aec86b4dfaca821da6863227db1b58414"
