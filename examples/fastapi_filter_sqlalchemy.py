@@ -5,7 +5,7 @@ import click
 import uvicorn
 from faker import Faker
 from fastapi import Depends, FastAPI, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import Column, ForeignKey, Integer, String, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -53,13 +53,12 @@ class User(Base):
 
 
 class AddressOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     street: str
     city: str
     country: str
-
-    class Config:
-        orm_mode = True
 
 
 class UserIn(BaseModel):
@@ -69,20 +68,19 @@ class UserIn(BaseModel):
 
 
 class UserOut(UserIn):
-    id: int
-    address: Optional[AddressOut]
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        orm_mode = True
+    id: int
+    address: Optional[AddressOut] = None
 
 
 class AddressFilter(Filter):
-    street: Optional[str]
-    country: Optional[str]
-    city: Optional[str]
-    city__in: Optional[List[str]]
-    custom_order_by: Optional[List[str]]
-    custom_search: Optional[str]
+    street: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    city__in: Optional[List[str]] = None
+    custom_order_by: Optional[List[str]] = None
+    custom_search: Optional[str] = None
 
     class Constants(Filter.Constants):
         model = Address
@@ -91,20 +89,23 @@ class AddressFilter(Filter):
         search_model_fields = ["street", "country", "city"]
 
 
+address_filter, address_filter_annotated = with_prefix("address", AddressFilter)
+
+
 class UserFilter(Filter):
-    name: Optional[str]
-    name__ilike: Optional[str]
-    name__like: Optional[str]
-    name__neq: Optional[str]
-    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
-    age__lt: Optional[int]
+    name: Optional[str] = None
+    name__ilike: Optional[str] = None
+    name__like: Optional[str] = None
+    name__neq: Optional[str] = None
+    address: Optional[address_filter_annotated] = FilterDepends(address_filter)
+    age__lt: Optional[int] = None
     age__gte: int = Field(Query(description="this is a nice description"))
     """Required field with a custom description.
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
     order_by: List[str] = ["age"]
-    search: Optional[str]
+    search: Optional[str] = None
 
     class Constants(Filter.Constants):
         model = User
@@ -158,7 +159,7 @@ async def get_users(
 
 @app.get("/addresses", response_model=List[AddressOut])
 async def get_addresses(
-    address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
+    address_filter: AddressFilter = FilterDepends(address_filter, by_alias=True),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     query = select(Address)
