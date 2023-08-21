@@ -4,7 +4,7 @@ from typing import AsyncIterator, List, Optional
 import pytest
 import pytest_asyncio
 from fastapi import Depends, FastAPI, Query
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped, declarative_base, relationship
@@ -111,7 +111,8 @@ def FavoriteSport(Base):
 
 
 @pytest_asyncio.fixture(scope="function")
-async def users(session, sports, User, Address):
+@pytest.mark.usefixtures("sports")
+async def users(session, User, Address):
     user_instances = [
         User(
             name=None,
@@ -199,13 +200,12 @@ async def favorite_sports(session, sports, users, FavoriteSport):
 @pytest.fixture(scope="package")
 def AddressOut():
     class AddressOut(BaseModel):
+        model_config = ConfigDict(from_attributes=True)
+
         id: int
         street: Optional[str]
         city: str
         country: str
-
-        class Config:
-            orm_mode = True
 
     return AddressOut
 
@@ -213,6 +213,8 @@ def AddressOut():
 @pytest.fixture(scope="package")
 def UserOut(AddressOut, SportOut):
     class UserOut(BaseModel):
+        model_config = ConfigDict(from_attributes=True)
+
         id: int
         created_at: datetime
         updated_at: datetime
@@ -221,21 +223,17 @@ def UserOut(AddressOut, SportOut):
         address: Optional[AddressOut]  # type: ignore[valid-type]
         favorite_sports: Optional[List[SportOut]]  # type: ignore[valid-type]
 
-        class Config:
-            orm_mode = True
-
     return UserOut
 
 
 @pytest.fixture(scope="package")
 def SportOut():
     class SportOut(BaseModel):
+        model_config = ConfigDict(from_attributes=True)
+
         id: int
         name: str
         is_individual: bool
-
-        class Config:
-            orm_mode = True
 
     return SportOut
 
@@ -248,10 +246,10 @@ def Filter():
 @pytest.fixture(scope="package")
 def AddressFilter(Address, Filter):
     class AddressFilter(Filter):  # type: ignore[misc, valid-type]
-        street__isnull: Optional[bool]
-        city: Optional[str]
-        city__in: Optional[List[str]]
-        country__not_in: Optional[List[str]]
+        street__isnull: Optional[bool] = None
+        city: Optional[str] = None
+        city__in: Optional[List[str]] = None
+        country__not_in: Optional[List[str]] = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Address
@@ -261,26 +259,26 @@ def AddressFilter(Address, Filter):
 
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
+    address_with_prefix, annotation = with_prefix("address", AddressFilter)
+
     class UserFilter(Filter):  # type: ignore[misc, valid-type]
-        name: Optional[str]
-        name__neq: Optional[str]
-        name__like: Optional[str]
-        name__ilike: Optional[str]
-        name__in: Optional[List[str]]
-        name__not: Optional[str]
-        name__not_in: Optional[List[str]]
-        name__isnull: Optional[bool]
-        age: Optional[int]
-        age__lt: Optional[int]
-        age__lte: Optional[int]
-        age__gt: Optional[int]
-        age__gte: Optional[int]
-        age__in: Optional[List[int]]
-        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
-            with_prefix("address", AddressFilter)
-        )
-        address_id__isnull: Optional[bool]
-        search: Optional[str]
+        name: Optional[str] = None
+        name__neq: Optional[str] = None
+        name__like: Optional[str] = None
+        name__ilike: Optional[str] = None
+        name__in: Optional[List[str]] = None
+        name__not: Optional[str] = None
+        name__not_in: Optional[List[str]] = None
+        name__isnull: Optional[bool] = None
+        age: Optional[int] = None
+        age__lt: Optional[int] = None
+        age__lte: Optional[int] = None
+        age__gt: Optional[int] = None
+        age__gte: Optional[int] = None
+        age__in: Optional[List[int]] = None
+        address: Optional[annotation] = FilterDepends(address_with_prefix)  # type: ignore[valid-type]
+        address_id__isnull: Optional[bool] = None
+        search: Optional[str] = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = User
@@ -295,12 +293,12 @@ def SportFilter(Sport, Filter):
     class SportFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str] = Field(Query(description="Name of the sport", default=None))
         is_individual: bool
-        bogus_filter: Optional[str]
+        bogus_filter: Optional[str] = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Sport
 
-        @validator("bogus_filter")
+        @field_validator("bogus_filter")
         def throw_exception(cls, value):
             if value:
                 raise ValueError("You can't use this bogus filter")

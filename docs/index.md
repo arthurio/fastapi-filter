@@ -5,7 +5,6 @@ Add querystring filters to your api endpoints and show them in the swagger UI.
 The supported backends are [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy) and
 [MongoEngine](https://github.com/MongoEngine/mongoengine).
 
-
 ## Example
 
 ![Swagger UI](./swagger-ui.png)
@@ -25,16 +24,16 @@ as well as the type of operator, then tie your filter to a specific model.
 
 By default, **fastapi_filter** supports the following operators:
 
-  - `neq`
-  - `gt`
-  - `gte`
-  - `in`
-  - `isnull`
-  - `lt`
-  - `lte`
-  - `not`/`ne`
-  - `not_in`/`nin`
-  - `like`/`ilike`
+- `neq`
+- `gt`
+- `gte`
+- `in`
+- `isnull`
+- `lt`
+- `lte`
+- `not`/`ne`
+- `not_in`/`nin`
+- `like`/`ilike`
 
 _**Note:** Mysql excludes `None` values when using `in` filter_
 
@@ -89,7 +88,6 @@ Wherever you would use a `Depends`, replace it with `FilterDepends` if you are p
 that `FilterDepends` converts the `list` filter fields to `str` so that they can be displayed and used in swagger.
 It also handles turning `ValidationError` into `HTTPException(status_code=422)`.
 
-
 ### with_prefix
 
 [link](https://github.com/arthurio/fastapi-filter/blob/main/fastapi_filter/base/filter.py#L21)
@@ -133,11 +131,10 @@ There is a specific field on the filter class that can be used for ordering. The
 takes a list of string. From an API call perspective, just like the `__in` filters, you simply pass a comma separated
 list of strings.
 
-You can change the **direction** of the sorting (*asc* or *desc*) by prefixing with `-` or `+` (Optional, it's the
+You can change the **direction** of the sorting (_asc_ or _desc_) by prefixing with `-` or `+` (Optional, it's the
 default behavior if omitted).
 
 If you don't want to allow ordering on your filter, just don't add `order_by` (or custom `ordering_field_name`) as a field and you are all set.
-
 
 ## Search
 
@@ -147,7 +144,6 @@ a string.
 You have to define what fields/columns to search in with the `search_model_fields` constant.
 
 If you don't want to allow searching on your filter, just don't add `search` (or custom `search_field_name`) as a field and you are all set.
-
 
 ### Example - Basic
 
@@ -215,17 +211,17 @@ curl /users?custom_order_by=+id
 
 ### Restrict the `order_by` values
 
-Add the following validator to your filter class:
+Add the following field_validator to your filter class:
 
 ```python
 from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
-from pydantic import validator
+from pydantic import field_validator
 
 class MyFilter(Filter):
     order_by: Optional[list[str]]
 
-    @validator("order_by")
+    @field_validator("order_by")
     def restrict_sortable_fields(cls, value):
         if value is None:
             return None
@@ -241,7 +237,7 @@ class MyFilter(Filter):
 ```
 
 1. If you want to restrict only on specific directions, like `-created_at` and `name` for example, you can remove this
-line. Your `allowed_field_names` would be something like `["age", "-age", "-created_at"]`.
+   line. Your `allowed_field_names` would be something like `["age", "-age", "-created_at"]`.
 
 ### Example - Search
 

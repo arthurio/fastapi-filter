@@ -23,7 +23,8 @@ from pydantic import ValidationError
         ],
     ],
 )
-def test_order_by(User, users, UserFilterOrderBy, order_by, assert_function):
+@pytest.mark.usefixtures("users")
+def test_order_by(User, UserFilterOrderBy, order_by, assert_function):
     query = User.objects().all()
     query = UserFilterOrderBy(order_by=order_by).sort(query)
     previous_user = None
@@ -35,7 +36,8 @@ def test_order_by(User, users, UserFilterOrderBy, order_by, assert_function):
         previous_user = user
 
 
-def test_order_by_with_default(User, users, UserFilterOrderByWithDefault):
+@pytest.mark.usefixtures("users")
+def test_order_by_with_default(User, UserFilterOrderByWithDefault):
     query = User.objects().all()
     query = UserFilterOrderByWithDefault().sort(query)
     previous_user = None
@@ -47,7 +49,8 @@ def test_order_by_with_default(User, users, UserFilterOrderByWithDefault):
         previous_user = user
 
 
-def test_invalid_order_by(User, users, UserFilterOrderBy):
+@pytest.mark.usefixtures("users")
+def test_invalid_order_by(UserFilterOrderBy):
     with pytest.raises(ValidationError):
         UserFilterOrderBy(order_by="invalid")
 
@@ -82,7 +85,8 @@ def test_missing_order_by_field(User, UserFilterNoOrderBy):
         ],
     ],
 )
-def test_custom_order_by(User, users, UserFilterCustomOrderBy, order_by, assert_function):
+@pytest.mark.usefixtures("users")
+def test_custom_order_by(User, UserFilterCustomOrderBy, order_by, assert_function):
     query = User.objects().all()
     query = UserFilterCustomOrderBy(custom_order_by=order_by).sort(query)
     previous_user = None
@@ -102,7 +106,7 @@ def test_custom_order_by(User, users, UserFilterCustomOrderBy, order_by, assert_
         ["created_at", "-name"],
     ],
 )
-def test_restricted_order_by_failure(User, UserFilterRestrictedOrderBy, order_by):
+def test_restricted_order_by_failure(UserFilterRestrictedOrderBy, order_by):
     with pytest.raises(ValidationError):
         UserFilterRestrictedOrderBy(order_by=order_by)
 
@@ -116,7 +120,7 @@ def test_restricted_order_by_failure(User, UserFilterRestrictedOrderBy, order_by
         ["created_at", "+age"],
     ],
 )
-def test_restricted_order_by_success(User, UserFilterRestrictedOrderBy, order_by):
+def test_restricted_order_by_success(UserFilterRestrictedOrderBy, order_by):
     assert UserFilterRestrictedOrderBy(order_by=order_by)
 
 
@@ -143,7 +147,8 @@ def test_restricted_order_by_success(User, UserFilterRestrictedOrderBy, order_by
     ],
 )
 @pytest.mark.asyncio
-async def test_api_order_by(test_client, users, order_by, assert_function):
+@pytest.mark.usefixtures("users")
+async def test_api_order_by(test_client, order_by, assert_function):
     endpoint = "/users_with_order_by"
     if order_by is not None:
         endpoint = f"{endpoint}?order_by={order_by}"
@@ -189,8 +194,9 @@ async def test_api_no_order_by(test_client):
         ],
     ],
 )
+@pytest.mark.usefixtures("users")
 @pytest.mark.asyncio
-async def test_api_restricted_order_by(test_client, users, order_by, assert_function, status_code):
+async def test_api_restricted_order_by(test_client, order_by, assert_function, status_code):
     endpoint = "/users_with_restricted_order_by"
     if order_by is not None:
         endpoint = f"{endpoint}?order_by={order_by}"

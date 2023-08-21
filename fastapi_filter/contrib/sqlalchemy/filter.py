@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Union
 from warnings import warn
 
-from pydantic import validator
+from pydantic import FieldValidationInfo, field_validator
 from sqlalchemy import or_
 from sqlalchemy.orm import Query
 from sqlalchemy.sql.selectable import Select
@@ -87,14 +87,17 @@ class Filter(BaseFilterModel):
         asc = "asc"
         desc = "desc"
 
-    @validator("*", pre=True)
-    def split_str(cls, value, field):
+    @field_validator("*", mode="before")
+    def split_str(cls, value, field: FieldValidationInfo):
         if (
-            field.name == cls.Constants.ordering_field_name
-            or field.name.endswith("__in")
-            or field.name.endswith("__not_in")
+            field.field_name == cls.Constants.ordering_field_name
+            or field.field_name.endswith("__in")
+            or field.field_name.endswith("__not_in")
         ) and isinstance(value, str):
-            return [field.type_(v) for v in value.split(",")]
+            if not value:
+                # Empty string should return [] not ['']
+                return []
+            return [v for v in value.split(",")]
         return value
 
     def filter(self, query: Union[Query, Select]):
