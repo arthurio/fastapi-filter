@@ -182,7 +182,8 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
 
     def plain_validator(value):
         # Make sure we validate Model.
-        # Probably would be better if this was subclass of specific Filter but
+        # Probably would be better if this was subclass of specific Filter but classes created in
+        # `FilterDepends` cannot subclass specific Filter because of `split_str` method
         if issubclass(value.__class__, BaseModel):
             value = value.model_dump()
 
