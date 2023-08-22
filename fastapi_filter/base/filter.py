@@ -1,7 +1,7 @@
+import sys
 from collections import defaultdict
 from copy import deepcopy
-from types import UnionType
-from typing import Annotated, Any, Dict, Iterable, List, Optional, Tuple, Type, Union, get_args, get_origin
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
@@ -15,6 +15,13 @@ from pydantic import (
     field_validator,
 )
 from pydantic.fields import FieldInfo
+
+UNION_TYPES: List = [Union]
+
+if sys.version_info >= (3, 10):
+    from types import UnionType
+
+    UNION_TYPES.append(UnionType)
 
 
 class BaseFilterModel(BaseModel, extra="forbid"):
@@ -127,7 +134,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
         return value
 
 
-def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
+def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Tuple[Type[BaseFilterModel], PlainValidator]:
     """Allow re-using existing filter under a prefix.
 
     Example:
@@ -139,10 +146,10 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
         class NumberFilter(BaseModel):
             count: Optional[int]
 
-        number_filter_prefixed, Annotation = with_prefix("number_filter", Filter)
+        number_filter_prefixed, plain_validator = with_prefix("number_filter", NumberFilter)
         class MainFilter(BaseModel):
             name: str
-            number_filter: Optional[Annotation] = FilterDepends(number_filter_prefixed)
+            number_filter: Optional[Annotated[NumberFilter, plain_validator] = FilterDepends(number_filter_prefixed)
         ```
 
     As a result, you'll get the following filters:
@@ -161,10 +168,10 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
         class NumberFilter(BaseModel):
             count: Optional[int] = Query(default=10, alias=counter)
 
-        number_filter_prefixed, Annotation = with_prefix("number_filter", Filter)
+        number_filter_prefixed, plain_validator = with_prefix("number_filter", NumberFilter)
         class MainFilter(BaseModel):
             name: str
-            number_filter: Optional[Annotation] = FilterDepends(number_filter_prefixed)
+            number_filter: Optional[Annotated[NumberFilter, plain_validator] = FilterDepends(number_filter_prefixed)
         ```
 
     As a result, you'll get the following filters:
@@ -188,14 +195,21 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
             value = value.model_dump()
 
         if isinstance(value, dict):
-            stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in value.items()}
+            stripped = {}
+            k: str
+            # TODO: replace with `removeprefix` when python 3.8 is no longer supported
+            # stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in value.items()}
+            for k, v in value.items():
+                if k.startswith(NestedFilter.Constants.prefix):
+                    k = k.replace(NestedFilter.Constants.prefix, "", 1)
+                stripped[k] = v
             return Filter(**stripped)
 
         raise ValueError(f"Unexpected type: {type(value)}")
 
-    annotation = Annotated[Filter, PlainValidator(plain_validator)]
+    plain_validator_ = PlainValidator(plain_validator)
 
-    return NestedFilter, annotation
+    return NestedFilter, plain_validator_
 
 
 def _list_to_str_fields(Filter: Type[BaseFilterModel]):
@@ -204,7 +218,7 @@ def _list_to_str_fields(Filter: Type[BaseFilterModel]):
         field_info = deepcopy(f)
         annotation = f.annotation
 
-        if get_origin(annotation) in [UnionType, Union]:
+        if get_origin(annotation) in UNION_TYPES:
             annotation_args: list = list(get_args(f.annotation))
             if type(None) in annotation_args:
                 annotation_args.remove(type(None))

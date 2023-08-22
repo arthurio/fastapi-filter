@@ -97,7 +97,7 @@ class Filter(BaseFilterModel):
             if not value:
                 # Empty string should return [] not ['']
                 return []
-            return [v for v in value.split(",")]
+            return list(value.split(","))
         return value
 
     def filter(self, query: Union[Query, Select]):

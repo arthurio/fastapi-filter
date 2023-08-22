@@ -1,5 +1,11 @@
 import logging
-from typing import Any, Dict, Generator, List, Optional
+import sys
+from typing import Any, List, Optional
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated
+else:
+    from typing_extensions import Annotated
 
 import click
 import uvicorn
@@ -92,12 +98,12 @@ class AddressFilter(Filter):
         search_model_fields = ["street", "country", "city"]
 
 
-address_filter, address_filter_annotated = with_prefix("address", AddressFilter)
+address_filter, plain_validator = with_prefix("address", AddressFilter)
 
 
 class UserFilter(Filter):
     name: Optional[str] = None
-    address: Optional[address_filter_annotated] = FilterDepends(address_filter)
+    address: Optional[Annotated[AddressFilter, plain_validator]] = FilterDepends(address_filter)
     age__lt: Optional[int] = None
     age__gte: int = Field(Query(description="this is a nice description"))
     """Required field with a custom description.
