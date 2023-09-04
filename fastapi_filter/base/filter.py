@@ -5,15 +5,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, get_
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    FieldValidationInfo,
-    PlainValidator,
-    ValidationError,
-    create_model,
-    field_validator,
-)
+from pydantic import BaseModel, ConfigDict, FieldValidationInfo, ValidationError, create_model, field_validator
 from pydantic.fields import FieldInfo
 
 UNION_TYPES: List = [Union]
@@ -57,6 +49,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
         search_model_fields: List[str]
         search_field_name: str = "search"
         prefix: str
+        original_filter: Type["BaseFilterModel"]
 
     def filter(self, query):  # pragma: no cover
         ...
@@ -134,7 +127,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
         return value
 
 
-def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Tuple[Type[BaseFilterModel], PlainValidator]:
+def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Type[BaseFilterModel]:
     """Allow re-using existing filter under a prefix.
 
     Example:
@@ -146,10 +139,9 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Tuple[Type[BaseFi
         class NumberFilter(BaseModel):
             count: Optional[int]
 
-        number_filter_prefixed, plain_validator = with_prefix("number_filter", NumberFilter)
         class MainFilter(BaseModel):
             name: str
-            number_filter: Optional[Annotated[NumberFilter, plain_validator] = FilterDepends(number_filter_prefixed)
+            number_filter: Optional[Filter] = FilterDepends(with_prefix("number_filter", Filter))
         ```
 
     As a result, you'll get the following filters:
@@ -168,10 +160,9 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Tuple[Type[BaseFi
         class NumberFilter(BaseModel):
             count: Optional[int] = Query(default=10, alias=counter)
 
-        number_filter_prefixed, plain_validator = with_prefix("number_filter", NumberFilter)
         class MainFilter(BaseModel):
             name: str
-            number_filter: Optional[Annotated[NumberFilter, plain_validator] = FilterDepends(number_filter_prefixed)
+            number_filter: Optional[Filter] = FilterDepends(with_prefix("number_filter", Filter))
         ```
 
     As a result, you'll get the following filters:
@@ -186,30 +177,9 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Tuple[Type[BaseFi
             ...
 
     NestedFilter.Constants.prefix = prefix
+    NestedFilter.Constants.original_filter = Filter
 
-    def plain_validator(value):
-        # Make sure we validate Model.
-        # Probably would be better if this was subclass of specific Filter but classes created in
-        # `FilterDepends` cannot subclass specific Filter because of `split_str` method
-        if issubclass(value.__class__, BaseModel):
-            value = value.model_dump()
-
-        if isinstance(value, dict):
-            stripped = {}
-            k: str
-            # TODO: replace with `removeprefix` when python 3.8 is no longer supported
-            # stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in value.items()}
-            for k, v in value.items():
-                if k.startswith(NestedFilter.Constants.prefix):
-                    k = k.replace(NestedFilter.Constants.prefix, "", 1)
-                stripped[k] = v
-            return Filter(**stripped)
-
-        raise ValueError(f"Unexpected type: {type(value)}")
-
-    plain_validator_ = PlainValidator(plain_validator)
-
-    return NestedFilter, plain_validator_
+    return NestedFilter
 
 
 def _list_to_str_fields(Filter: Type[BaseFilterModel]):
@@ -252,18 +222,23 @@ def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_
     GeneratedFilter: Type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)
 
     class FilterWrapper(GeneratedFilter):  # type: ignore[misc,valid-type]
-        def filter(self, *args, **kwargs):
+        def __new__(cls, *args, **kwargs):
             try:
-                original_filter = Filter(**self.model_dump(by_alias=by_alias))
+                instance = GeneratedFilter(*args, **kwargs)
+                data = instance.model_dump(exclude_unset=True, exclude_defaults=True, by_alias=by_alias)
+                if original_filter := getattr(Filter.Constants, "original_filter", None):
+                    prefix = f"{Filter.Constants.prefix}__"
+                    stripped = {}
+                    k: str
+                    # TODO: replace with `removeprefix` when python 3.8 is no longer supported
+                    # stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in value.items()}
+                    for k, v in data.items():
+                        if k.startswith(prefix):
+                            k = k.replace(prefix, "", 1)
+                        stripped[k] = v
+                    return original_filter(**stripped)
+                return Filter(**data)
             except ValidationError as e:
                 raise RequestValidationError(e.errors()) from e
-            return original_filter.filter(*args, **kwargs)
-
-        def sort(self, *args, **kwargs):
-            try:
-                original_filter = Filter(**self.model_dump(by_alias=by_alias))
-            except ValidationError as e:
-                raise RequestValidationError(e.errors()) from e
-            return original_filter.sort(*args, **kwargs)
 
     return Depends(FilterWrapper)

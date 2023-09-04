@@ -1,11 +1,5 @@
-import sys
 from datetime import datetime
 from typing import Any, List, Optional
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated
-else:
-    from typing_extensions import Annotated
 
 import pytest
 from bson.objectid import ObjectId
@@ -156,8 +150,6 @@ def AddressFilter(Address, Filter):
 
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
-    address_with_prefix, plain_validator = with_prefix("address", AddressFilter)
-
     class UserFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str] = None
         name__in: Optional[List[str]] = None
@@ -170,8 +162,8 @@ def UserFilter(User, Filter, AddressFilter):
         age__gt: Optional[int] = None
         age__gte: Optional[int] = None
         age__in: Optional[List[int]] = None
-        address: Optional[Annotated[AddressFilter, plain_validator]] = FilterDepends(  # type: ignore[valid-type]
-            address_with_prefix
+        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
+            with_prefix("address", AddressFilter)
         )
         search: Optional[str] = None
 
