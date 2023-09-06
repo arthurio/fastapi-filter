@@ -275,7 +275,7 @@ def UserFilter(User, Filter, AddressFilter):
         age__gte: Optional[int] = None
         age__in: Optional[List[int]] = None
         address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
-            with_prefix("address", AddressFilter)
+            with_prefix("address", AddressFilter), by_alias=True
         )
         address_id__isnull: Optional[bool] = None
         search: Optional[str] = None
@@ -286,6 +286,16 @@ def UserFilter(User, Filter, AddressFilter):
             search_field_name = "search"
 
     yield UserFilter
+
+
+@pytest.fixture(scope="package")
+def UserFilterByAlias(UserFilter, AddressFilter):
+    class UserFilterByAlias(UserFilter):  # type: ignore[misc, valid-type]
+        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
+            with_prefix("address", AddressFilter), by_alias=True
+        )
+
+    yield UserFilterByAlias
 
 
 @pytest.fixture(scope="package")
@@ -316,6 +326,7 @@ def app(
     SportOut,
     User,
     UserFilter,
+    UserFilterByAlias,
     UserFilterCustomOrderBy,
     UserFilterOrderBy,
     UserFilterOrderByWithDefault,
@@ -331,6 +342,15 @@ def app(
     @app.get("/users", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users(
         user_filter: UserFilter = FilterDepends(UserFilter),  # type: ignore[valid-type]
+        db: AsyncSession = Depends(get_db),
+    ):
+        query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
+        result = await db.execute(query)
+        return result.scalars().unique().all()
+
+    @app.get("/users-by-alias", response_model=List[UserOut])  # type: ignore[valid-type]
+    async def get_users(
+        user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
         query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]

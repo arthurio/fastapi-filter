@@ -177,6 +177,16 @@ def UserFilter(User, Filter, AddressFilter):
 
 
 @pytest.fixture(scope="package")
+def UserFilterByAlias(UserFilter, AddressFilter):
+    class UserFilterByAlias(UserFilter):  # type: ignore[misc, valid-type]
+        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
+            with_prefix("address", AddressFilter), by_alias=True
+        )
+
+    yield UserFilterByAlias
+
+
+@pytest.fixture(scope="package")
 def SportFilter(Sport, Filter):
     class SportFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str] = Field(Query(description="Name of the sport", default=None))
@@ -253,6 +263,7 @@ def app(
     SportOut,
     Sport,
     UserFilter,
+    UserFilterByAlias,
     UserFilterCustomOrderBy,
     UserFilterOrderBy,
     UserFilterOrderByWithDefault,
@@ -263,6 +274,19 @@ def app(
 
     @app.get("/users", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):  # type: ignore[valid-type]
+        query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
+        query = query.select_related()
+        return [
+            {
+                **user.to_mongo(),
+                "address": user.address.to_mongo() if user.address else None,
+                "favorite_sports": [sport.to_mongo() for sport in user.favorite_sports],
+            }
+            for user in query
+        ]
+
+    @app.get("/users-by-alias", response_model=List[UserOut])  # type: ignore[valid-type]
+    async def get_users(user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True)):  # type: ignore[valid-type]
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = query.select_related()
         return [

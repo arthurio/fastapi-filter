@@ -30,6 +30,7 @@ def test_basic_filter(User, UserFilter, filter_, expected_count):
     assert query.count() == expected_count
 
 
+@pytest.mark.parametrize("uri", ["/users", "/users-by-alias"])
 @pytest.mark.parametrize(
     "filter_,expected_count",
     [
@@ -51,8 +52,8 @@ def test_basic_filter(User, UserFilter, filter_, expected_count):
 )
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("Address", "users", "User", "UserFilter")
-async def test_api(test_client, filter_, expected_count):
-    response = await test_client.get(f"/users?{urlencode(filter_)}")
+async def test_api(test_client, uri, filter_, expected_count):
+    response = await test_client.get(f"{uri}?{urlencode(filter_)}")
     assert len(response.json()) == expected_count
 
 

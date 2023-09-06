@@ -63,6 +63,7 @@ async def test_filter_deprecation_like_and_ilike(session, Address, User, UserFil
     assert len(result.scalars().unique().all()) == expected_count
 
 
+@pytest.mark.parametrize("uri", ["/users", "/users-by-alias"])
 @pytest.mark.parametrize(
     "filter_,expected_count",
     [
@@ -85,8 +86,8 @@ async def test_filter_deprecation_like_and_ilike(session, Address, User, UserFil
 )
 @pytest.mark.usefixtures("users")
 @pytest.mark.asyncio
-async def test_api(test_client, filter_, expected_count):
-    response = await test_client.get(f"/users?{urlencode(filter_)}")
+async def test_api(test_client, uri, filter_, expected_count):
+    response = await test_client.get(f"{uri}?{urlencode(filter_)}")
     assert len(response.json()) == expected_count
 
 
