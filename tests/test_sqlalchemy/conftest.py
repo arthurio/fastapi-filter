@@ -349,7 +349,7 @@ def app(
         return result.scalars().unique().all()
 
     @app.get("/users-by-alias", response_model=List[UserOut])  # type: ignore[valid-type]
-    async def get_users(
+    async def get_users_by_alias(
         user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
