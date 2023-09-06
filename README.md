@@ -10,8 +10,8 @@
 **Required:**
 
 - Python: >=3.8, <4.0
-- Fastapi: >=0.78, <1.0
-- Pydantic: >=1.10.0, <2.0.0
+- Fastapi: >=0.100, <1.0
+- Pydantic: >=2.0.0, <2.2.0
 
 **Optional**
 
