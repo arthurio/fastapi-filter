@@ -1562,13 +1562,13 @@ six = ">=1.5"
 
 [[package]]
 name = "python-lsp-jsonrpc"
-version = "1.0.0"
+version = "1.1.1"
 description = "JSON RPC 2.0 server library"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 files = [
-    {file = "python-lsp-jsonrpc-1.0.0.tar.gz", hash = "sha256:7bec170733db628d3506ea3a5288ff76aa33c70215ed223abdb0d95e957660bd"},
-    {file = "python_lsp_jsonrpc-1.0.0-py3-none-any.whl", hash = "sha256:079b143be64b0a378bdb21dff5e28a8c1393fe7e8a654ef068322d754e545fc7"},
+    {file = "python-lsp-jsonrpc-1.1.1.tar.gz", hash = "sha256:05cc914aa5ee2e7f52eb762014ba4996a8cc52459bfddb81fb96c56ace927908"},
+    {file = "python_lsp_jsonrpc-1.1.1-py3-none-any.whl", hash = "sha256:2bd7771bd5e23ba2edb17101432c5fd680bbacedb8dddeb472a8250ca8d936d6"},
 ]
 
 [package.dependencies]
@@ -1579,31 +1579,31 @@ test = ["coverage", "pycodestyle", "pyflakes", "pylint", "pytest", "pytest-cov"]
 
 [[package]]
 name = "python-lsp-server"
-version = "1.7.4"
+version = "1.8.0"
 description = "Python Language Server for the Language Server Protocol"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "python-lsp-server-1.7.4.tar.gz", hash = "sha256:c84254485a4d9431b24ecefd59741d21c00165611bcf6037bd7d54d0ed06a197"},
-    {file = "python_lsp_server-1.7.4-py3-none-any.whl", hash = "sha256:f8053f7aefcb60af4e91f3fab1a093b15ba0c4688ba67e6ab69e7b73e997b2cb"},
+    {file = "python-lsp-server-1.8.0.tar.gz", hash = "sha256:807b0347cf83f02cbd9113a68624ac5dbf8b01854a3b11dd03c3bbbdff4e5d89"},
+    {file = "python_lsp_server-1.8.0-py3-none-any.whl", hash = "sha256:c261ee8038073a6618a08f958faf88b9552a1094440513565e140d7f417249c9"},
 ]
 
 [package.dependencies]
 docstring-to-markdown = "*"
-jedi = ">=0.17.2,<0.19.0"
+importlib-metadata = {version = ">=4.8.3", markers = "python_version < \"3.10\""}
+jedi = ">=0.17.2,<0.20.0"
 pluggy = ">=1.0.0"
-python-lsp-jsonrpc = ">=1.0.0"
-setuptools = ">=39.0.0"
+python-lsp-jsonrpc = ">=1.1.0,<2.0.0"
 ujson = ">=3.0.0"
 
 [package.extras]
-all = ["autopep8 (>=1.6.0,<2.1.0)", "flake8 (>=5.0.0,<7)", "mccabe (>=0.7.0,<0.8.0)", "pycodestyle (>=2.9.0,<2.11.0)", "pydocstyle (>=6.3.0,<6.4.0)", "pyflakes (>=2.5.0,<3.1.0)", "pylint (>=2.5.0,<3)", "rope (>1.2.0)", "whatthepatch (>=1.0.2,<2.0.0)", "yapf (>=0.33.0)"]
+all = ["autopep8 (>=1.6.0,<2.1.0)", "flake8 (>=6.1.0,<7)", "mccabe (>=0.7.0,<0.8.0)", "pycodestyle (>=2.11.0,<2.12.0)", "pydocstyle (>=6.3.0,<6.4.0)", "pyflakes (>=3.1.0,<3.2.0)", "pylint (>=2.5.0,<3)", "rope (>1.2.0)", "whatthepatch (>=1.0.2,<2.0.0)", "yapf (>=0.33.0)"]
 autopep8 = ["autopep8 (>=1.6.0,<2.1.0)"]
-flake8 = ["flake8 (>=5.0.0,<7)"]
+flake8 = ["flake8 (>=6.1.0,<7)"]
 mccabe = ["mccabe (>=0.7.0,<0.8.0)"]
-pycodestyle = ["pycodestyle (>=2.9.0,<2.11.0)"]
+pycodestyle = ["pycodestyle (>=2.11.0,<2.12.0)"]
 pydocstyle = ["pydocstyle (>=6.3.0,<6.4.0)"]
-pyflakes = ["pyflakes (>=2.5.0,<3.1.0)"]
+pyflakes = ["pyflakes (>=3.1.0,<3.2.0)"]
 pylint = ["pylint (>=2.5.0,<3)"]
 rope = ["rope (>1.2.0)"]
 test = ["coverage", "flaky", "matplotlib", "numpy", "pandas", "pylint (>=2.5.0,<3)", "pyqt5", "pytest", "pytest-cov"]
