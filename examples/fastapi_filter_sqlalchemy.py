@@ -156,7 +156,7 @@ async def get_users(
 
 @app.get("/addresses", response_model=List[AddressOut])
 async def get_addresses(
-    address_filter: AddressFilter = FilterDepends(with_prefix("address", AddressFilter), by_alias=True),
+    address_filter: AddressFilter = FilterDepends(with_prefix("my_custom_prefix", AddressFilter), by_alias=True),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     query = select(Address)
