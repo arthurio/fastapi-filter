@@ -229,7 +229,6 @@ def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_
                 if original_filter := getattr(Filter.Constants, "original_filter", None):
                     prefix = f"{Filter.Constants.prefix}__"
                     stripped = {}
-                    k: str
                     # TODO: replace with `removeprefix` when python 3.8 is no longer supported
                     # stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in value.items()}
                     for k, v in data.items():
