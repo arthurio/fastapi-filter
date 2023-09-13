@@ -35,6 +35,7 @@ By default, **fastapi_filter** supports the following operators:
   - `not`/`ne`
   - `not_in`/`nin`
   - `like`/`ilike`
+  - `contains`
 
 _**Note:** Mysql excludes `None` values when using `in` filter_
 

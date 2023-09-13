@@ -8,3 +8,4 @@ fastapi_filter.sqlite
 poetry.toml
 .pytest_cache/
 .ruff_cache/
+__pycache__

@@ -44,6 +44,7 @@ _orm_operator_transformer = {
     # XXX(arthurio): Mysql excludes None values when using `in` or `not in` filters.
     "not": lambda value: ("is_not", value),
     "not_in": lambda value: ("not_in", value),
+    "contains": lambda value: ("contains", value),
 }
 """Operators à la Django.
 
