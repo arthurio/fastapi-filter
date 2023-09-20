@@ -194,8 +194,12 @@ def _list_to_str_fields(Filter: Type[BaseFilterModel]):
                 annotation_args.remove(type(None))
             if len(annotation_args) == 1:
                 annotation = annotation_args[0]
-            # Not sure what to do if there is more then 1 value 🤔
-            # Do we need to handle Optional[Annotated[...]] ?
+            # NOTE: This doesn't support union types which contain list and other types at the
+            # same time like `list[str] | str` or `list[str] | str | None`. The list type inside
+            # union will not be converted to string which means that the filter will not work in
+            # such cases.
+            # We cannot raise exception here because we still want to support union types in
+            # filter for example `int | float | None` is valid type and should not be transformed.
 
         if annotation is list or get_origin(annotation) is list:
             if isinstance(field_info.default, Iterable):

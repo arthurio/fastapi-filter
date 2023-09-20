@@ -88,6 +88,12 @@ Wherever you would use a `Depends`, replace it with `FilterDepends` if you are p
 that `FilterDepends` converts the `list` filter fields to `str` so that they can be displayed and used in swagger.
 It also handles turning `ValidationError` into `HTTPException(status_code=422)`.
 
+#### Limitations
+
+`FilterDepends` does not convert `list` type to `str` if it is part of union type with other
+types except for `None`. For example type `list[str] | None` will work but `list[str] | str` will
+not.
+
 ### with_prefix
 
 [link](https://github.com/arthurio/fastapi-filter/blob/main/fastapi_filter/base/filter.py#L21)
