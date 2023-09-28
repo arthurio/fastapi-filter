@@ -1,11 +1,12 @@
 from datetime import datetime
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, List, Optional
 
 import pytest
 from bson.objectid import ObjectId
 from fastapi import FastAPI, Query
 from mongoengine import Document, connect, fields
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, GetCoreSchemaHandler, field_validator
+from pydantic_core import CoreSchema, core_schema
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.mongoengine import Filter as MongoFilter
@@ -25,18 +26,22 @@ def db_connect(database_url):
 def PydanticObjectId():
     class PydanticObjectId(ObjectId):
         @classmethod
-        def __get_validators__(cls) -> Generator:
-            yield cls.validate
+        def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
+            return core_schema.no_info_after_validator_function(
+                cls.validate,
+                core_schema.is_instance_schema(cls=ObjectId),
+                serialization=core_schema.plain_serializer_function_ser_schema(
+                    str,
+                    info_arg=False,
+                    return_schema=core_schema.str_schema(),
+                ),
+            )
 
-        @classmethod
-        def validate(cls, v: ObjectId) -> str:
+        @staticmethod
+        def validate(v: ObjectId) -> ObjectId:
             if not ObjectId.is_valid(v):
                 raise ValueError("Invalid objectid")
-            return str(v)
-
-        @classmethod
-        def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-            field_schema.update(type="string")
+            return v
 
     return PydanticObjectId
 
@@ -131,11 +136,11 @@ def users(User, Address, sports):
 @pytest.fixture(scope="package")
 def AddressFilter(Address, Filter):
     class AddressFilter(Filter):  # type: ignore[misc, valid-type]
-        street__isnull: Optional[bool]
-        country: Optional[str]
-        city: Optional[str]
-        city__in: Optional[List[str]]
-        country__nin: Optional[List[str]]
+        street__isnull: Optional[bool] = None
+        country: Optional[str] = None
+        city: Optional[str] = None
+        city__in: Optional[List[str]] = None
+        country__nin: Optional[List[str]] = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Address
@@ -146,28 +151,39 @@ def AddressFilter(Address, Filter):
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
     class UserFilter(Filter):  # type: ignore[misc, valid-type]
-        name: Optional[str]
-        name__in: Optional[List[str]]
-        name__nin: Optional[List[str]]
-        name__ne: Optional[str]
-        name__isnull: Optional[bool]
-        age: Optional[int]
-        age__lt: Optional[int]
-        age__lte: Optional[int]
-        age__gt: Optional[int]
-        age__gte: Optional[int]
-        age__in: Optional[List[int]]
+        name: Optional[str] = None
+        name__in: Optional[List[str]] = None
+        name__nin: Optional[List[str]] = None
+        name__ne: Optional[str] = None
+        name__isnull: Optional[bool] = None
+        age: Optional[int] = None
+        age__lt: Optional[int] = None
+        age__lte: Optional[int] = None
+        age__gt: Optional[int] = None
+        age__gte: Optional[int] = None
+        age__in: Optional[List[int]] = None
         address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter)
         )
-        search: Optional[str]
+        search: Optional[str] = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = User
             search_model_fields = ["name", "email"]
             search_field_name = "search"
+            ordering_field_name = "order_by"
 
     yield UserFilter
+
+
+@pytest.fixture(scope="package")
+def UserFilterByAlias(UserFilter, AddressFilter):
+    class UserFilterByAlias(UserFilter):  # type: ignore[misc, valid-type]
+        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
+            with_prefix("address", AddressFilter), by_alias=True
+        )
+
+    yield UserFilterByAlias
 
 
 @pytest.fixture(scope="package")
@@ -175,12 +191,12 @@ def SportFilter(Sport, Filter):
     class SportFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str] = Field(Query(description="Name of the sport", default=None))
         is_individual: bool
-        bogus_filter: Optional[str]
+        bogus_filter: Optional[str] = None
 
         class Constants(Filter.Constants):  # type: ignore [name-defined]
             model = Sport
 
-        @validator("bogus_filter")
+        @field_validator("bogus_filter")
         def throw_exception(cls, value):
             if value:
                 raise ValueError("You can't use this bogus filter")
@@ -191,13 +207,12 @@ def SportFilter(Sport, Filter):
 @pytest.fixture(scope="package")
 def AddressOut(PydanticObjectId):
     class AddressOut(BaseModel):
+        model_config = ConfigDict(from_attributes=True)
+
         id: PydanticObjectId = Field(..., alias="_id")  # type: ignore[valid-type]
-        street: Optional[str]
+        street: Optional[str] = None
         city: str
         country: str
-
-        class Config:
-            orm_mode = True
 
     yield AddressOut
 
@@ -205,14 +220,13 @@ def AddressOut(PydanticObjectId):
 @pytest.fixture(scope="package")
 def UserOut(PydanticObjectId, AddressOut):
     class UserOut(BaseModel):
+        model_config = ConfigDict(from_attributes=True)
+
         id: PydanticObjectId = Field(..., alias="_id")  # type: ignore[valid-type]
         created_at: datetime
-        name: Optional[str]
+        name: Optional[str] = None
         age: int
-        address: Optional[AddressOut]  # type: ignore[valid-type]
-
-        class Config:
-            orm_mode = True
+        address: Optional[AddressOut] = None  # type: ignore[valid-type]
 
     yield UserOut
 
@@ -220,12 +234,11 @@ def UserOut(PydanticObjectId, AddressOut):
 @pytest.fixture(scope="package")
 def SportOut(PydanticObjectId):
     class SportOut(BaseModel):
+        model_config = ConfigDict(from_attributes=True)
+
         id: PydanticObjectId = Field(..., alias="_id")  # type: ignore[valid-type]
         name: str
         is_individual: bool
-
-        class Config:
-            orm_mode = True
 
     yield SportOut
 
@@ -250,6 +263,7 @@ def app(
     SportOut,
     Sport,
     UserFilter,
+    UserFilterByAlias,
     UserFilterCustomOrderBy,
     UserFilterOrderBy,
     UserFilterOrderByWithDefault,
@@ -260,6 +274,21 @@ def app(
 
     @app.get("/users", response_model=List[UserOut])  # type: ignore[valid-type]
     async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):  # type: ignore[valid-type]
+        query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
+        query = query.select_related()
+        return [
+            {
+                **user.to_mongo(),
+                "address": user.address.to_mongo() if user.address else None,
+                "favorite_sports": [sport.to_mongo() for sport in user.favorite_sports],
+            }
+            for user in query
+        ]
+
+    @app.get("/users-by-alias", response_model=List[UserOut])  # type: ignore[valid-type]
+    async def get_users_by_alias(
+        user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True)  # type: ignore[valid-type]
+    ):
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = query.select_related()
         return [

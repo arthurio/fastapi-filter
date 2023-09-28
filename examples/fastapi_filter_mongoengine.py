@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, List, Optional
 
 import click
 import uvicorn
@@ -7,7 +7,8 @@ from bson.objectid import ObjectId
 from faker import Faker
 from fastapi import FastAPI, Query
 from mongoengine import Document, connect, fields
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, GetCoreSchemaHandler
+from pydantic_core import CoreSchema, core_schema
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.mongoengine import Filter
@@ -19,18 +20,22 @@ logger = logging.getLogger("uvicorn")
 
 class PydanticObjectId(ObjectId):
     @classmethod
-    def __get_validators__(cls) -> Generator:
-        yield cls.validate
+    def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
+        return core_schema.no_info_after_validator_function(
+            cls.validate,
+            core_schema.is_instance_schema(cls=ObjectId),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                str,
+                info_arg=False,
+                return_schema=core_schema.str_schema(),
+            ),
+        )
 
-    @classmethod
-    def validate(cls, v: ObjectId) -> str:
+    @staticmethod
+    def validate(v: ObjectId) -> ObjectId:
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid objectid")
-        return str(v)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update(type="string")
+        return v
 
 
 class Address(Document):
@@ -63,23 +68,22 @@ class UserIn(BaseModel):
 
 
 class UserOut(UserIn):
+    model_config = ConfigDict(from_attributes=True)
+
     id: PydanticObjectId = Field(..., alias="_id")
     name: str
     email: EmailStr
     age: int
-    address: Optional[AddressOut]
-
-    class Config:
-        orm_mode = True
+    address: Optional[AddressOut] = None
 
 
 class AddressFilter(Filter):
-    street: Optional[str]
-    country: Optional[str]
-    city: Optional[str]
-    city__in: Optional[List[str]]
-    custom_order_by: Optional[List[str]]
-    custom_search: Optional[str]
+    street: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    city__in: Optional[List[str]] = None
+    custom_order_by: Optional[List[str]] = None
+    custom_search: Optional[str] = None
 
     class Constants(Filter.Constants):
         model = Address
@@ -89,16 +93,16 @@ class AddressFilter(Filter):
 
 
 class UserFilter(Filter):
-    name: Optional[str]
+    name: Optional[str] = None
     address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
-    age__lt: Optional[int]
+    age__lt: Optional[int] = None
     age__gte: int = Field(Query(description="this is a nice description"))
     """Required field with a custom description.
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
     order_by: List[str] = ["age"]
-    search: Optional[str]
+    search: Optional[str] = None
 
     class Constants(Filter.Constants):
         model = User
@@ -138,7 +142,7 @@ async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
 
 @app.get("/addresses", response_model=List[AddressOut])
 async def get_addresses(
-    address_filter: AddressFilter = FilterDepends(with_prefix("my_prefix", AddressFilter), by_alias=True),
+    address_filter: AddressFilter = FilterDepends(with_prefix("my_custom_prefix", AddressFilter), by_alias=True),
 ) -> Any:
     query = address_filter.filter(Address.objects())
     query = address_filter.sort(query)

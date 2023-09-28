@@ -1,6 +1,6 @@
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
-from pydantic import validator
+from pydantic import FieldValidationInfo, field_validator
 
 from ...base.filter import BaseFilterModel
 
@@ -33,21 +33,24 @@ class Filter(BaseFilterModel):
             return query
         return query.order_by(*self.ordering_values)
 
-    @validator("*", pre=True)
-    def split_str(cls, value, field):
+    @field_validator("*", mode="before")
+    def split_str(cls, value, field: FieldValidationInfo):
         if (
-            field.name == cls.Constants.ordering_field_name
-            or field.name.endswith("__in")
-            or field.name.endswith("__nin")
+            field.field_name == cls.Constants.ordering_field_name
+            or field.field_name.endswith("__in")
+            or field.field_name.endswith("__nin")
         ) and isinstance(value, str):
-            return [field.type_(v) for v in value.split(",")]
+            if not value:
+                # Empty string should return [] not ['']
+                return []
+            return list(value.split(","))
         return value
 
     def filter(self, query: QuerySet) -> QuerySet:
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
-                if not field_value.dict(exclude_none=True, exclude_unset=True):
+                if not field_value.model_dump(exclude_none=True, exclude_unset=True):
                     continue
 
                 query = query.filter(**{f"{field_name}__in": field_value.filter(field_value.Constants.model.objects())})

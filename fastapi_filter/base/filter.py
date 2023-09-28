@@ -1,15 +1,22 @@
+import sys
 from collections import defaultdict
-from collections.abc import Iterable
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, Extra, ValidationError, create_model, fields, validator
+from pydantic import BaseModel, ConfigDict, FieldValidationInfo, ValidationError, create_model, field_validator
 from pydantic.fields import FieldInfo
 
+UNION_TYPES: List = [Union]
 
-class BaseFilterModel(BaseModel, extra=Extra.forbid):
+if sys.version_info >= (3, 10):
+    from types import UnionType
+
+    UNION_TYPES.append(UnionType)
+
+
+class BaseFilterModel(BaseModel, extra="forbid"):
     """Abstract base filter class.
 
     Provides the interface for filtering and ordering.
@@ -42,13 +49,14 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
         search_model_fields: List[str]
         search_field_name: str = "search"
         prefix: str
+        original_filter: Type["BaseFilterModel"]
 
     def filter(self, query):  # pragma: no cover
         ...
 
     @property
     def filtering_fields(self):
-        fields = self.dict(exclude_none=True, exclude_unset=True)
+        fields = self.model_dump(exclude_none=True, exclude_unset=True)
         fields.pop(self.Constants.ordering_field_name, None)
         return fields.items()
 
@@ -66,13 +74,9 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
                 "Make sure to add it to your filter class."
             ) from e
 
-    @validator("*", pre=True)
-    def split_str(cls, value, field):  # pragma: no cover
-        ...
-
-    @validator("*", pre=True, allow_reuse=True, check_fields=False)
-    def strip_order_by_values(cls, value, values, field):
-        if field.name != cls.Constants.ordering_field_name:
+    @field_validator("*", mode="before", check_fields=False)
+    def strip_order_by_values(cls, value, field: FieldValidationInfo):
+        if field.field_name != cls.Constants.ordering_field_name:
             return value
 
         if not value:
@@ -86,9 +90,9 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
 
         return stripped_values
 
-    @validator("*", allow_reuse=True, check_fields=False)
-    def validate_order_by(cls, value, values, field):
-        if field.name != cls.Constants.ordering_field_name:
+    @field_validator("*", mode="before", check_fields=False)
+    def validate_order_by(cls, value, field: FieldValidationInfo):
+        if field.field_name != cls.Constants.ordering_field_name:
             return value
 
         if not value:
@@ -123,7 +127,7 @@ class BaseFilterModel(BaseModel, extra=Extra.forbid):
         return value
 
 
-def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
+def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Type[BaseFilterModel]:
     """Allow re-using existing filter under a prefix.
 
     Example:
@@ -167,32 +171,42 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]):
     """
 
     class NestedFilter(Filter):  # type: ignore[misc, valid-type]
-        class Config:
-            extra = Extra.forbid
-
-            @classmethod
-            def alias_generator(cls, string: str) -> str:
-                return f"{prefix}__{string}"
+        model_config = ConfigDict(extra="forbid", alias_generator=lambda string: f"{prefix}__{string}")
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             ...
 
     NestedFilter.Constants.prefix = prefix
+    NestedFilter.Constants.original_filter = Filter
 
     return NestedFilter
 
 
 def _list_to_str_fields(Filter: Type[BaseFilterModel]):
     ret: Dict[str, Tuple[Union[object, Type], Optional[FieldInfo]]] = {}
-    for f in Filter.__fields__.values():
-        field_info = deepcopy(f.field_info)
-        if f.shape == fields.SHAPE_LIST:
+    for name, f in Filter.model_fields.items():
+        field_info = deepcopy(f)
+        annotation = f.annotation
+
+        if get_origin(annotation) in UNION_TYPES:
+            annotation_args: list = list(get_args(f.annotation))
+            if type(None) in annotation_args:
+                annotation_args.remove(type(None))
+            if len(annotation_args) == 1:
+                annotation = annotation_args[0]
+            # NOTE: This doesn't support union types which contain list and other types at the
+            # same time like `list[str] | str` or `list[str] | str | None`. The list type inside
+            # union will not be converted to string which means that the filter will not work in
+            # such cases.
+            # We cannot raise exception here because we still want to support union types in
+            # filter for example `int | float | None` is valid type and should not be transformed.
+
+        if annotation is list or get_origin(annotation) is list:
             if isinstance(field_info.default, Iterable):
                 field_info.default = ",".join(field_info.default)
-            ret[f.name] = (str if f.required else Optional[str], field_info)
+            ret[name] = (str if f.is_required() else Optional[str], field_info)
         else:
-            field_type = Filter.__annotations__.get(f.name, f.outer_type_)
-            ret[f.name] = (field_type if f.required else Optional[field_type], field_info)
+            ret[name] = (f.annotation, field_info)
 
     return ret
 
@@ -212,18 +226,22 @@ def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_
     GeneratedFilter: Type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)
 
     class FilterWrapper(GeneratedFilter):  # type: ignore[misc,valid-type]
-        def filter(self, *args, **kwargs):
+        def __new__(cls, *args, **kwargs):
             try:
-                original_filter = Filter(**self.dict(by_alias=by_alias))
+                instance = GeneratedFilter(*args, **kwargs)
+                data = instance.model_dump(exclude_unset=True, exclude_defaults=True, by_alias=by_alias)
+                if original_filter := getattr(Filter.Constants, "original_filter", None):
+                    prefix = f"{Filter.Constants.prefix}__"
+                    stripped = {}
+                    # TODO: replace with `removeprefix` when python 3.8 is no longer supported
+                    # stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in value.items()}
+                    for k, v in data.items():
+                        if k.startswith(prefix):
+                            k = k.replace(prefix, "", 1)
+                        stripped[k] = v
+                    return original_filter(**stripped)
+                return Filter(**data)
             except ValidationError as e:
-                raise RequestValidationError(e.raw_errors) from e
-            return original_filter.filter(*args, **kwargs)
-
-        def sort(self, *args, **kwargs):
-            try:
-                original_filter = Filter(**self.dict(by_alias=by_alias))
-            except ValidationError as e:
-                raise RequestValidationError(e.raw_errors) from e
-            return original_filter.sort(*args, **kwargs)
+                raise RequestValidationError(e.errors()) from e
 
     return Depends(FilterWrapper)
