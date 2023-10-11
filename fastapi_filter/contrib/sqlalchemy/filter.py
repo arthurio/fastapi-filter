@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-from typing import Union
+from typing import Generic, TypeVar, Union
 from warnings import warn
 
 from pydantic import FieldValidationInfo, field_validator
@@ -9,6 +9,9 @@ from sqlalchemy.orm import Query
 from sqlalchemy.sql.selectable import Select
 
 from ...base.filter import BaseFilterModel
+
+FilterQueryType = TypeVar("FilterQueryType", bound=Union[Query, Select])
+SortQueryType = TypeVar("SortQueryType", bound=Union[Query, Select])
 
 
 def _backward_compatible_value_for_like_and_ilike(value: str):
@@ -55,7 +58,7 @@ Examples:
 """
 
 
-class Filter(BaseFilterModel):
+class Filter(BaseFilterModel, Generic[SortQueryType, FilterQueryType]):
     """Base filter for orm related filters.
 
     All children must set:
@@ -100,7 +103,7 @@ class Filter(BaseFilterModel):
             return list(value.split(","))
         return value
 
-    def filter(self, query: Union[Query, Select]):
+    def filter(self, query: FilterQueryType) -> FilterQueryType:
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
@@ -124,7 +127,7 @@ class Filter(BaseFilterModel):
 
         return query
 
-    def sort(self, query: Union[Query, Select]):
+    def sort(self, query: SortQueryType) -> SortQueryType:
         if not self.ordering_values:
             return query
 
