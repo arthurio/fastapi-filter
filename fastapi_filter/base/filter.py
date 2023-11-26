@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, get_
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, ConfigDict, FieldValidationInfo, ValidationError, create_model, field_validator
+from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
 from pydantic.fields import FieldInfo
 
 UNION_TYPES: List = [Union]
@@ -75,7 +75,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
             ) from e
 
     @field_validator("*", mode="before", check_fields=False)
-    def strip_order_by_values(cls, value, field: FieldValidationInfo):
+    def strip_order_by_values(cls, value, field: ValidationInfo):
         if field.field_name != cls.Constants.ordering_field_name:
             return value
 
@@ -91,7 +91,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
         return stripped_values
 
     @field_validator("*", mode="before", check_fields=False)
-    def validate_order_by(cls, value, field: FieldValidationInfo):
+    def validate_order_by(cls, value, field: ValidationInfo):
         if field.field_name != cls.Constants.ordering_field_name:
             return value
 
