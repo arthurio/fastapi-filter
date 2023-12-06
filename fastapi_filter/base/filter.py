@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, get_
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, ConfigDict, ValidationInfo, ValidationError, create_model, field_validator
+from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
 from pydantic.fields import FieldInfo
 
 UNION_TYPES: List = [Union]
