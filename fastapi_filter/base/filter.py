@@ -1,7 +1,7 @@
 import sys
 from collections import defaultdict
 from copy import deepcopy
-from typing import Any, Iterable, Optional, Union, get_args, get_origin
+from typing import Any, Iterable, Optional, Type, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
@@ -44,7 +44,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
     """
 
     class Constants:  # pragma: no cover
-        model: type
+        model: Type
         ordering_field_name: str = "order_by"
         search_model_fields: list[str]
         search_field_name: str = "search"
@@ -232,7 +232,7 @@ def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_
                 data = instance.model_dump(exclude_unset=True, exclude_defaults=True, by_alias=by_alias)
                 if original_filter := getattr(Filter.Constants, "original_filter", None):
                     prefix = f"{Filter.Constants.prefix}__"
-                    stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in data.items()}
+                    stripped = {k.removeprefix(prefix): v for k, v in data.items()}
                     return original_filter(**stripped)
                 return Filter(**data)
             except ValidationError as e:
