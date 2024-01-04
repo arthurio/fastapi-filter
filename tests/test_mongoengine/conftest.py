@@ -54,7 +54,7 @@ def User(db_connect, Address, Sport):
         email = fields.EmailField()
         age = fields.IntField()
         address = fields.ReferenceField(Address)
-        favorite_sports = fields.listField(fields.ReferenceField(Sport))
+        favorite_sports = fields.ListField(fields.ReferenceField(Sport))
 
     return User
 
