@@ -36,7 +36,7 @@ class Filter(BaseFilterModel):
     @field_validator("*", mode="before")
     def split_str(cls, value, field: ValidationInfo):
         if (
-           field.field_name is not None
+            field.field_name is not None
             and (
                 field.field_name == cls.Constants.ordering_field_name
                 or field.field_name.endswith("__in")
