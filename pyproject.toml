@@ -81,7 +81,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -94,7 +93,7 @@ SQLAlchemy = {version = ">=1.4.36,<2.1.0", optional = true}
 fastapi = ">=0.100.0,<1.0"
 mongoengine = {version = ">=0.24.1,<0.28.0", optional = true}
 pydantic = ">=2.0.0,<3.0.0"
-python = ">=3.8,<4.0"
+python = ">=3.9,<4.0"
 
 [tool.poetry.dev-dependencies]
 Faker = "^20.0.0"

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import pytest
 from bson.objectid import ObjectId
@@ -54,7 +54,7 @@ def User(db_connect, Address, Sport):
         email = fields.EmailField()
         age = fields.IntField()
         address = fields.ReferenceField(Address)
-        favorite_sports = fields.ListField(fields.ReferenceField(Sport))
+        favorite_sports = fields.listField(fields.ReferenceField(Sport))
 
     return User
 
@@ -139,8 +139,8 @@ def AddressFilter(Address, Filter):
         street__isnull: Optional[bool] = None
         country: Optional[str] = None
         city: Optional[str] = None
-        city__in: Optional[List[str]] = None
-        country__nin: Optional[List[str]] = None
+        city__in: Optional[list[str]] = None
+        country__nin: Optional[list[str]] = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Address
@@ -152,8 +152,8 @@ def AddressFilter(Address, Filter):
 def UserFilter(User, Filter, AddressFilter):
     class UserFilter(Filter):  # type: ignore[misc, valid-type]
         name: Optional[str] = None
-        name__in: Optional[List[str]] = None
-        name__nin: Optional[List[str]] = None
+        name__in: Optional[list[str]] = None
+        name__nin: Optional[list[str]] = None
         name__ne: Optional[str] = None
         name__isnull: Optional[bool] = None
         age: Optional[int] = None
@@ -161,7 +161,7 @@ def UserFilter(User, Filter, AddressFilter):
         age__lte: Optional[int] = None
         age__gt: Optional[int] = None
         age__gte: Optional[int] = None
-        age__in: Optional[List[int]] = None
+        age__in: Optional[list[int]] = None
         address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter)
         )
@@ -272,7 +272,7 @@ def app(
 ):
     app = FastAPI()
 
-    @app.get("/users", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)):  # type: ignore[valid-type]
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = query.select_related()
@@ -285,7 +285,7 @@ def app(
             for user in query
         ]
 
-    @app.get("/users-by-alias", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users-by-alias", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_by_alias(
         user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True)  # type: ignore[valid-type]
     ):
@@ -300,7 +300,7 @@ def app(
             for user in query
         ]
 
-    @app.get("/users_with_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_order_by(
         user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),  # type: ignore[valid-type]
     ):
@@ -316,13 +316,13 @@ def app(
             for user in query
         ]
 
-    @app.get("/users_with_no_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_no_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_no_order_by(
         user_filter: UserFilter = FilterDepends(UserFilter),  # type: ignore[valid-type]
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_default_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_default_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_default_order_by(
         user_filter: UserFilterOrderByWithDefault = FilterDepends(  # type: ignore[valid-type]
             UserFilterOrderByWithDefault
@@ -330,7 +330,7 @@ def app(
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_restricted_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_restricted_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_restricted_order_by(
         user_filter: UserFilterRestrictedOrderBy = FilterDepends(  # type: ignore[valid-type]
             UserFilterRestrictedOrderBy
@@ -338,13 +338,13 @@ def app(
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_custom_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_custom_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_custom_order_by(
         user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),  # type: ignore[valid-type]
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/sports", response_model=List[SportOut])  # type: ignore[valid-type]
+    @app.get("/sports", response_model=list[SportOut])  # type: ignore[valid-type]
     async def get_sports(
         sport_filter: SportFilter = FilterDepends(SportFilter),  # type: ignore[valid-type]
     ):

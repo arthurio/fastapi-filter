@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import click
 import uvicorn
@@ -81,8 +81,8 @@ class AddressFilter(Filter):
     street: Optional[str] = None
     country: Optional[str] = None
     city: Optional[str] = None
-    city__in: Optional[List[str]] = None
-    custom_order_by: Optional[List[str]] = None
+    city__in: Optional[list[str]] = None
+    custom_order_by: Optional[list[str]] = None
     custom_search: Optional[str] = None
 
     class Constants(Filter.Constants):
@@ -101,7 +101,7 @@ class UserFilter(Filter):
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
-    order_by: List[str] = ["age"]
+    order_by: list[str] = ["age"]
     search: Optional[str] = None
 
     class Constants(Filter.Constants):
@@ -132,7 +132,7 @@ async def on_shutdown() -> None:
     User.drop_collection()
 
 
-@app.get("/users", response_model=List[UserOut])
+@app.get("/users", response_model=list[UserOut])
 async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
     query = user_filter.filter(User.objects())
     query = user_filter.sort(query)
@@ -140,7 +140,7 @@ async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
     return [{**user.to_mongo(), "address": user.address.to_mongo()} for user in query]
 
 
-@app.get("/addresses", response_model=List[AddressOut])
+@app.get("/addresses", response_model=list[AddressOut])
 async def get_addresses(
     address_filter: AddressFilter = FilterDepends(with_prefix("my_custom_prefix", AddressFilter), by_alias=True),
 ) -> Any:
