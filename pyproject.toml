@@ -96,7 +96,7 @@ pydantic = ">=2.0.0,<3.0.0"
 python = ">=3.9,<4.0"
 
 [tool.poetry.dev-dependencies]
-Faker = "^20.0.0"
+Faker = "^22.0.0"
 SQLAlchemy-Utils = "^0.41.0"
 aiosqlite = "^0.19.0"
 bandit = "^1.7.5"
@@ -132,7 +132,7 @@ all = ["mongoengine", "SQLAlchemy"]
 [tool.poetry.group.dev.dependencies]
 nox = "^2023.0.0"
 ruff = "^0.1.0"
-urllib3 = "<=2.0"
+urllib3 = "<=2.1.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
