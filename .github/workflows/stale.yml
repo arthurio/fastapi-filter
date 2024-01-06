@@ -2,6 +2,8 @@ name: "Close Stale Issues"
 on:
   schedule:
     - cron: "0/10 * * * *"
+permissions:
+  issues: write
 
 jobs:
   stale:
