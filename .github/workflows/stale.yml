@@ -1,9 +1,7 @@
 name: "Close Stale Issues"
-description: "Close issues with no recent activity"
-author: "GitHub"
 on:
   schedule:
-    - cron: "30 1 * * *"
+    - cron: "0 2 * * *"
 
 jobs:
   stale:
