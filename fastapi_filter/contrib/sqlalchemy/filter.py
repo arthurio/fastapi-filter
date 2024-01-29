@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-from typing import Union
+from typing import List, Tuple, Union, Any
 from warnings import warn
 
-from pydantic import ValidationInfo, field_validator
+from pydantic import BaseModel, ValidationInfo, field_validator
 from sqlalchemy import or_
-from sqlalchemy.orm import Query
+from sqlalchemy.orm import Query, class_mapper, RelationshipProperty
 from sqlalchemy.sql.selectable import Select
 
 from ...base.filter import BaseFilterModel
@@ -105,6 +105,20 @@ class Filter(BaseFilterModel):
         return value
 
     def filter(self, query: Union[Query, Select]):
+        relationships = _get_relationships(self.Constants.model)
+        for rel_class, rel in relationships:
+            # Get the filter for the related class
+            related_filter = getattr(self.filtering_fields, rel.key, None)
+            # Check if any field in the filter for the related class is not None
+            if related_filter is not None and _any_field_not_none(related_filter):
+                if rel.secondary is not None:
+                    # If the relationship uses a secondary table, join to the secondary table first
+                    query = query.join(rel.secondary, rel.primaryjoin)
+                    # Then join to the related class
+                    query = query.join(rel_class, rel.secondaryjoin)
+                else:
+                    query = query.join(rel_class, rel.primaryjoin)
+
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
@@ -143,3 +157,37 @@ class Filter(BaseFilterModel):
             query = query.order_by(getattr(order_by_field, direction)())
 
         return query
+
+
+def _get_relationships(model: Any) -> List[Tuple[Any, RelationshipProperty]]:
+    """Get the related classes and relationship attributes of a SQLAlchemy model.
+
+    Args:
+        model (Any): The SQLAlchemy model.
+
+    Returns:
+        List[Tuple[Any, RelationshipProperty]]: A list of tuples, where each tuple contains a SQLAlchemy ORM class related to the model and the corresponding relationship attribute.
+    """
+    mapper = class_mapper(model)
+    relationships = [(rel.mapper.class_, rel) for rel in mapper.relationships]
+    return relationships
+
+
+def _any_field_not_none(model: BaseModel) -> bool:
+    """Check if any field in a Pydantic model or any of its nested models is not None.
+
+    Args:
+        model (BaseModel): The Pydantic model.
+
+    Returns:
+        bool: True if any field is not None, False otherwise.
+    """
+    for _field, value in model.model_dump().items():
+        if value is not None:
+            if isinstance(value, BaseModel):
+                # If the value is a nested model, check if any field in the nested model is not None
+                if _any_field_not_none(value):
+                    return True
+            else:
+                return True
+    return False
