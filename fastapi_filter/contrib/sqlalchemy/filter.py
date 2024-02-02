@@ -106,19 +106,42 @@ class Filter(BaseFilterModel):
 
     def filter(self, query: Union[Query, Select]):
         relationships = _get_relationships(self.Constants.model)
+        query = self._join_relationships(query, relationships)
+        query = self._apply_filters(query)
+        return query
+
+    def _join_relationships(self, query: Union[Query, Select], relationships: List[Tuple[Any, RelationshipProperty]]):
+        """Joins the specified relationships in the query.
+
+        Args:
+            query (Union[Query, Select]): The SQLAlchemy query object.
+            relationships (List[Tuple[Any, RelationshipProperty]]): The list of relationships to join.
+
+        Returns:
+            Union[Query, Select]: The modified query object with the joined relationships.
+        """
         for rel_class, rel in relationships:
-            # Get the filter for the related class
-            related_filter = getattr(self.filtering_fields, rel.key, None)
-            # Check if any field in the filter for the related class is not None
+            related_filter = next(
+                (value for key, value in self.filtering_fields if key == rel.key),
+                None,
+            )
             if related_filter is not None and _any_field_not_none(related_filter):
                 if rel.secondary is not None:
-                    # If the relationship uses a secondary table, join to the secondary table first
-                    query = query.join(rel.secondary, rel.primaryjoin)
-                    # Then join to the related class
-                    query = query.join(rel_class, rel.secondaryjoin)
+                    query = query.outerjoin(rel.secondary, rel.primaryjoin)
+                    query = query.outerjoin(rel_class, rel.secondaryjoin)
                 else:
-                    query = query.join(rel_class, rel.primaryjoin)
+                    query = query.outerjoin(rel_class, rel.primaryjoin)
+        return query
 
+    def _apply_filters(self, query: Union[Query, Select]):
+        """Apply the filtering fields to the given query.
+
+        Args:
+            query (Union[Query, Select]): The query to apply the filters to.
+
+        Returns:
+            Union[Query, Select]: The modified query with the filters applied.
+        """
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
@@ -173,18 +196,18 @@ def _get_relationships(model: Any) -> List[Tuple[Any, RelationshipProperty]]:
     return relationships
 
 
-def _any_field_not_none(model: BaseModel) -> bool:
+def _any_field_not_none(model: dict) -> bool:
     """Check if any field in a Pydantic model or any of its nested models is not None.
 
     Args:
-        model (BaseModel): The Pydantic model.
+        model (BaseModel): The dict representation of a model.
 
     Returns:
         bool: True if any field is not None, False otherwise.
     """
-    for _field, value in model.model_dump().items():
+    for _field, value in model.items():
         if value is not None:
-            if isinstance(value, BaseModel):
+            if isinstance(value, dict):
                 # If the value is a nested model, check if any field in the nested model is not None
                 if _any_field_not_none(value):
                     return True
