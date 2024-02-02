@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-from typing import List, Tuple, Union, Any
+from typing import Any, List, Tuple, Union
 from warnings import warn
 
-from pydantic import BaseModel, ValidationInfo, field_validator
+from pydantic import ValidationInfo, field_validator
 from sqlalchemy import or_
-from sqlalchemy.orm import Query, class_mapper, RelationshipProperty
+from sqlalchemy.orm import Query, RelationshipProperty, class_mapper
 from sqlalchemy.sql.selectable import Select
 
 from ...base.filter import BaseFilterModel
@@ -189,7 +189,8 @@ def _get_relationships(model: Any) -> List[Tuple[Any, RelationshipProperty]]:
         model (Any): The SQLAlchemy model.
 
     Returns:
-        List[Tuple[Any, RelationshipProperty]]: A list of tuples, where each tuple contains a SQLAlchemy ORM class related to the model and the corresponding relationship attribute.
+        List[Tuple[Any, RelationshipProperty]]: A list of tuples, where each tuple contains a SQLAlchemy ORM class
+          related to the model and the corresponding relationship attribute.
     """
     mapper = class_mapper(model)
     relationships = [(rel.mapper.class_, rel) for rel in mapper.relationships]
