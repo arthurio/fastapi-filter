@@ -27,7 +27,7 @@ from sqlalchemy.future import select
         [{"address": {"country__not_in": ["France"]}}, 3],
         [{"age__in": "1"}, 1],
         [{"age__in": "21,33"}, 3],
-        [{"age__between": [21,33]}, 3],
+        [{"age__between": [21, 33]}, 3],
         [{"age__between": "21,33"}, 3],
         [{"address": {"country__not_in": "France"}}, 3],
         [{"address": {"street__isnull": True}}, 2],
