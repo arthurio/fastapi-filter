@@ -101,6 +101,8 @@ class UserFilter(Filter):
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
+    age__in: Optional[List[int]] = None
+    age__between: Optional[List[List[int]]] = None
     order_by: List[str] = ["age"]
     search: Optional[str] = None
 

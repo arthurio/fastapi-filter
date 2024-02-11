@@ -274,6 +274,7 @@ def UserFilter(User, Filter, AddressFilter):
         age__gt: Optional[int] = None
         age__gte: Optional[int] = None
         age__in: Optional[List[int]] = None
+        age__between: Optional[List[int]] = None
         address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter), by_alias=True
         )
