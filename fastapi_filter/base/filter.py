@@ -1,14 +1,14 @@
 import sys
 from collections import defaultdict
 from copy import deepcopy
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, get_args, get_origin
+from typing import Any, Iterable, Optional, Type, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
 from pydantic.fields import FieldInfo
 
-UNION_TYPES: List = [Union]
+UNION_TYPES: list = [Union]
 
 if sys.version_info >= (3, 10):
     from types import UnionType
@@ -46,10 +46,10 @@ class BaseFilterModel(BaseModel, extra="forbid"):
     class Constants:  # pragma: no cover
         model: Type
         ordering_field_name: str = "order_by"
-        search_model_fields: List[str]
+        search_model_fields: list[str]
         search_field_name: str = "search"
         prefix: str
-        original_filter: Type["BaseFilterModel"]
+        original_filter: type["BaseFilterModel"]
 
     def filter(self, query):  # pragma: no cover
         ...
@@ -127,7 +127,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
         return value
 
 
-def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Type[BaseFilterModel]:
+def with_prefix(prefix: str, Filter: type[BaseFilterModel]) -> type[BaseFilterModel]:
     """Allow re-using existing filter under a prefix.
 
     Example:
@@ -182,8 +182,8 @@ def with_prefix(prefix: str, Filter: Type[BaseFilterModel]) -> Type[BaseFilterMo
     return NestedFilter
 
 
-def _list_to_str_fields(Filter: Type[BaseFilterModel]):
-    ret: Dict[str, Tuple[Union[object, Type], Optional[FieldInfo]]] = {}
+def _list_to_str_fields(Filter: type[BaseFilterModel]):
+    ret: dict[str, tuple[Union[object, type], Optional[FieldInfo]]] = {}
     for name, f in Filter.model_fields.items():
         field_info = deepcopy(f)
         annotation = f.annotation
@@ -211,7 +211,7 @@ def _list_to_str_fields(Filter: Type[BaseFilterModel]):
     return ret
 
 
-def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True) -> Any:
+def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True) -> Any:
     """Use a hack to support lists in filters.
 
     FastAPI doesn't support it yet: https://github.com/tiangolo/fastapi/issues/50
@@ -223,7 +223,7 @@ def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_
     and formatted as a list of <type>?)
     """
     fields = _list_to_str_fields(Filter)
-    GeneratedFilter: Type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)
+    GeneratedFilter: type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)
 
     class FilterWrapper(GeneratedFilter):  # type: ignore[misc,valid-type]
         def __new__(cls, *args, **kwargs):
@@ -232,13 +232,7 @@ def FilterDepends(Filter: Type[BaseFilterModel], *, by_alias: bool = False, use_
                 data = instance.model_dump(exclude_unset=True, exclude_defaults=True, by_alias=by_alias)
                 if original_filter := getattr(Filter.Constants, "original_filter", None):
                     prefix = f"{Filter.Constants.prefix}__"
-                    stripped = {}
-                    # TODO: replace with `removeprefix` when python 3.8 is no longer supported
-                    # stripped = {k.removeprefix(NestedFilter.Constants.prefix): v for k, v in value.items()}
-                    for k, v in data.items():
-                        if k.startswith(prefix):
-                            k = k.replace(prefix, "", 1)
-                        stripped[k] = v
+                    stripped = {k.removeprefix(prefix): v for k, v in data.items()}
                     return original_filter(**stripped)
                 return Filter(**data)
             except ValidationError as e:

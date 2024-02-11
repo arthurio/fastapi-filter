@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import AsyncIterator, List, Optional
+from typing import AsyncIterator, Optional
 
 import pytest
 import pytest_asyncio
@@ -221,7 +221,7 @@ def UserOut(AddressOut, SportOut):
         name: Optional[str]
         age: int
         address: Optional[AddressOut]  # type: ignore[valid-type]
-        favorite_sports: Optional[List[SportOut]]  # type: ignore[valid-type]
+        favorite_sports: Optional[list[SportOut]]  # type: ignore[valid-type]
 
     return UserOut
 
@@ -248,8 +248,8 @@ def AddressFilter(Address, Filter):
     class AddressFilter(Filter):  # type: ignore[misc, valid-type]
         street__isnull: Optional[bool] = None
         city: Optional[str] = None
-        city__in: Optional[List[str]] = None
-        country__not_in: Optional[List[str]] = None
+        city__in: Optional[list[str]] = None
+        country__not_in: Optional[list[str]] = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Address
@@ -264,16 +264,16 @@ def UserFilter(User, Filter, AddressFilter):
         name__neq: Optional[str] = None
         name__like: Optional[str] = None
         name__ilike: Optional[str] = None
-        name__in: Optional[List[str]] = None
+        name__in: Optional[list[str]] = None
         name__not: Optional[str] = None
-        name__not_in: Optional[List[str]] = None
+        name__not_in: Optional[list[str]] = None
         name__isnull: Optional[bool] = None
         age: Optional[int] = None
         age__lt: Optional[int] = None
         age__lte: Optional[int] = None
         age__gt: Optional[int] = None
         age__gte: Optional[int] = None
-        age__in: Optional[List[int]] = None
+        age__in: Optional[list[int]] = None
         address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter), by_alias=True
         )
@@ -339,7 +339,7 @@ def app(
         async with SessionLocal() as session:
             yield session
 
-    @app.get("/users", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users(
         user_filter: UserFilter = FilterDepends(UserFilter),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
@@ -348,7 +348,7 @@ def app(
         result = await db.execute(query)
         return result.scalars().unique().all()
 
-    @app.get("/users-by-alias", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users-by-alias", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_by_alias(
         user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
@@ -357,7 +357,7 @@ def app(
         result = await db.execute(query)
         return result.scalars().unique().all()
 
-    @app.get("/users_with_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_order_by(
         user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
@@ -367,13 +367,13 @@ def app(
         result = await db.execute(query)
         return result.scalars().unique().all()
 
-    @app.get("/users_with_no_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_no_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_no_order_by(
         user_filter: UserFilter = FilterDepends(UserFilter),  # type: ignore[valid-type]
     ):
         return await get_users_with_order_by(user_filter)
 
-    @app.get("/users_with_default_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_default_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_default_order_by(
         user_filter: UserFilterOrderByWithDefault = FilterDepends(  # type: ignore[valid-type]
             UserFilterOrderByWithDefault
@@ -382,7 +382,7 @@ def app(
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/users_with_restricted_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_restricted_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_restricted_order_by(
         user_filter: UserFilterRestrictedOrderBy = FilterDepends(  # type: ignore[valid-type]
             UserFilterRestrictedOrderBy
@@ -391,14 +391,14 @@ def app(
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/users_with_custom_order_by", response_model=List[UserOut])  # type: ignore[valid-type]
+    @app.get("/users_with_custom_order_by", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_with_custom_order_by(
         user_filter: UserFilterCustomOrderBy = FilterDepends(UserFilterCustomOrderBy),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
         return await get_users_with_order_by(user_filter, db)
 
-    @app.get("/sports", response_model=List[SportOut])  # type: ignore[valid-type]
+    @app.get("/sports", response_model=list[SportOut])  # type: ignore[valid-type]
     async def get_sports(
         sport_filter: SportFilter = FilterDepends(SportFilter),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
