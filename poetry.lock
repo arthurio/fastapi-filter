@@ -1810,13 +1810,13 @@ test = ["coverage", "pycodestyle", "pyflakes", "pylint", "pytest", "pytest-cov"]
 
 [[package]]
 name = "python-lsp-server"
-version = "1.9.0"
+version = "1.10.1"
 description = "Python Language Server for the Language Server Protocol"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "python-lsp-server-1.9.0.tar.gz", hash = "sha256:dc0c8298f0222fd66a52aa3170f3a5c8fe3021007a02098bb72f7fd8df353d13"},
-    {file = "python_lsp_server-1.9.0-py3-none-any.whl", hash = "sha256:6b947cf9dc33d7bed9abc936bb173140fcf606b6eb50cf02e27d4cb09f10d3fb"},
+    {file = "python-lsp-server-1.10.1.tar.gz", hash = "sha256:ec4c5706af67a265a19173fe4beb3b0a2c1626fa33a15ea952c2f288798b8c0d"},
+    {file = "python_lsp_server-1.10.1-py3-none-any.whl", hash = "sha256:564570dbf56158dd43948038b376a57324f50fb7f62c156075295aa37b390b1f"},
 ]
 
 [package.dependencies]
@@ -1828,15 +1828,15 @@ python-lsp-jsonrpc = ">=1.1.0,<2.0.0"
 ujson = ">=3.0.0"
 
 [package.extras]
-all = ["autopep8 (>=2.0.4,<2.1.0)", "flake8 (>=6.1.0,<7)", "mccabe (>=0.7.0,<0.8.0)", "pycodestyle (>=2.11.0,<2.12.0)", "pydocstyle (>=6.3.0,<6.4.0)", "pyflakes (>=3.1.0,<3.2.0)", "pylint (>=2.5.0,<3.1)", "rope (>1.2.0)", "whatthepatch (>=1.0.2,<2.0.0)", "yapf (>=0.33.0)"]
-autopep8 = ["autopep8 (>=1.6.0,<2.1.0)"]
-flake8 = ["flake8 (>=6.1.0,<7)"]
+all = ["autopep8 (>=2.0.4,<2.1.0)", "flake8 (>=7,<8)", "mccabe (>=0.7.0,<0.8.0)", "pycodestyle (>=2.11.0,<2.12.0)", "pydocstyle (>=6.3.0,<6.4.0)", "pyflakes (>=3.2.0,<3.3.0)", "pylint (>=2.5.0,<3.1)", "rope (>=1.11.0)", "whatthepatch (>=1.0.2,<2.0.0)", "yapf (>=0.33.0)"]
+autopep8 = ["autopep8 (>=2.0.4,<2.1.0)"]
+flake8 = ["flake8 (>=7,<8)"]
 mccabe = ["mccabe (>=0.7.0,<0.8.0)"]
 pycodestyle = ["pycodestyle (>=2.11.0,<2.12.0)"]
 pydocstyle = ["pydocstyle (>=6.3.0,<6.4.0)"]
-pyflakes = ["pyflakes (>=3.1.0,<3.2.0)"]
+pyflakes = ["pyflakes (>=3.2.0,<3.3.0)"]
 pylint = ["pylint (>=2.5.0,<3.1)"]
-rope = ["rope (>1.2.0)"]
+rope = ["rope (>=1.11.0)"]
 test = ["coverage", "flaky", "matplotlib", "numpy", "pandas", "pylint (>=2.5.0,<3.1)", "pyqt5", "pytest", "pytest-cov"]
 websockets = ["websockets (>=10.3)"]
 yapf = ["whatthepatch (>=1.0.2,<2.0.0)", "yapf (>=0.33.0)"]
