@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 from enum import Enum
+from typing import Union
 from warnings import warn
 
 from pydantic import ValidationInfo, field_validator
@@ -102,7 +104,7 @@ class Filter(BaseFilterModel):
             return list(value.split(","))
         return value
 
-    def filter(self, query: Query | Select):
+    def filter(self, query: Union[Query, Select]):
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
@@ -126,7 +128,7 @@ class Filter(BaseFilterModel):
 
         return query
 
-    def sort(self, query: Query | Select):
+    def sort(self, query: Union[Query, Select]):
         if not self.ordering_values:
             return query
 
