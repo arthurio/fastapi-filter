@@ -39,6 +39,7 @@ _orm_operator_transformer = {
     "isnull": lambda value: ("is_", None) if value is True else ("is_not", None),
     "lt": lambda value: ("__lt__", value),
     "lte": lambda value: ("__le__", value),
+    "between": lambda value: ("between", (value[0], value[1])),
     "like": lambda value: ("like", _backward_compatible_value_for_like_and_ilike(value)),
     "ilike": lambda value: ("ilike", _backward_compatible_value_for_like_and_ilike(value)),
     # XXX(arthurio): Mysql excludes None values when using `in` or `not in` filters.
@@ -89,19 +90,17 @@ class Filter(BaseFilterModel):
 
     @field_validator("*", mode="before")
     def split_str(cls, value, field: ValidationInfo):
-        if (
-            field.field_name is not None
-            and (
+        if field.field_name is not None:
+            if (
                 field.field_name == cls.Constants.ordering_field_name
                 or field.field_name.endswith("__in")
                 or field.field_name.endswith("__not_in")
-            )
-            and isinstance(value, str)
-        ):
-            if not value:
-                # Empty string should return [] not ['']
-                return []
-            return list(value.split(","))
+                or field.field_name.endswith("__between")
+            ) and isinstance(value, str):
+                if not value:
+                    # Empty string should return [] not ['']
+                    return []
+                return list(value.split(","))
         return value
 
     def filter(self, query: Union[Query, Select]):
@@ -124,7 +123,10 @@ class Filter(BaseFilterModel):
                     query = query.filter(or_(*search_filters))
                 else:
                     model_field = getattr(self.Constants.model, field_name)
-                    query = query.filter(getattr(model_field, operator)(value))
+                    if isinstance(value, tuple):
+                        query = query.filter(getattr(model_field, operator)(*value))
+                    else:
+                        query = query.filter(getattr(model_field, operator)(value))
 
         return query
 
