@@ -45,7 +45,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
     """
 
     class Constants:  # pragma: no cover
-        model: type
+        model: Any
         ordering_field_name: str = "order_by"
         search_model_fields: list[str]
         search_field_name: str = "search"
