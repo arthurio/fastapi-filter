@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import click
 import uvicorn
@@ -74,16 +74,16 @@ class UserOut(UserIn):
     name: str
     email: EmailStr
     age: int
-    address: Optional[AddressOut] = None
+    address: AddressOut | None = None
 
 
 class AddressFilter(Filter):
-    street: Optional[str] = None
-    country: Optional[str] = None
-    city: Optional[str] = None
-    city__in: Optional[list[str]] = None
-    custom_order_by: Optional[list[str]] = None
-    custom_search: Optional[str] = None
+    street: str | None = None
+    country: str | None = None
+    city: str | None = None
+    city__in: list[str] | None = None
+    custom_order_by: list[str] | None = None
+    custom_search: str | None = None
 
     class Constants(Filter.Constants):
         model = Address
@@ -93,16 +93,16 @@ class AddressFilter(Filter):
 
 
 class UserFilter(Filter):
-    name: Optional[str] = None
-    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
-    age__lt: Optional[int] = None
+    name: str | None = None
+    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
+    age__lt: int | None = None
     age__gte: int = Field(Query(description="this is a nice description"))
     """Required field with a custom description.
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
     order_by: list[str] = ["age"]
-    search: Optional[str] = None
+    search: str | None = None
 
     class Constants(Filter.Constants):
         model = User

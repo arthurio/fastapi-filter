@@ -1,6 +1,3 @@
-# type: ignore
-from typing import Optional
-
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
@@ -15,7 +12,7 @@ async def test_client(app):
 
 @pytest.fixture(scope="package")
 def UserFilterOrderByWithDefault(User, UserFilter):
-    class UserFilterOrderByWithDefault(UserFilter):
+    class UserFilterOrderByWithDefault(UserFilter):  # type: ignore[misc, valid-type]
         order_by: list[str] = ["age"]
 
     return UserFilterOrderByWithDefault
@@ -23,8 +20,8 @@ def UserFilterOrderByWithDefault(User, UserFilter):
 
 @pytest.fixture(scope="package")
 def UserFilterOrderBy(User, UserFilter):
-    class UserFilterOrderBy(UserFilter):
-        order_by: Optional[list[str]] = None
+    class UserFilterOrderBy(UserFilter):  # type: ignore[misc, valid-type]
+        order_by: list[str] | None = None
 
     return UserFilterOrderBy
 
@@ -36,19 +33,19 @@ def UserFilterNoOrderBy(User, UserFilter):
 
 @pytest.fixture(scope="package")
 def UserFilterCustomOrderBy(UserFilter):
-    class UserFilterCustomOrderBy(UserFilter):
-        class Constants(UserFilter.Constants):
+    class UserFilterCustomOrderBy(UserFilter):  # type: ignore[misc, valid-type]
+        class Constants(UserFilter.Constants):  # type: ignore[name-defined]
             ordering_field_name = "custom_order_by"
 
-        custom_order_by: Optional[list[str]] = None
+        custom_order_by: list[str] | None = None
 
     return UserFilterCustomOrderBy
 
 
 @pytest.fixture(scope="package")
 def UserFilterRestrictedOrderBy(UserFilter):
-    class UserFilterRestrictedOrderBy(UserFilter):
-        order_by: Optional[list[str]] = None
+    class UserFilterRestrictedOrderBy(UserFilter):  # type: ignore[misc, valid-type]
+        order_by: list[str] | None = None
 
         @field_validator("order_by")
         def restrict_sortable_fields(cls, value):
