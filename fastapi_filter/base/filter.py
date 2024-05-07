@@ -1,7 +1,8 @@
 import sys
 from collections import defaultdict
+from collections.abc import Iterable
 from copy import deepcopy
-from typing import Any, Iterable, Optional, Type, Union, get_args, get_origin
+from typing import Any, Optional, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
@@ -44,7 +45,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
     """
 
     class Constants:  # pragma: no cover
-        model: Type
+        model: Any
         ordering_field_name: str = "order_by"
         search_model_fields: list[str]
         search_field_name: str = "search"

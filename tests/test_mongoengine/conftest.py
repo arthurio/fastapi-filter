@@ -287,7 +287,7 @@ def app(
 
     @app.get("/users-by-alias", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_by_alias(
-        user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True)  # type: ignore[valid-type]
+        user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True),  # type: ignore[valid-type]
     ):
         query = user_filter.filter(User.objects())  # type: ignore[attr-defined]
         query = query.select_related()

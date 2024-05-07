@@ -1,25 +1,20 @@
 repos:
   - repo: local
     hooks:
-      - id: isort
-        name: "isort"
-        entry: isort
-        types: [python]
-        language: system
       - id: flynt
         name: "flynt"
         entry: flynt
         args: [--fail-on-change]
         types: [python]
         language: system
-      - id: black
-        name: "black"
-        entry: black
-        language: system
+      - id: ruff-format
+        name: "ruff format"
+        entry: ruff format
         types: [python]
-      - id: ruff
-        name: "ruff"
-        entry: ruff
+        language: system
+      - id: ruff-lint
+        name: "ruff lint"
+        entry: ruff check
         args:
           - --fix
         types: [python]
