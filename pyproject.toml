@@ -121,7 +121,7 @@ tomli = "^2.0.1"
 types-click = "^7.1.8"
 types-setuptools = "^68.1.0.0"
 typing-extensions = "^4.5.0"
-uvicorn = "^0.25.0"
+uvicorn = "^0.29.0"
 pydantic = {extras = ["email"], version="^2.0.0"}
 
 [tool.poetry.extras]
@@ -131,7 +131,7 @@ all = ["mongoengine", "SQLAlchemy"]
 
 [tool.poetry.group.dev.dependencies]
 nox = "^2023.0.0"
-ruff = "^0.1.0"
+ruff = "^0.4.0"
 urllib3 = "<=2.1.0"
 
 [build-system]
