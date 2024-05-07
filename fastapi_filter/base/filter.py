@@ -1,7 +1,8 @@
 import sys
 from collections import defaultdict
+from collections.abc import Iterable
 from copy import deepcopy
-from typing import Any, Iterable, Optional, Type, Union, get_args, get_origin
+from typing import Any, Optional, Type, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError

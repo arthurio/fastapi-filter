@@ -1,5 +1,6 @@
 import logging
-from typing import Any, AsyncIterator, Optional
+from collections.abc import AsyncIterator
+from typing import Any, Optional
 
 import click
 import uvicorn

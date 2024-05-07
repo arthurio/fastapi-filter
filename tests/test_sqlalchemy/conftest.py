@@ -1,5 +1,6 @@
+from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import AsyncIterator, Optional
+from typing import Optional
 
 import pytest
 import pytest_asyncio
