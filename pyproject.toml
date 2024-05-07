@@ -28,6 +28,19 @@ module = [
 ignore_missing_imports = true
 
 [tool.ruff]
+line-length = 120
+# Assume Python 3.12.
+target-version = "py312"
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".nox",
+    ".ruff_cache",
+]
+
+
+[tool.ruff.lint]
 select = [
   "A",
   "B",
@@ -48,24 +61,21 @@ ignore = [
 fixable = ["A", "B", "C", "D", "E", "F"]
 unfixable = []
 
-# Exclude a variety of commonly ignored directories.
-exclude = [
-    ".git",
-    ".mypy_cache",
-    ".nox",
-    ".ruff_cache",
-]
-
-line-length = 120
-
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Assume Python 3.12.
-target-version = "py312"
-
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
 
 [tool.poetry]
 name = "fastapi-filter"
@@ -101,12 +111,10 @@ Faker = "^22.0.0"
 SQLAlchemy-Utils = "^0.41.0"
 aiosqlite = "^0.19.0"
 bandit = "^1.7.5"
-black = "^23.1.0"
 flynt = "^1.0.0"
 greenlet = "^3.0.0"
 httpx = "^0.26.0"
 ipython = "^8.11.0"
-isort = "^5.12.0"
 mkdocs-material = "^9.1.2"
 mypy = "^1.1"
 mypy-extensions = "^1.0.0"
