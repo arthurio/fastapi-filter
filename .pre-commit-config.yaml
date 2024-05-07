@@ -7,13 +7,13 @@ repos:
         args: [--fail-on-change]
         types: [python]
         language: system
-      - id: ruff
-        name: "ruff"
+      - id: ruff-format
+        name: "ruff format"
         entry: ruff format
         types: [python]
         language: system
-      - id: ruff
-        name: "ruff"
+      - id: ruff-lint
+        name: "ruff lint"
         entry: ruff check
         args:
           - --fix
