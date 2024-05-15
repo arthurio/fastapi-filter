@@ -107,7 +107,14 @@ class Filter(BaseFilterModel):
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
-                query = field_value.filter(query)
+                if field_value.model_dump(exclude_unset=True, exclude_none=True):
+                    join_kwargs = getattr(self.Constants, "join_kwargs", {})
+                    if join_kwargs and field_name in join_kwargs:
+                        join_kwargs = join_kwargs[field_name]
+                        join_kwargs["target"] = join_kwargs.pop("target", field_value.Constants.model)
+                        query = query.join(**join_kwargs)
+
+                    query = field_value.filter(query)
             else:
                 if "__" in field_name:
                     field_name, operator = field_name.split("__")
