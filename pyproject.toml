@@ -148,7 +148,7 @@ sqlalchemy = ["SQLAlchemy"]
 all = ["mongoengine", "SQLAlchemy"]
 
 [tool.poetry.group.dev.dependencies]
-nox = "^2023.0.0"
+nox = "^2024.0.0"
 ruff = "^0.4.0"
 urllib3 = "<=2.1.0"
 

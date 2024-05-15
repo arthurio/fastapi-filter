@@ -1213,23 +1213,25 @@ setuptools = "*"
 
 [[package]]
 name = "nox"
-version = "2023.4.22"
+version = "2024.4.15"
 description = "Flexible test automation."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "nox-2023.4.22-py3-none-any.whl", hash = "sha256:0b1adc619c58ab4fa57d6ab2e7823fe47a32e70202f287d78474adcc7bda1891"},
-    {file = "nox-2023.4.22.tar.gz", hash = "sha256:46c0560b0dc609d7d967dc99e22cb463d3c4caf54a5fda735d6c11b5177e3a9f"},
+    {file = "nox-2024.4.15-py3-none-any.whl", hash = "sha256:6492236efa15a460ecb98e7b67562a28b70da006ab0be164e8821177577c0565"},
+    {file = "nox-2024.4.15.tar.gz", hash = "sha256:ecf6700199cdfa9e5ea0a41ff5e6ef4641d09508eda6edb89d9987864115817f"},
 ]
 
 [package.dependencies]
 argcomplete = ">=1.9.4,<4.0"
 colorlog = ">=2.6.1,<7.0.0"
 packaging = ">=20.9"
-virtualenv = ">=14"
+tomli = {version = ">=1", markers = "python_version < \"3.11\""}
+virtualenv = ">=20.14.1"
 
 [package.extras]
-tox-to-nox = ["jinja2", "tox (<4)"]
+tox-to-nox = ["jinja2", "tox"]
+uv = ["uv (>=0.1.6)"]
 
 [[package]]
 name = "orjson"
@@ -2851,4 +2853,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "11484dcbe143730c9b8058dc3d0c5b89b4b08a9f9e2599cdee79b9842a42c11f"
+content-hash = "b90b9e28aa57ac2931bde5f2ec0c85e280494d84884ee00aab548221ee0853d5"
