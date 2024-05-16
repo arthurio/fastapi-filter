@@ -107,7 +107,9 @@ class Filter(BaseFilterModel):
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
-                if field_value.model_dump(exclude_unset=True, exclude_none=True):
+                field_value_dump = field_value.model_dump(exclude_unset=True, exclude_none=True)
+                # Check if the filter has any value set and in case we have a nested filter check if it's not empty
+                if field_value_dump and field_value_dump and any(field_value_dump.values()):
                     joins = getattr(self.Constants, "joins", {})
                     if joins and field_name in joins:
                         table_join = joins[field_name]
