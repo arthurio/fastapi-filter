@@ -285,7 +285,7 @@ def UserFilter(User, Filter, AddressFilter):
             model = User
             search_model_fields = ["name"]
             search_field_name = "search"
-            join_kwargs = {
+            joins = {
                 "address": {
                     "target": AddressFilter.Constants.model,
                     "onclause": AddressFilter.Constants.model.id == User.address_id,
