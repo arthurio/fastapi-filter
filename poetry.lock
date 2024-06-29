@@ -133,6 +133,30 @@ toml = ["tomli (>=1.1.0)"]
 yaml = ["PyYAML"]
 
 [[package]]
+name = "beanie"
+version = "1.26.0"
+description = "Asynchronous Python ODM for MongoDB"
+optional = true
+python-versions = "<4.0,>=3.7"
+files = [
+    {file = "beanie-1.26.0-py3-none-any.whl", hash = "sha256:b45926c01d4a899c519c665c2a5f230990717e99f7fd68172a389ca33e7693b9"},
+    {file = "beanie-1.26.0.tar.gz", hash = "sha256:54016f4ec71ed0ea6ce0c7946a395090c45687f254dbbe1cf06eec608383f790"},
+]
+
+[package.dependencies]
+click = ">=7"
+lazy-model = "0.2.0"
+motor = ">=2.5.0,<4.0.0"
+pydantic = ">=1.10,<3.0"
+toml = "*"
+typing-extensions = {version = ">=4.7", markers = "python_version < \"3.11\""}
+
+[package.extras]
+doc = ["Markdown (>=3.3)", "Pygments (>=2.8.0)", "jinja2 (>=3.0.3)", "mkdocs (>=1.4)", "mkdocs-material (>=9.0)", "pydoc-markdown (>=4.8)"]
+queue = ["beanie-batteries-queue (>=0.2)"]
+test = ["asgi-lifespan (>=1.0.1)", "dnspython (>=2.1.0)", "fastapi (>=0.100)", "flake8 (>=3)", "httpx (>=0.23.0)", "pre-commit (>=2.3.0)", "pydantic-extra-types (>=2)", "pydantic-settings (>=2)", "pydantic[email]", "pyright (>=0)", "pytest (>=6.0.0)", "pytest-asyncio (>=0.21.0)", "pytest-cov (>=2.8.1)"]
+
+[[package]]
 name = "certifi"
 version = "2024.6.2"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -871,6 +895,20 @@ MarkupSafe = ">=2.0"
 i18n = ["Babel (>=2.7)"]
 
 [[package]]
+name = "lazy-model"
+version = "0.2.0"
+description = ""
+optional = true
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "lazy-model-0.2.0.tar.gz", hash = "sha256:57c0e91e171530c4fca7aebc3ac05a163a85cddd941bf7527cc46c0ddafca47c"},
+    {file = "lazy_model-0.2.0-py3-none-any.whl", hash = "sha256:5a3241775c253e36d9069d236be8378288a93d4fc53805211fd152e04cc9c342"},
+]
+
+[package.dependencies]
+pydantic = ">=1.9.0"
+
+[[package]]
 name = "markdown"
 version = "3.6"
 description = "Python implementation of John Gruber's Markdown."
@@ -1118,6 +1156,30 @@ files = [
 
 [package.dependencies]
 pymongo = ">=3.4,<5.0"
+
+[[package]]
+name = "motor"
+version = "3.5.0"
+description = "Non-blocking MongoDB driver for Tornado or asyncio"
+optional = true
+python-versions = ">=3.8"
+files = [
+    {file = "motor-3.5.0-py3-none-any.whl", hash = "sha256:e8f1d7a3370e8dd30eb4c68aaaee46dc608fbac70a757e58f3e828124f5e7693"},
+    {file = "motor-3.5.0.tar.gz", hash = "sha256:2b38e405e5a0c52d499edb8d23fa029debdf0158da092c21b44d92cac7f59942"},
+]
+
+[package.dependencies]
+pymongo = ">=4.5,<5"
+
+[package.extras]
+aws = ["pymongo[aws] (>=4.5,<5)"]
+docs = ["aiohttp", "readthedocs-sphinx-search (>=0.3,<1.0)", "sphinx (>=5.3,<8)", "sphinx-rtd-theme (>=2,<3)", "tornado"]
+encryption = ["pymongo[encryption] (>=4.5,<5)"]
+gssapi = ["pymongo[gssapi] (>=4.5,<5)"]
+ocsp = ["pymongo[ocsp] (>=4.5,<5)"]
+snappy = ["pymongo[snappy] (>=4.5,<5)"]
+test = ["aiohttp (!=3.8.6)", "mockupdb", "pymongo[encryption] (>=4.5,<5)", "pytest (>=7)", "tornado (>=5)"]
+zstd = ["pymongo[zstd] (>=4.5,<5)"]
 
 [[package]]
 name = "mypy"
@@ -2257,6 +2319,17 @@ files = [
 pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
+name = "toml"
+version = "0.10.2"
+description = "Python Library for Tom's Obvious, Minimal Language"
+optional = true
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+files = [
+    {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
+    {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
+]
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -2806,11 +2879,12 @@ doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linke
 test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-itertools", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
 
 [extras]
-all = ["SQLAlchemy", "mongoengine"]
+all = ["SQLAlchemy", "beanie", "mongoengine"]
+beanie = ["beanie"]
 mongoengine = ["mongoengine"]
 sqlalchemy = ["SQLAlchemy"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "a5ab570b18ceb90c72c663fc757ffad4f26e7d95d5451b55e3295a9e7e68c865"
+content-hash = "aa712074732dfe73ff43ae87a0aa2689ff18382af2c739bea4c70ffd39a06ee9"
