@@ -2,8 +2,8 @@
 
 Add querystring filters to your api endpoints and show them in the swagger UI.
 
-The supported backends are [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy) and
-[MongoEngine](https://github.com/MongoEngine/mongoengine).
+The supported backends are [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy),
+ [MongoEngine](https://github.com/MongoEngine/mongoengine) and [beanie](https://github.com/BeanieODM/beanie).
 
 ## Example
 
@@ -19,6 +19,8 @@ as well as the type of operator, then tie your filter to a specific model.
 [SQLAlchemy](https://github.com/arthurio/fastapi-filter/blob/main/examples/fastapi_filter_sqlalchemy.py)
 
 [MongoEngine](https://github.com/arthurio/fastapi-filter/blob/main/examples/fastapi_filter_mongoengine.py)
+
+[beanie](https://github.com/arthurio/fastapi-filter/blob/main/examples/fastapi_filter_beanie.py)
 
 ### Operators
 
