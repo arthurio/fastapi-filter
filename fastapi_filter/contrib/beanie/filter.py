@@ -1,5 +1,5 @@
 from collections.abc import Callable, Mapping
-from typing import Any
+from typing import Any, Optional, Union
 
 from beanie.odm.interfaces.find import FindType
 from beanie.odm.queries.find import FindMany
@@ -7,7 +7,7 @@ from pydantic import ValidationInfo, field_validator
 
 from fastapi_filter.base.filter import BaseFilterModel
 
-_odm_operator_transformer: dict[str, Callable[[str | None], dict[str, Any] | None]] = {
+_odm_operator_transformer: dict[str, Callable[[Optional[str]], Optional[dict[str, Any]]]] = {
     "neq": lambda value: {"$ne": value},
     "gt": lambda value: {"$gt": value},
     "gte": lambda value: {"$gte": value},
@@ -54,7 +54,9 @@ class Filter(BaseFilterModel):
 
     @field_validator("*", mode="before")
     @classmethod
-    def split_str(cls: type["BaseFilterModel"], value: str | None, field: ValidationInfo) -> list[str] | str | None:
+    def split_str(
+        cls: type["BaseFilterModel"], value: Optional[str], field: ValidationInfo
+    ) -> Optional[Union[list[str], str]]:
         if (
             field.field_name is not None
             and (

@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import AsyncGenerator, Generator
 from datetime import datetime
+from typing import Optional
 
 import pytest
 import pytest_asyncio
@@ -15,7 +16,7 @@ from fastapi_filter.contrib.beanie import Filter as MongoFilter
 
 
 class Address(Document):
-    street: str | None = None
+    street: Optional[str] = None
     city: str
     country: str
 
@@ -27,11 +28,11 @@ class Sport(Document):
 
 class User(Document):
     created_at: datetime
-    name: str | None = None
-    email: EmailStr | None = None
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
     age: int
-    address: Link[Address] | None = None
-    favorite_sports: list[Link[Sport]] | None = []
+    address: Optional[Link[Address]] = None
+    favorite_sports: Optional[list[Link[Sport]]] = []
 
 
 @pytest.fixture(scope="session")
@@ -127,11 +128,11 @@ async def users(
 @pytest.fixture(scope="package")
 def AddressFilter(Address: Document, Filter: MongoFilter):
     class AddressFilter(Filter):  # type: ignore[misc, valid-type]
-        street__isnull: bool | None = None
-        country: str | None = None
-        city: str | None = None
-        city__in: list[str] | None = None
-        country__nin: list[str] | None = None
+        street__isnull: Optional[bool] = None
+        country: Optional[str] = None
+        city: Optional[str] = None
+        city__in: Optional[list[str]] = None
+        country__nin: Optional[list[str]] = None
 
         class Constants(MongoFilter.Constants):  # type: ignore[name-defined]
             model = Address
@@ -142,21 +143,21 @@ def AddressFilter(Address: Document, Filter: MongoFilter):
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
     class UserFilter(Filter):  # type: ignore[misc, valid-type]
-        name: str | None = None
-        name__in: list[str] | None = None
-        name__nin: list[str] | None = None
-        name__ne: str | None = None
-        name__isnull: bool | None = None
-        age: int | None = None
-        age__lt: int | None = None
-        age__lte: int | None = None
-        age__gt: int | None = None
-        age__gte: int | None = None
-        age__in: list[int] | None = None
-        address: AddressFilter | None = FilterDepends(  # type: ignore[valid-type]
+        name: Optional[str] = None
+        name__in: Optional[list[str]] = None
+        name__nin: Optional[list[str]] = None
+        name__ne: Optional[str] = None
+        name__isnull: Optional[bool] = None
+        age: Optional[int] = None
+        age__lt: Optional[int] = None
+        age__lte: Optional[int] = None
+        age__gt: Optional[int] = None
+        age__gte: Optional[int] = None
+        age__in: Optional[list[int]] = None
+        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter),
         )
-        search: str | None = None
+        search: Optional[str] = None
 
         class Constants(MongoFilter.Constants):  # type: ignore[name-defined]
             model = User
@@ -170,7 +171,7 @@ def UserFilter(User, Filter, AddressFilter):
 @pytest.fixture(scope="package")
 def UserFilterByAlias(UserFilter, AddressFilter):
     class UserFilterByAlias(UserFilter):  # type: ignore[misc, valid-type]
-        address: AddressFilter | None = FilterDepends(  # type: ignore[valid-type]
+        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter),
             by_alias=True,
         )
@@ -181,9 +182,9 @@ def UserFilterByAlias(UserFilter, AddressFilter):
 @pytest.fixture(scope="package")
 def SportFilter(Sport, Filter):
     class SportFilter(MongoFilter):  # type: ignore[misc, valid-type]
-        name: str | None = Field(Query(description="Name of the sport", default=None))
+        name: Optional[str] = Field(Query(description="Name of the sport", default=None))
         is_individual: bool
-        bogus_filter: str | None = None
+        bogus_filter: Optional[str] = None
 
         class Constants(MongoFilter.Constants):  # type: ignore [name-defined]
             model = Sport
@@ -201,8 +202,8 @@ def AddressOut():
     class AddressOut(BaseModel):
         model_config = ConfigDict(from_attributes=True)
 
-        id: PydanticObjectId | None = Field(default=None, description="MongoDB document ObjectID")
-        street: str | None = None
+        id: Optional[PydanticObjectId] = Field(default=None, description="MongoDB document ObjectID")
+        street: Optional[str] = None
         city: str
         country: str
 
@@ -214,11 +215,11 @@ def UserOut(AddressOut):
     class UserOut(BaseModel):
         model_config = ConfigDict(from_attributes=True)
 
-        id: PydanticObjectId | None = Field(default=None, description="MongoDB document ObjectID")
+        id: Optional[PydanticObjectId] = Field(default=None, description="MongoDB document ObjectID")
         created_at: datetime
-        name: str | None = None
+        name: Optional[str] = None
         age: int
-        address: AddressOut | None = None  # type: ignore[valid-type]
+        address: Optional[AddressOut] = None  # type: ignore[valid-type]
 
     yield UserOut
 
@@ -228,7 +229,7 @@ def SportOut():
     class SportOut(BaseModel):
         model_config = ConfigDict(from_attributes=True)
 
-        id: PydanticObjectId | None = Field(default=None, description="MongoDB document ObjectID")
+        id: Optional[PydanticObjectId] = Field(default=None, description="MongoDB document ObjectID")
         name: str
         is_individual: bool
 
