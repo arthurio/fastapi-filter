@@ -40,7 +40,7 @@ from sqlalchemy.future import select
 @pytest.mark.usefixtures("users")
 @pytest.mark.asyncio
 async def test_filter(session, Address, User, UserFilter, filter_, expected_count):
-    query = select(User).outerjoin(Address)
+    query = select(User)
     query = UserFilter(**filter_).filter(query)
     result = await session.execute(query)
     assert len(result.scalars().unique().all()) == expected_count
@@ -56,7 +56,7 @@ async def test_filter(session, Address, User, UserFilter, filter_, expected_coun
 @pytest.mark.usefixtures("users")
 @pytest.mark.asyncio
 async def test_filter_deprecation_like_and_ilike(session, Address, User, UserFilter, filter_, expected_count):
-    query = select(User).outerjoin(Address)
+    query = select(User)
     with pytest.warns(DeprecationWarning, match="like and ilike operators."):
         query = UserFilter(**filter_).filter(query)
     result = await session.execute(query)
