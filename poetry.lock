@@ -1445,12 +1445,13 @@ files = [
 
 [[package]]
 name = "pudb"
-version = "2024.1"
+version = "2024.1.3"
 description = "A full-screen, console-based Python debugger"
 optional = false
 python-versions = "~=3.8"
 files = [
-    {file = "pudb-2024.1.tar.gz", hash = "sha256:fc9d6a976a59b590764c8379ec200fecd47faa84259b64efd8cd86066a0af338"},
+    {file = "pudb-2024.1.3-py3-none-any.whl", hash = "sha256:b1c64447fcee5848d0376231672b97ca8580ca6d3297c82cba6b0ba5bd5ee640"},
+    {file = "pudb-2024.1.3.tar.gz", hash = "sha256:264f239e0538e52e83d3d020143100b3171cae17227674bb1b9f8b075f34849c"},
 ]
 
 [package.dependencies]
@@ -1458,7 +1459,7 @@ jedi = ">=0.18,<1"
 packaging = ">=20.0"
 pygments = ">=2.7.4"
 urwid = ">=2.4"
-urwid_readline = "*"
+urwid-readline = "*"
 
 [package.extras]
 completion = ["shtab"]
