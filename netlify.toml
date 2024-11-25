@@ -2,7 +2,6 @@
 publish = "site"
 command = """
 rm .python-version &&
-mise use &&
 pip install -U -r docs_requirements.txt &&
-mkdocs build -d site
+python -m mkdocs build -d site
 """
