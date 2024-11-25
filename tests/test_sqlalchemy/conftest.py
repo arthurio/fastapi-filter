@@ -112,8 +112,7 @@ def FavoriteSport(Base):
 
 
 @pytest_asyncio.fixture(scope="function")
-@pytest.mark.usefixtures("sports")
-async def users(session, User, Address):
+async def users(session, sports, User, Address):
     user_instances = [
         User(
             name=None,
