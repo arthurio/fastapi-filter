@@ -1,7 +1,7 @@
 [build]
 publish = "site"
-environment = { PYTHON_VERSION = "3.12" }
 command = """
+rm .python-version
 pip3 install -U -r docs_requirements.txt &&
 mkdocs build -d site
 """
