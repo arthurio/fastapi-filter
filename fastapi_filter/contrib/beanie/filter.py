@@ -1,4 +1,4 @@
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from typing import Any, Optional, Union
 
 from beanie.odm.interfaces.find import FindType
@@ -46,6 +46,14 @@ class Filter(BaseFilterModel):
             name__isnull: Optional[bool]
         ```
     """
+
+    @property
+    def filtering_fields(self) -> Iterable[tuple[str, Any]]:
+        """Get filtering fields.
+
+        self.model_dump() serializes ObjectId to str which is not what we want.
+        """
+        return {field_name: getattr(self, field_name) for field_name, _ in super().filtering_fields}.items()
 
     def sort(self, query: FindMany[FindType]) -> FindMany[FindType]:
         if not self.ordering_values:
@@ -98,7 +106,7 @@ class Filter(BaseFilterModel):
             elif "__" in field_name:
                 stripped_field_name, operator = field_name.split("__")
                 search_criteria = _odm_operator_transformer[operator](value)
-                filter_conditions.append(({stripped_field_name: search_criteria}, {}))
+                filter_conditions.append(({getattr(self.Constants.model, stripped_field_name): search_criteria}, {}))
             elif field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
                 search_conditions = [
                     {search_field: _odm_operator_transformer["ilike"](value)}
@@ -106,7 +114,7 @@ class Filter(BaseFilterModel):
                 ]
                 filter_conditions.append(({"$or": search_conditions}, {}))
             else:
-                filter_conditions.append(({field_name: value}, {}))
+                filter_conditions.append(({getattr(self.Constants.model, field_name): value}, {}))
 
         return filter_conditions
 
