@@ -21,6 +21,7 @@ _odm_operator_transformer: dict[str, Callable[[Optional[str]], Optional[dict[str
     "nin": lambda value: {"$nin": value},
     "like": lambda value: {"$regex": f".*{value}.*"},
     "ilike": lambda value: {"$regex": f".*{value}.*", "$options": "i"},
+    "exists": lambda value: {"$exists": value},
 }
 
 
