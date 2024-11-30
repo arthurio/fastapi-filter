@@ -17,6 +17,7 @@
 
 - MongoEngine: >=0.24.1, <0.28.0
 - SQLAlchemy: >=1.4.36, <2.1.0
+- tortoise-orm: >=0.22.1
 
 ## Installation
 
@@ -30,6 +31,7 @@ pip install fastapi-filter[all]
 # More selective
 pip install fastapi-filter[sqlalchemy]
 pip install fastapi-filter[mongoengine]
+pip install fastapi-filter[tortoise-orm]
 ```
 
 ## Documentation
