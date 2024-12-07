@@ -33,7 +33,7 @@ repos:
         language: system
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.2.0
+    rev: v4.6.0
     hooks:
       - id: end-of-file-fixer
         exclude: .*(min.js|min.css|html|svg|css.map|js.map)

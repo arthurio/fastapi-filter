@@ -3,13 +3,13 @@ from typing import Optional
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from pydantic import field_validator
 
 
 @pytest_asyncio.fixture(scope="function")
 async def test_client(app):
-    async with AsyncClient(app=app, base_url="http://test") as async_test_client:
+    async with AsyncClient(base_url="http://test", transport=ASGITransport(app=app)) as async_test_client:
         yield async_test_client
 
 
