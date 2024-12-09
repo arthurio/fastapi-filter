@@ -8,10 +8,21 @@ repo_name: arthurio/fastapi-filter
 theme:
   name: material
   features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
     - content.code.annotate
+
+plugins:
+  - search
 
 nav:
   - "Home": index.md
+  - Tutorial - User Guide:
+    - tutorial/index.md
+  - Advanced User Guide:
+    - advanced/index.md
+  - "License": license.md
 
 markdown_extensions:
   - pymdownx.emoji:
