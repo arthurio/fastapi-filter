@@ -1,6 +1,7 @@
 [build]
 publish = "site"
 command = """
-pip3 install -U -r docs_requirements.txt &&
-mkdocs build -d site
+rm .python-version &&
+pip install -U -r docs_requirements.txt &&
+python -m mkdocs build -d site
 """
