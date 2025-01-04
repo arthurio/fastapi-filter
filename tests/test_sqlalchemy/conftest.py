@@ -63,6 +63,7 @@ def User(Base, Address, FavoriteSport, Sport):
         updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
         name = Column(String)
         age = Column(Integer, nullable=False)
+        is_active = Column(Boolean, nullable=False, default=True)
         address_id = Column(Integer, ForeignKey("addresses.id"))
         address: Mapped[Address] = relationship(Address, backref="users", lazy="joined")  # type: ignore[valid-type]
         favorite_sports: Mapped[Sport] = relationship(  # type: ignore[valid-type]
@@ -117,11 +118,13 @@ async def users(session, User, Address):
         User(
             name=None,
             age=21,
+            is_active=False,
             created_at=datetime(2021, 12, 1),
         ),
         User(
             name="Mr Praline",
             age=33,
+            is_active=False,
             created_at=datetime(2021, 12, 1),
             address=Address(street="22 rue Bellier", city="Nantes", country="France"),
         ),
@@ -274,6 +277,8 @@ def UserFilter(User, Filter, AddressFilter):
         age__gt: Optional[int] = None
         age__gte: Optional[int] = None
         age__in: Optional[list[int]] = None
+        gender: Optional[str] = None
+        is_not_active: Optional[bool] = None
         address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter), by_alias=True
         )
@@ -284,6 +289,7 @@ def UserFilter(User, Filter, AddressFilter):
             model = User
             search_model_fields = ["name"]
             search_field_name = "search"
+            extra_fields = ["is_not_active"]
 
     yield UserFilter
 
