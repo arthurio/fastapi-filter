@@ -1,6 +1,5 @@
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
-from pydantic import ValidationInfo, field_validator
 
 from ...base.filter import BaseFilterModel
 
@@ -32,23 +31,6 @@ class Filter(BaseFilterModel):
         if not self.ordering_values:
             return query
         return query.order_by(*self.ordering_values)
-
-    @field_validator("*", mode="before")
-    def split_str(cls, value, field: ValidationInfo):
-        if (
-            field.field_name is not None
-            and (
-                field.field_name == cls.Constants.ordering_field_name
-                or field.field_name.endswith("__in")
-                or field.field_name.endswith("__nin")
-            )
-            and isinstance(value, str)
-        ):
-            if not value:
-                # Empty string should return [] not ['']
-                return []
-            return list(value.split(","))
-        return value
 
     def filter(self, query: QuerySet) -> QuerySet:
         for field_name, value in self.filtering_fields:
