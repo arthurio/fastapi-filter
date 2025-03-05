@@ -3,7 +3,7 @@ from collections import defaultdict
 from copy import deepcopy
 from typing import Any, Optional, Union, get_args, get_origin
 
-from fastapi import Depends, Query
+from fastapi import Depends, Query, params
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
 from pydantic.fields import FieldInfo
@@ -192,7 +192,7 @@ def _list_to_query_fields(Filter: type[BaseFilterModel]):
             annotation is list
             or get_origin(annotation) is list
             or any(get_origin(a) is list for a in get_args(annotation))
-        ):
+        ) and type(field_info.default) is not params.Query:
             field_info.default = Query(default=field_info.default)
 
         ret[name] = (f.annotation, field_info)
@@ -201,12 +201,10 @@ def _list_to_query_fields(Filter: type[BaseFilterModel]):
 
 
 def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True) -> Any:
-    """Use a hack to support lists in filters.
+    """Use a hack to treat lists as query parameters.
 
-    FastAPI doesn't support it yet: https://github.com/tiangolo/fastapi/issues/50
-
-    What we do is loop through the fields of a filter and change any `list` field to a `str` one so that it won't be
-    excluded from the possible query parameters.
+    What we do is loop through the fields of a filter and assign any `list` field a default value of `Query` so that
+    FastAPI knows it should be treated a query parameter and not body.
 
     When we apply the filter, we build the original filter to properly validate the data (i.e. can the string be parsed
     and formatted as a list of <type>?)
