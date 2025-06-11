@@ -2,12 +2,16 @@ from enum import Enum
 from typing import Union
 from warnings import warn
 
-from pydantic import ValidationInfo, field_validator
+from pydantic import BaseModel, ValidationInfo, field_validator
 from sqlalchemy import or_
 from sqlalchemy.orm import Query
 from sqlalchemy.sql.selectable import Select
 
-from ...base.filter import BaseFilterModel
+from ...base.filter import (
+    BaseFilterModel,
+    PaginationLimitOffsetModel,
+    PaginationPageNumberPageSizeModel,
+)
 
 
 def _backward_compatible_value_for_like_and_ilike(value: str):
@@ -38,8 +42,14 @@ _orm_operator_transformer = {
     "isnull": lambda value: ("is_", None) if value is True else ("is_not", None),
     "lt": lambda value: ("__lt__", value),
     "lte": lambda value: ("__le__", value),
-    "like": lambda value: ("like", _backward_compatible_value_for_like_and_ilike(value)),
-    "ilike": lambda value: ("ilike", _backward_compatible_value_for_like_and_ilike(value)),
+    "like": lambda value: (
+        "like",
+        _backward_compatible_value_for_like_and_ilike(value),
+    ),
+    "ilike": lambda value: (
+        "ilike",
+        _backward_compatible_value_for_like_and_ilike(value),
+    ),
     # XXX(arthurio): Mysql excludes None values when using `in` or `not in` filters.
     "not": lambda value: ("is_not", value),
     "not_in": lambda value: ("not_in", value),
@@ -115,7 +125,9 @@ class Filter(BaseFilterModel):
                 else:
                     operator = "__eq__"
 
-                if field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
+                if field_name == self.Constants.search_field_name and hasattr(
+                    self.Constants, "search_model_fields"
+                ):
                     search_filters = [
                         getattr(self.Constants.model, field).ilike(f"%{value}%")
                         for field in self.Constants.search_model_fields
@@ -141,4 +153,24 @@ class Filter(BaseFilterModel):
 
             query = query.order_by(getattr(order_by_field, direction)())
 
+        return query
+
+    def paginate(self, query: Union[Query, Select]):
+        pagination = self.pagination_field_model_value
+        if not pagination:
+            return query
+        if isinstance(pagination, PaginationLimitOffsetModel):
+            limit_field = pagination.limit_field
+            offset_field = pagination.offset_field
+            limit = getattr(self, limit_field)
+            offset = getattr(self, offset_field)
+        elif isinstance(pagination, PaginationPageNumberPageSizeModel):
+            page_field = pagination.page_field
+            size_field = pagination.size_field
+
+            page = getattr(self, page_field)
+            size = getattr(self, size_field)
+            offset = (page - 1) * size
+            limit = size
+        query = query.offset(offset).limit(limit)
         return query

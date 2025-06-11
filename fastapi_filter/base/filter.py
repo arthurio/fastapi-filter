@@ -6,7 +6,14 @@ from typing import Any, Optional, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    ValidationError,
+    ValidationInfo,
+    create_model,
+    field_validator,
+)
 from pydantic.fields import FieldInfo
 
 UNION_TYPES: list = [Union]
@@ -15,6 +22,16 @@ if sys.version_info >= (3, 10):
     from types import UnionType
 
     UNION_TYPES.append(UnionType)
+
+
+class PaginationLimitOffsetModel(BaseModel):
+    limit_field: str = "limit"  # Default field names
+    offset_field: str = "offset"
+
+
+class PaginationPageNumberPageSizeModel(BaseModel):
+    page_field: str = "page"
+    size_field: str = "size"
 
 
 class BaseFilterModel(BaseModel, extra="forbid"):
@@ -51,18 +68,25 @@ class BaseFilterModel(BaseModel, extra="forbid"):
         search_field_name: str = "search"
         prefix: str
         original_filter: type["BaseFilterModel"]
+        pagination_field_model: Union[
+            PaginationLimitOffsetModel, PaginationPageNumberPageSizeModel, None
+        ] = None
 
     def filter(self, query):  # pragma: no cover
         ...
 
     @property
     def filtering_fields(self):
-        fields = self.model_dump(exclude_none=True, exclude_unset=True)
+        fields = self.model_dump(exclude_none=True, exclude_unset=False)
         fields.pop(self.Constants.ordering_field_name, None)
         return fields.items()
 
     def sort(self, query):  # pragma: no cover
         ...
+
+    @property
+    def pagination_field_model_value(self):
+        return self.pagination_field_model
 
     @property
     def ordering_values(self):
@@ -172,7 +196,9 @@ def with_prefix(prefix: str, Filter: type[BaseFilterModel]) -> type[BaseFilterMo
     """
 
     class NestedFilter(Filter):  # type: ignore[misc, valid-type]
-        model_config = ConfigDict(extra="forbid", alias_generator=lambda string: f"{prefix}__{string}")
+        model_config = ConfigDict(
+            extra="forbid", alias_generator=lambda string: f"{prefix}__{string}"
+        )
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             ...
@@ -212,7 +238,9 @@ def _list_to_str_fields(Filter: type[BaseFilterModel]):
     return ret
 
 
-def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True) -> Any:
+def FilterDepends(
+    Filter: type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True
+) -> Any:
     """Use a hack to support lists in filters.
 
     FastAPI doesn't support it yet: https://github.com/tiangolo/fastapi/issues/50
@@ -224,14 +252,20 @@ def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_
     and formatted as a list of <type>?)
     """
     fields = _list_to_str_fields(Filter)
-    GeneratedFilter: type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)
+    GeneratedFilter: type[BaseFilterModel] = create_model(
+        Filter.__class__.__name__, **fields
+    )
 
     class FilterWrapper(GeneratedFilter):  # type: ignore[misc,valid-type]
         def __new__(cls, *args, **kwargs):
             try:
                 instance = GeneratedFilter(*args, **kwargs)
-                data = instance.model_dump(exclude_unset=True, exclude_defaults=True, by_alias=by_alias)
-                if original_filter := getattr(Filter.Constants, "original_filter", None):
+                data = instance.model_dump(
+                    exclude_unset=False, exclude_defaults=True, by_alias=by_alias
+                )
+                if original_filter := getattr(
+                    Filter.Constants, "original_filter", None
+                ):
                     prefix = f"{Filter.Constants.prefix}__"
                     stripped = {k.removeprefix(prefix): v for k, v in data.items()}
                     return original_filter(**stripped)
