@@ -35,13 +35,21 @@ from sqlalchemy.future import select
         [{"address_id__isnull": True}, 1],
         [{"search": "Mr"}, 2],
         [{"search": "mr"}, 2],
+        [{"is_not_active": True}, 2],
+        [{"is_not_active": False}, 4],
+        [{"is_not_active": None}, 6],
     ],
 )
 @pytest.mark.usefixtures("users")
 @pytest.mark.asyncio
 async def test_filter(session, Address, User, UserFilter, filter_, expected_count):
     query = select(User).outerjoin(Address)
-    query = UserFilter(**filter_).filter(query)
+    user_filter = UserFilter(**filter_)
+
+    if user_filter.is_not_active is not None:
+        query = query.filter(User.is_active.is_(not user_filter.is_not_active))
+
+    query = user_filter.filter(query)
     result = await session.execute(query)
     assert len(result.scalars().unique().all()) == expected_count
 
@@ -111,3 +119,14 @@ async def test_required_filter(test_client, filter_, expected_status_code):
         error_json = response.json()
         assert "detail" in error_json
         assert isinstance(error_json["detail"], list)
+
+
+@pytest.mark.usefixtures("users")
+@pytest.mark.asyncio
+async def test_raise_attribute_error(session, User, UserFilter):
+    with pytest.raises(AttributeError, match="type object 'User' has no attribute 'gender'"):
+        query = select(User)
+        user_filter = UserFilter(gender="M")
+
+        query = user_filter.filter(query)
+        await session.execute(query)

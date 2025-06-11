@@ -49,6 +49,7 @@ class BaseFilterModel(BaseModel, extra="forbid"):
         ordering_field_name: str = "order_by"
         search_model_fields: list[str]
         search_field_name: str = "search"
+        extra_fields: list[str] = []
         prefix: str
         original_filter: type["BaseFilterModel"]
 
@@ -59,6 +60,8 @@ class BaseFilterModel(BaseModel, extra="forbid"):
     def filtering_fields(self):
         fields = self.model_dump(exclude_none=True, exclude_unset=True)
         fields.pop(self.Constants.ordering_field_name, None)
+        for field_name in self.Constants.extra_fields:
+            fields.pop(field_name, None)
         return fields.items()
 
     def sort(self, query):  # pragma: no cover

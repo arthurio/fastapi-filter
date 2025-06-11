@@ -22,12 +22,22 @@ from fastapi import status
         [{"address": {"city": "San Francisco"}}, 1],
         [{"search": "Mr"}, 2],
         [{"search": "mr"}, 2],
+        [{"is_not_active": True}, 2],
+        [{"is_not_active": False}, 4],
+        [{"is_not_active": None}, 6],
+        [{"gender": "O"}, 0],
     ],
 )
 @pytest.mark.usefixtures("sports", "users")
 @pytest.mark.asyncio
 async def test_basic_filter(User, UserFilter, AddressFilter, filter_, expected_count):
-    query = UserFilter(**filter_).filter(User.find({}))
+    query = User.find({})
+    user_filter = UserFilter(**filter_)
+
+    if user_filter.is_not_active is not None:
+        query = query.find({"is_active": {"$ne": user_filter.is_not_active}})
+
+    query = user_filter.filter(query)
     assert await query.count() == expected_count
 
 

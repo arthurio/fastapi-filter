@@ -31,6 +31,7 @@ class User(Document):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     age: int
+    is_active: bool = True
     address: Optional[Link[Address]] = None
     favorite_sports: Optional[list[Link[Sport]]] = []
 
@@ -86,12 +87,14 @@ async def users(
         await User(
             name=None,
             age=21,
+            is_active=False,
             created_at=datetime(2021, 12, 1),
             favorite_sports=sports,
         ).save(link_rule=WriteRules.WRITE),
         await User(
             name="Mr Praline",
             age=33,
+            is_active=False,
             created_at=datetime(2021, 12, 1),
             address=Address(street="22 rue Bellier", city="Nantes", country="France"),
             favorite_sports=[sports[0]],
@@ -154,6 +157,8 @@ def UserFilter(User, Filter, AddressFilter):
         age__gt: Optional[int] = None
         age__gte: Optional[int] = None
         age__in: Optional[list[int]] = None
+        gender: Optional[str] = None
+        is_not_active: Optional[bool] = None
         address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter),
         )
@@ -164,6 +169,7 @@ def UserFilter(User, Filter, AddressFilter):
             search_model_fields = ["name", "email"]  # noqa: RUF012
             search_field_name = "search"
             ordering_field_name = "order_by"
+            extra_fields = ["is_not_active"]
 
     yield UserFilter
 
