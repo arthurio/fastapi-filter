@@ -152,7 +152,7 @@ all = ["mongoengine", "beanie", "SQLAlchemy"]
 [tool.poetry.group.dev.dependencies]
 nox = "^2024.4.15"
 ruff = "^0.5.0"
-urllib3 = "<=2.2.2"
+urllib3 = "<=2.5.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
