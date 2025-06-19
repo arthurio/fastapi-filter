@@ -119,7 +119,7 @@ python = ">=3.9,<4.0"
 [tool.poetry.dev-dependencies]
 Faker = "^26.0.0"
 SQLAlchemy-Utils = "^0.41.2"
-aiosqlite = "^0.20.0"
+aiosqlite = "^0.21.0"
 bandit = "^1.7.9"
 flynt = "^1.0.1"
 greenlet = "^3.0.3"
