@@ -3,7 +3,7 @@
 Add querystring filters to your api endpoints and show them in the swagger UI.
 
 The supported backends are [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy),
- [MongoEngine](https://github.com/MongoEngine/mongoengine) and [beanie](https://github.com/BeanieODM/beanie).
+[MongoEngine](https://github.com/MongoEngine/mongoengine) and [beanie](https://github.com/BeanieODM/beanie).
 
 ## Example
 
@@ -131,6 +131,34 @@ class UserFilter(Filter):
     name: Optional[str]
     address__street: Optional[str]
     address__country: Optional[str]
+```
+
+### Extra fields
+
+Sometimes, you may need to add extra fields to your filter for custom logic. To do this, follow these steps:
+
+1. Define the extra fields in your filter class.
+2. List these fields in the `extra_fields` constant.
+3. Access these fields in your endpoint to implement custom filtering logic.
+
+```python
+class UserFilter(Filter):
+    name: Optional[str]
+    is_not_active: Optional[bool]
+
+    class Constants(Filter.Constants):
+        model = User
+        extra_fields = ["is_not_active"]
+
+@app.get("/users", response_model=list[UserOut])
+async def get_users(user_filter: UserFilter = FilterDepends(UserFilter), db: AsyncSession = Depends(get_db)) -> Any:
+    query = user_filter.filter(select(User))
+
+    if user_filter.is_not_active is not None:
+        query = query.where(User.is_active.is_(not user_filter.is_not_active))
+
+    result = await db.execute(query)
+    return result.scalars().all()
 ```
 
 ## Order by

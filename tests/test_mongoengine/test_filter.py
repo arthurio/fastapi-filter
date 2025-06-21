@@ -1,5 +1,6 @@
 from urllib.parse import urlencode
 
+import mongoengine
 import pytest
 from fastapi import status
 
@@ -22,11 +23,20 @@ from fastapi import status
         [{"address": {"city": "San Francisco"}}, 1],
         [{"search": "Mr"}, 2],
         [{"search": "mr"}, 2],
+        [{"is_not_active": True}, 2],
+        [{"is_not_active": False}, 4],
+        [{"is_not_active": None}, 6],
     ],
 )
 @pytest.mark.usefixtures("Address", "users")
 def test_basic_filter(User, UserFilter, filter_, expected_count):
-    query = UserFilter(**filter_).filter(User.objects())
+    query = User.objects()
+    user_filter = UserFilter(**filter_)
+
+    if user_filter.is_not_active is not None:
+        query = query.filter(is_active__ne=user_filter.is_not_active)
+
+    query = user_filter.filter(query)
     assert query.count() == expected_count
 
 
@@ -76,3 +86,9 @@ async def test_required_filter(test_client, filter_, expected_status_code):
         error_json = response.json()
         assert "detail" in error_json
         assert isinstance(error_json["detail"], list)
+
+
+@pytest.mark.usefixtures("users")
+def test_raise_invalid_query_error(User, UserFilter):
+    with pytest.raises(mongoengine.errors.InvalidQueryError, match='Cannot resolve field "gender"'):
+        UserFilter(gender="F").filter(User.objects()).count()

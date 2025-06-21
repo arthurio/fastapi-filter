@@ -53,6 +53,7 @@ def User(db_connect, Address, Sport):
         name = fields.StringField(null=True)
         email = fields.EmailField()
         age = fields.IntField()
+        is_active = fields.BooleanField(default=True)
         address = fields.ReferenceField(Address)
         favorite_sports = fields.ListField(fields.ReferenceField(Sport))
 
@@ -94,12 +95,14 @@ def users(User, Address, sports):
         User(
             name=None,
             age=21,
+            is_active=False,
             created_at=datetime(2021, 12, 1),
             favorite_sports=sports,
         ).save(),
         User(
             name="Mr Praline",
             age=33,
+            is_active=False,
             created_at=datetime(2021, 12, 1),
             address=Address(street="22 rue Bellier", city="Nantes", country="France").save(),
             favorite_sports=[sports[0]],
@@ -162,6 +165,8 @@ def UserFilter(User, Filter, AddressFilter):
         age__gt: Optional[int] = None
         age__gte: Optional[int] = None
         age__in: Optional[list[int]] = None
+        is_not_active: Optional[bool] = None
+        gender: Optional[str] = None
         address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter)
         )
@@ -172,6 +177,7 @@ def UserFilter(User, Filter, AddressFilter):
             search_model_fields = ["name", "email"]
             search_field_name = "search"
             ordering_field_name = "order_by"
+            extra_fields = ["is_not_active"]
 
     yield UserFilter
 
