@@ -107,7 +107,16 @@ class Filter(BaseFilterModel):
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
-                query = field_value.filter(query)
+                field_value_dump = field_value.model_dump(exclude_unset=True, exclude_none=True)
+                # Check if the filter has any value set and in case we have a nested filter check if it's not empty
+                if field_value_dump and field_value_dump and any(field_value_dump.values()):
+                    joins = getattr(self.Constants, "joins", {})
+                    if joins and field_name in joins:
+                        table_join = joins[field_name]
+                        table_join["target"] = table_join.pop("target", field_value.Constants.model)
+                        query = query.join(**table_join)
+
+                    query = field_value.filter(query)
             else:
                 if "__" in field_name:
                     field_name, operator = field_name.split("__")

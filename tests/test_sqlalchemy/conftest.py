@@ -284,6 +284,13 @@ def UserFilter(User, Filter, AddressFilter):
             model = User
             search_model_fields = ["name"]
             search_field_name = "search"
+            joins = {
+                "address": {
+                    "target": AddressFilter.Constants.model,
+                    "onclause": AddressFilter.Constants.model.id == User.address_id,
+                    "isouter": True,
+                },
+            }
 
     yield UserFilter
 
@@ -344,7 +351,7 @@ def app(
         user_filter: UserFilter = FilterDepends(UserFilter),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
-        query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
+        query = user_filter.filter(select(User))  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().unique().all()
 
@@ -353,7 +360,7 @@ def app(
         user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
-        query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
+        query = user_filter.filter(select(User))  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().unique().all()
 
@@ -362,7 +369,7 @@ def app(
         user_filter: UserFilterOrderBy = FilterDepends(UserFilterOrderBy),  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
-        query = user_filter.sort(select(User).outerjoin(Address))  # type: ignore[attr-defined]
+        query = user_filter.sort(select(User))  # type: ignore[attr-defined]
         query = user_filter.filter(query)  # type: ignore[attr-defined]
         result = await db.execute(query)
         return result.scalars().unique().all()
