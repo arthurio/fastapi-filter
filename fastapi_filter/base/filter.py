@@ -1,10 +1,9 @@
 import sys
 from collections import defaultdict
-from collections.abc import Iterable
 from copy import deepcopy
 from typing import Any, Optional, Union, get_args, get_origin
 
-from fastapi import Depends
+from fastapi import Depends, Query, params
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
 from pydantic.fields import FieldInfo
@@ -183,47 +182,34 @@ def with_prefix(prefix: str, Filter: type[BaseFilterModel]) -> type[BaseFilterMo
     return NestedFilter
 
 
-def _list_to_str_fields(Filter: type[BaseFilterModel]):
+def _list_to_query_fields(Filter: type[BaseFilterModel]):
     ret: dict[str, tuple[Union[object, type], Optional[FieldInfo]]] = {}
     for name, f in Filter.model_fields.items():
         field_info = deepcopy(f)
         annotation = f.annotation
 
-        if get_origin(annotation) in UNION_TYPES:
-            annotation_args: list = list(get_args(f.annotation))
-            if type(None) in annotation_args:
-                annotation_args.remove(type(None))
-            if len(annotation_args) == 1:
-                annotation = annotation_args[0]
-            # NOTE: This doesn't support union types which contain list and other types at the
-            # same time like `list[str] | str` or `list[str] | str | None`. The list type inside
-            # union will not be converted to string which means that the filter will not work in
-            # such cases.
-            # We cannot raise exception here because we still want to support union types in
-            # filter for example `int | float | None` is valid type and should not be transformed.
+        if (
+            annotation is list
+            or get_origin(annotation) is list
+            or any(get_origin(a) is list for a in get_args(annotation))
+        ) and type(field_info.default) is not params.Query:
+            field_info.default = Query(default=field_info.default)
 
-        if annotation is list or get_origin(annotation) is list:
-            if isinstance(field_info.default, Iterable):
-                field_info.default = ",".join(field_info.default)
-            ret[name] = (str if f.is_required() else Optional[str], field_info)
-        else:
-            ret[name] = (f.annotation, field_info)
+        ret[name] = (f.annotation, field_info)
 
     return ret
 
 
 def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_cache: bool = True) -> Any:
-    """Use a hack to support lists in filters.
+    """Use a hack to treat lists as query parameters.
 
-    FastAPI doesn't support it yet: https://github.com/tiangolo/fastapi/issues/50
-
-    What we do is loop through the fields of a filter and change any `list` field to a `str` one so that it won't be
-    excluded from the possible query parameters.
+    What we do is loop through the fields of a filter and assign any `list` field a default value of `Query` so that
+    FastAPI knows it should be treated a query parameter and not body.
 
     When we apply the filter, we build the original filter to properly validate the data (i.e. can the string be parsed
     and formatted as a list of <type>?)
     """
-    fields = _list_to_str_fields(Filter)
+    fields = _list_to_query_fields(Filter)
     GeneratedFilter: type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)
 
     class FilterWrapper(GeneratedFilter):  # type: ignore[misc,valid-type]
