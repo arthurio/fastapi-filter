@@ -2,6 +2,10 @@ import pytest
 from fastapi import status
 from pydantic import ValidationError
 
+# for compatibility with starlette < 0.47.0; HTTP_422_UNPROCESSABLE_ENTITY is deprecated in the later versions
+if not hasattr(status, "HTTP_422_UNPROCESSABLE_CONTENT"):
+    status.HTTP_422_UNPROCESSABLE_CONTENT = status.HTTP_422_UNPROCESSABLE_ENTITY
+
 
 @pytest.mark.parametrize(
     "order_by,assert_function",
@@ -172,7 +176,7 @@ async def test_api_order_by(test_client, order_by, assert_function):
 async def test_api_order_by_invalid_field(test_client):
     endpoint = "/users_with_order_by?order_by=invalid"
     response = await test_client.get(endpoint)
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 @pytest.mark.asyncio
@@ -189,8 +193,8 @@ async def test_api_no_order_by(test_client):
     [
         [None, lambda previous_user, user: True, status.HTTP_200_OK],
         ["", lambda previous_user, user: True, status.HTTP_200_OK],
-        ["name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
-        ["age,-name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
+        ["name", None, status.HTTP_422_UNPROCESSABLE_CONTENT],
+        ["age,-name", None, status.HTTP_422_UNPROCESSABLE_CONTENT],
         ["-age", lambda previous_user, user: previous_user["age"] >= user["age"], status.HTTP_200_OK],
         [
             "age,-created_at",
