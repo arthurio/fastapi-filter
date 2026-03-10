@@ -1073,17 +1073,20 @@ files = [
 
 [[package]]
 name = "mongoengine"
-version = "0.27.0"
+version = "0.29.3"
 description = "MongoEngine is a Python Object-Document Mapper for working with MongoDB."
 optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "mongoengine-0.27.0-py3-none-any.whl", hash = "sha256:c3523b8f886052f3deb200b3218bcc13e4b781661e3bea38587cc936c80ea358"},
-    {file = "mongoengine-0.27.0.tar.gz", hash = "sha256:8f38df7834dc4b192d89f2668dcf3091748d12f74d55648ce77b919167a4a49b"},
+    {file = "mongoengine-0.29.3-py3-none-any.whl", hash = "sha256:2d5a216cf2368867d43e5321b13044ecc3e72c3f19ace21b1c5e7403951ca685"},
+    {file = "mongoengine-0.29.3.tar.gz", hash = "sha256:4267702aea433012845cb12b6334bff86a0a3084b5d141c1e4553ea20374a9b4"},
 ]
 
 [package.dependencies]
 pymongo = ">=3.4,<5.0"
+
+[package.extras]
+test = ["Pillow (>=7.0.0)", "blinker", "coverage", "pytest", "pytest-cov"]
 
 [[package]]
 name = "motor"
@@ -2485,4 +2488,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "27869c366db3bebeafa891375c9484de414a3229e5e3511eb1f5ea79955e1d0c"
+content-hash = "a7c340eef18b0dc060c085d32c8ca8b2e68a86dd28f5c27a991e408480761d48"
