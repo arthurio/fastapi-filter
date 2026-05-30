@@ -24,7 +24,6 @@ from sqlalchemy import select
         ],
     ],
 )
-@pytest.mark.asyncio
 async def test_order_by(session, User, UserFilterOrderBy, users, order_by, assert_function):
     query = select(User)
     query = UserFilterOrderBy(order_by=order_by).sort(query)
@@ -38,7 +37,6 @@ async def test_order_by(session, User, UserFilterOrderBy, users, order_by, asser
         previous_user = user
 
 
-@pytest.mark.asyncio
 async def test_order_by_with_default(session, User, UserFilterOrderByWithDefault, users):
     query = select(User)
     query = UserFilterOrderByWithDefault().sort(query)
@@ -77,7 +75,6 @@ async def test_order_by_with_default(session, User, UserFilterOrderByWithDefault
         ],
     ],
 )
-@pytest.mark.asyncio
 async def test_api_order_by_with_default(session, test_client, users, order_by, assert_function):
     endpoint = "/users_with_default"
     if order_by is not None:
@@ -126,7 +123,6 @@ def test_missing_order_by_field(User, UserFilterNoOrderBy):
         ],
     ],
 )
-@pytest.mark.asyncio
 async def test_custom_order_by(User, users, UserFilterCustomOrderBy, session, order_by, assert_function):
     query = select(User)
     query = UserFilterCustomOrderBy(custom_order_by=order_by).sort(query)
@@ -188,7 +184,6 @@ def test_restricted_order_by_success(User, UserFilterRestrictedOrderBy, order_by
         ],
     ],
 )
-@pytest.mark.asyncio
 async def test_api_order_by(test_client, users, order_by, assert_function):
     endpoint = "/users_with_order_by"
     if order_by is not None:
@@ -203,14 +198,12 @@ async def test_api_order_by(test_client, users, order_by, assert_function):
         previous_user = user
 
 
-@pytest.mark.asyncio
 async def test_api_order_by_invalid_field(test_client, session):
     endpoint = "/users_with_order_by?order_by=invalid"
     response = await test_client.get(endpoint)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-@pytest.mark.asyncio
 async def test_api_no_order_by(test_client, session):
     endpoint = "/users_with_no_order_by?order_by=age"
     with pytest.raises(
@@ -235,7 +228,6 @@ async def test_api_no_order_by(test_client, session):
         ],
     ],
 )
-@pytest.mark.asyncio
 async def test_api_restricted_order_by(test_client, users, order_by, assert_function, status_code):
     endpoint = "/users_with_restricted_order_by"
     if order_by is not None:
@@ -252,7 +244,6 @@ async def test_api_restricted_order_by(test_client, users, order_by, assert_func
             previous_user = user
 
 
-@pytest.mark.asyncio
 async def test_api_custom_order_by(test_client, session):
     endpoint = "/users_with_custom_order_by?custom_order_by=age"
     response = await test_client.get(endpoint)

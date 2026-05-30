@@ -1,20 +1,15 @@
-import sys
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import Any, Optional, Union, get_args, get_origin
+from types import UnionType
+from typing import Any, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
 from pydantic.fields import FieldInfo
 
-UNION_TYPES: list = [Union]
-
-if sys.version_info >= (3, 10):
-    from types import UnionType
-
-    UNION_TYPES.append(UnionType)
+UNION_TYPES: list = [Union, UnionType]
 
 
 class BaseFilterModel(BaseModel, extra="forbid"):
@@ -75,21 +70,8 @@ class BaseFilterModel(BaseModel, extra="forbid"):
                 "Make sure to add it to your filter class."
             ) from e
 
-    @field_validator("*", mode="before", check_fields=False)
-    def strip_order_by_values(cls, value, field: ValidationInfo):
-        if field.field_name != cls.Constants.ordering_field_name:
-            return value
-
-        if not value:
-            return None
-
-        stripped_values = []
-        for field_name in value:
-            stripped_value = field_name.strip()
-            if stripped_value:
-                stripped_values.append(stripped_value)
-
-        return stripped_values
+    # NOTE: Pydantic v2 executes mode="before" validators in REVERSE definition order.
+    # So validate_order_by (defined first) runs LAST, after strip and split.
 
     @field_validator("*", mode="before", check_fields=False)
     def validate_order_by(cls, value, field: ValidationInfo):
@@ -125,6 +107,40 @@ class BaseFilterModel(BaseModel, extra="forbid"):
                 f"The following was ambiguous: {ambiguous_field_names}."
             )
 
+        return value
+
+    @field_validator("*", mode="before", check_fields=False)
+    def strip_order_by_values(cls, value, field: ValidationInfo):
+        if field.field_name != cls.Constants.ordering_field_name:
+            return value
+
+        if not value:
+            return None
+
+        stripped_values = []
+        for field_name in value:
+            stripped_value = field_name.strip()
+            if stripped_value:
+                stripped_values.append(stripped_value)
+
+        return stripped_values
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def split_str(cls, value, field: ValidationInfo):
+        if (
+            field.field_name is not None
+            and (
+                field.field_name == cls.Constants.ordering_field_name
+                or field.field_name.endswith("__in")
+                or field.field_name.endswith("__not_in")
+                or field.field_name.endswith("__nin")
+            )
+            and isinstance(value, str)
+        ):
+            if not value:
+                return []
+            return list(value.split(","))
         return value
 
 
@@ -184,7 +200,7 @@ def with_prefix(prefix: str, Filter: type[BaseFilterModel]) -> type[BaseFilterMo
 
 
 def _list_to_str_fields(Filter: type[BaseFilterModel]):
-    ret: dict[str, tuple[Union[object, type], Optional[FieldInfo]]] = {}
+    ret: dict[str, tuple[object | type, FieldInfo | None]] = {}
     for name, f in Filter.model_fields.items():
         field_info = deepcopy(f)
         annotation = f.annotation
@@ -205,7 +221,7 @@ def _list_to_str_fields(Filter: type[BaseFilterModel]):
         if annotation is list or get_origin(annotation) is list:
             if isinstance(field_info.default, Iterable):
                 field_info.default = ",".join(field_info.default)
-            ret[name] = (str if f.is_required() else Optional[str], field_info)
+            ret[name] = (str if f.is_required() else str | None, field_info)
         else:
             ret[name] = (f.annotation, field_info)
 

@@ -25,7 +25,6 @@ from fastapi import status
     ],
 )
 @pytest.mark.usefixtures("sports", "users")
-@pytest.mark.asyncio
 async def test_basic_filter(User, UserFilter, AddressFilter, filter_, expected_count):
     query = UserFilter(**filter_).filter(User.find({}))
     assert await query.count() == expected_count
@@ -52,7 +51,6 @@ async def test_basic_filter(User, UserFilter, AddressFilter, filter_, expected_c
     ],
 )
 @pytest.mark.usefixtures("Address", "users", "User", "UserFilter")
-@pytest.mark.asyncio
 async def test_api(test_client, uri, filter_, expected_count):
     response = await test_client.get(f"{uri}?{urlencode(filter_)}")
     assert len(response.json()) == expected_count
@@ -68,7 +66,6 @@ async def test_api(test_client, uri, filter_, expected_count):
         [{"is_individual": True, "bogus_filter": "bad"}, status.HTTP_422_UNPROCESSABLE_ENTITY],
     ),
 )
-@pytest.mark.asyncio
 async def test_required_filter(test_client, filter_, expected_status_code):
     response = await test_client.get(f"/sports?{urlencode(filter_)}")
     assert response.status_code == expected_status_code
