@@ -18,8 +18,10 @@ from pydantic import ValidationError
         ],
         [
             "age,-created_at",
-            lambda previous_user, user: (previous_user.age < user.age)
-            or (previous_user.age == user.age and previous_user.created_at >= user.created_at),
+            lambda previous_user, user: (
+                (previous_user.age < user.age)
+                or (previous_user.age == user.age and previous_user.created_at >= user.created_at)
+            ),
         ],
     ],
 )
@@ -77,10 +79,12 @@ def test_missing_order_by_field(User, UserFilterNoOrderBy):
         ],
         [
             "age,-name",
-            lambda previous_user, user: (previous_user.age < user.age)
-            or (
-                previous_user.age == user.age
-                and (previous_user.name <= user.name if previous_user.name and user.name else True)
+            lambda previous_user, user: (
+                (previous_user.age < user.age)
+                or (
+                    previous_user.age == user.age
+                    and (previous_user.name <= user.name if previous_user.name and user.name else True)
+                )
             ),
         ],
     ],
@@ -131,9 +135,9 @@ def test_restricted_order_by_success(UserFilterRestrictedOrderBy, order_by):
         ["", lambda previous_user, user: True],
         [
             "name",
-            lambda previous_user, user: previous_user["name"] <= user["name"]
-            if previous_user["name"] and user["name"]
-            else True,
+            lambda previous_user, user: (
+                previous_user["name"] <= user["name"] if previous_user["name"] and user["name"] else True
+            ),
         ],
         [
             "-created_at",
@@ -141,12 +145,13 @@ def test_restricted_order_by_success(UserFilterRestrictedOrderBy, order_by):
         ],
         [
             "age,-created_at",
-            lambda previous_user, user: (previous_user["age"] < user["age"])
-            or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"]),
+            lambda previous_user, user: (
+                (previous_user["age"] < user["age"])
+                or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"])
+            ),
         ],
     ],
 )
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("users")
 async def test_api_order_by(test_client, order_by, assert_function):
     endpoint = "/users_with_order_by"
@@ -162,14 +167,12 @@ async def test_api_order_by(test_client, order_by, assert_function):
         previous_user = user
 
 
-@pytest.mark.asyncio
 async def test_api_order_by_invalid_field(test_client):
     endpoint = "/users_with_order_by?order_by=invalid"
     response = await test_client.get(endpoint)
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
-@pytest.mark.asyncio
 async def test_api_no_order_by(test_client):
     endpoint = "/users_with_no_order_by?order_by=age"
     with pytest.raises(
@@ -183,19 +186,20 @@ async def test_api_no_order_by(test_client):
     [
         [None, lambda previous_user, user: True, status.HTTP_200_OK],
         ["", lambda previous_user, user: True, status.HTTP_200_OK],
-        ["name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
-        ["age,-name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
+        ["name", None, status.HTTP_422_UNPROCESSABLE_CONTENT],
+        ["age,-name", None, status.HTTP_422_UNPROCESSABLE_CONTENT],
         ["-age", lambda previous_user, user: previous_user["age"] >= user["age"], status.HTTP_200_OK],
         [
             "age,-created_at",
-            lambda previous_user, user: (previous_user["age"] < user["age"])
-            or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"]),
+            lambda previous_user, user: (
+                (previous_user["age"] < user["age"])
+                or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"])
+            ),
             status.HTTP_200_OK,
         ],
     ],
 )
 @pytest.mark.usefixtures("users")
-@pytest.mark.asyncio
 async def test_api_restricted_order_by(test_client, order_by, assert_function, status_code):
     endpoint = "/users_with_restricted_order_by"
     if order_by is not None:
@@ -212,7 +216,6 @@ async def test_api_restricted_order_by(test_client, order_by, assert_function, s
             previous_user = user
 
 
-@pytest.mark.asyncio
 async def test_api_custom_order_by(test_client):
     endpoint = "/users_with_custom_order_by?custom_order_by=age"
     response = await test_client.get(endpoint)

@@ -1,13 +1,12 @@
 from collections.abc import Callable, Mapping
-from typing import Any, Optional, Union
+from typing import Any
 
-from beanie.odm.interfaces.find import FindType
+from beanie import Document
 from beanie.odm.queries.find import FindMany
-from pydantic import ValidationInfo, field_validator
 
 from fastapi_filter.base.filter import BaseFilterModel
 
-_odm_operator_transformer: dict[str, Callable[[Optional[str]], Optional[dict[str, Any]]]] = {
+_odm_operator_transformer: dict[str, Callable[[str | None], dict[str, Any] | None]] = {
     "neq": lambda value: {"$ne": value},
     "gt": lambda value: {"$gt": value},
     "gte": lambda value: {"$gte": value},
@@ -48,30 +47,10 @@ class Filter(BaseFilterModel):
         ```
     """
 
-    def sort(self, query: FindMany[FindType]) -> FindMany[FindType]:
+    def sort(self, query: FindMany[Document]) -> FindMany[Document]:
         if not self.ordering_values:
             return query
         return query.sort(*self.ordering_values)
-
-    @field_validator("*", mode="before")
-    @classmethod
-    def split_str(
-        cls: type["BaseFilterModel"], value: Optional[str], field: ValidationInfo
-    ) -> Optional[Union[list[str], str]]:
-        if (
-            field.field_name is not None
-            and (
-                field.field_name == cls.Constants.ordering_field_name
-                or field.field_name.endswith("__in")
-                or field.field_name.endswith("__nin")
-            )
-            and isinstance(value, str)
-        ):
-            if not value:
-                # Empty string should return [] not ['']
-                return []
-            return list(value.split(","))
-        return value
 
     def _get_filter_conditions(self, nesting_depth: int = 1) -> list[tuple[Mapping[str, Any], Mapping[str, Any]]]:
         filter_conditions: list[tuple[Mapping[str, Any], Mapping[str, Any]]] = []
@@ -111,7 +90,7 @@ class Filter(BaseFilterModel):
 
         return filter_conditions
 
-    def filter(self, query: FindMany[FindType]) -> FindMany[FindType]:
+    def filter(self, query: FindMany[Document]) -> FindMany[Document]:
         data = self._get_filter_conditions()
         for filter_condition, filter_kwargs in data:
             query = query.find(filter_condition, **filter_kwargs)

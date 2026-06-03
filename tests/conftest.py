@@ -1,5 +1,4 @@
 # type: ignore
-from typing import Optional
 
 import pytest
 import pytest_asyncio
@@ -24,7 +23,7 @@ def UserFilterOrderByWithDefault(User, UserFilter):
 @pytest.fixture(scope="package")
 def UserFilterOrderBy(User, UserFilter):
     class UserFilterOrderBy(UserFilter):
-        order_by: Optional[list[str]] = None
+        order_by: list[str] | None = None
 
     return UserFilterOrderBy
 
@@ -40,7 +39,7 @@ def UserFilterCustomOrderBy(UserFilter):
         class Constants(UserFilter.Constants):
             ordering_field_name = "custom_order_by"
 
-        custom_order_by: Optional[list[str]] = None
+        custom_order_by: list[str] | None = None
 
     return UserFilterCustomOrderBy
 
@@ -48,7 +47,7 @@ def UserFilterCustomOrderBy(UserFilter):
 @pytest.fixture(scope="package")
 def UserFilterRestrictedOrderBy(UserFilter):
     class UserFilterRestrictedOrderBy(UserFilter):
-        order_by: Optional[list[str]] = None
+        order_by: list[str] | None = None
 
         @field_validator("order_by")
         def restrict_sortable_fields(cls, value):

@@ -28,12 +28,13 @@ repos:
       - id: mypy
         name: "mypy"
         entry: mypy
-        args: ["--config-file", "pyproject.toml"]
+        args: ["--config-file", "pyproject.toml", "fastapi_filter"]
+        pass_filenames: false
         types: [python]
         language: system
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: end-of-file-fixer
         exclude: .*(min.js|min.css|html|svg|css.map|js.map)

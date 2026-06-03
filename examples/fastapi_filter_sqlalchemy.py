@@ -1,16 +1,17 @@
 import logging
-from collections.abc import AsyncIterator
-from typing import Any, Optional
+from collections.abc import AsyncGenerator, AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Any
 
 import click
 import uvicorn
 from faker import Faker
 from fastapi import Depends, FastAPI, Query
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import Column, ForeignKey, Integer, String, event, select
+from sqlalchemy import ForeignKey, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapped, declarative_base, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter
@@ -28,7 +29,10 @@ def _set_sqlite_case_sensitive_pragma(dbapi_con, connection_record):
 engine = create_async_engine("sqlite+aiosqlite:///fastapi_filter.sqlite")
 async_session = async_sessionmaker(engine, class_=AsyncSession)
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
 
 fake = Faker()
 
@@ -36,20 +40,20 @@ fake = Faker()
 class Address(Base):
     __tablename__ = "addresses"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    street = Column(String, nullable=False)
-    city = Column(String, nullable=False)
-    country = Column(String, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    street: Mapped[str]
+    city: Mapped[str]
+    country: Mapped[str]
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False)
-    email = Column(String, nullable=False)
-    age = Column(Integer, nullable=False)
-    address_id = Column(Integer, ForeignKey("addresses.id"), nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str]
+    email: Mapped[str]
+    age: Mapped[int]
+    address_id: Mapped[int | None] = mapped_column(ForeignKey("addresses.id"))
     address: Mapped[Address] = relationship(Address, backref="users", lazy="joined")
 
 
@@ -72,16 +76,16 @@ class UserOut(UserIn):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    address: Optional[AddressOut] = None
+    address: AddressOut | None = None
 
 
 class AddressFilter(Filter):
-    street: Optional[str] = None
-    country: Optional[str] = None
-    city: Optional[str] = None
-    city__in: Optional[list[str]] = None
-    custom_order_by: Optional[list[str]] = None
-    custom_search: Optional[str] = None
+    street: str | None = None
+    country: str | None = None
+    city: str | None = None
+    city__in: list[str] | None = None
+    custom_order_by: list[str] | None = None
+    custom_search: str | None = None
 
     class Constants(Filter.Constants):
         model = Address
@@ -91,30 +95,27 @@ class AddressFilter(Filter):
 
 
 class UserFilter(Filter):
-    name: Optional[str] = None
-    name__ilike: Optional[str] = None
-    name__like: Optional[str] = None
-    name__neq: Optional[str] = None
-    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
-    age__lt: Optional[int] = None
+    name: str | None = None
+    name__ilike: str | None = None
+    name__like: str | None = None
+    name__neq: str | None = None
+    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
+    age__lt: int | None = None
     age__gte: int = Field(Query(description="this is a nice description"))
     """Required field with a custom description.
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
     order_by: list[str] = ["age"]
-    search: Optional[str] = None
+    search: str | None = None
 
     class Constants(Filter.Constants):
         model = User
         search_model_fields = ["name"]
 
 
-app = FastAPI()
-
-
-@app.on_event("startup")
-async def on_startup() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     message = "Open http://127.0.0.1:8000/docs to start exploring 🎒 🧭 🗺️"
     color_message = "Open " + click.style("http://127.0.0.1:8000/docs", bold=True) + " to start exploring 🎒 🧭 🗺️"
     logger.info(message, extra={"color_message": color_message})
@@ -131,11 +132,13 @@ async def on_startup() -> None:
             session.add_all([address, user])
         await session.commit()
 
+    yield
 
-@app.on_event("shutdown")
-async def on_shutdown() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 async def get_db() -> AsyncIterator[AsyncSession]:
