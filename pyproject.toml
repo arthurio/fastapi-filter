@@ -86,7 +86,7 @@ line-ending = "auto"
 
 [tool.poetry]
 name = "fastapi-filter"
-version = "2.0.1"
+version = "3.0.0"
 description = "FastAPI filter"
 authors = ["Arthur Rio <arthur.rio44@gmail.com>"]
 license = "MIT"
