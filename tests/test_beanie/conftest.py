@@ -6,6 +6,7 @@ import pytest_asyncio
 from beanie import Document, Link, PydanticObjectId, init_beanie
 from beanie.odm.fields import WriteRules
 from fastapi import FastAPI, Query
+from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pymongo import AsyncMongoClient
 
@@ -38,7 +39,7 @@ def database_url() -> str:
     return "mongodb://127.0.0.1"
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def db_connect(database_url):
     client: AsyncMongoClient = AsyncMongoClient(database_url)
     db = client.test_db
@@ -62,7 +63,7 @@ def sport_model_fixture(db_connect) -> type[Sport]:
     return Sport
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def sports(Sport: Document) -> AsyncGenerator[list[Sport], None]:  # noqa: N803
     sports = [
         await Sport(name="Ice Hockey", is_individual=False).save(),
@@ -72,7 +73,7 @@ async def sports(Sport: Document) -> AsyncGenerator[list[Sport], None]:  # noqa:
     yield sports  # noqa: PT022
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def users(
     User: Document,  # noqa: N803
     Address: Document,  # noqa: N803
@@ -317,3 +318,9 @@ def app(
         return await query.project(SportOut).to_list()
 
     yield app  # noqa: PT022
+
+
+@pytest_asyncio.fixture(scope="function", loop_scope="session")
+async def test_client(app):
+    async with AsyncClient(base_url="http://test", transport=ASGITransport(app=app)) as async_test_client:
+        yield async_test_client

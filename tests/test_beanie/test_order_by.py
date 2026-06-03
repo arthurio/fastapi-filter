@@ -2,6 +2,8 @@ import pytest
 from fastapi import status
 from pydantic import ValidationError
 
+pytestmark = pytest.mark.asyncio(loop_scope="session")
+
 
 @pytest.mark.parametrize(
     "order_by,assert_function",

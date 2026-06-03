@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 import pytest
 from fastapi import status
 
+pytestmark = pytest.mark.asyncio(loop_scope="session")
+
 
 @pytest.mark.parametrize(
     "filter_,expected_count",
