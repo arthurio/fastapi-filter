@@ -1,8 +1,7 @@
-import asyncio
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, Optional
+from typing import Any
 
 import click
 import uvicorn
@@ -10,8 +9,8 @@ from beanie import Document, Link, PydanticObjectId, init_beanie
 from beanie.odm.fields import WriteRules
 from faker import Faker
 from fastapi import FastAPI, Query
-from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pymongo import AsyncMongoClient
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.beanie import Filter
@@ -40,8 +39,7 @@ class AddressOut(BaseModel):
     city: str
     country: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserIn(BaseModel):
@@ -57,16 +55,16 @@ class UserOut(UserIn):
     name: str
     email: EmailStr
     age: int
-    address: Optional[AddressOut] = None
+    address: AddressOut | None = None
 
 
 class AddressFilter(Filter):
-    street: Optional[str] = None
-    country: Optional[str] = None
-    city: Optional[str] = None
-    city__in: Optional[list[str]] = None
-    custom_order_by: Optional[list[str]] = None
-    custom_search: Optional[str] = None
+    street: str | None = None
+    country: str | None = None
+    city: str | None = None
+    city__in: list[str] | None = None
+    custom_order_by: list[str] | None = None
+    custom_search: str | None = None
 
     class Constants(Filter.Constants):
         model = Address
@@ -76,16 +74,16 @@ class AddressFilter(Filter):
 
 
 class UserFilter(Filter):
-    name: Optional[str] = None
-    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
-    age__lt: Optional[int] = None
+    name: str | None = None
+    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
+    age__lt: int | None = None
     age__gte: int = Field(Query(description="this is a nice description"))
     """Required field with a custom description.
 
     See: https://github.com/tiangolo/fastapi/issues/4700 for why we need to wrap `Query` in `Field`.
     """
     order_by: list[str] = ["age"]
-    search: Optional[str] = None
+    search: str | None = None
 
     class Constants(Filter.Constants):
         model = User
@@ -98,9 +96,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     color_message = "Open " + click.style("http://127.0.0.1:8000/docs", bold=True) + " to start exploring 🎒 🧭 🗺️"
     logger.info(message, extra={"color_message": color_message})
 
-    client: AsyncIOMotorClient = AsyncIOMotorClient("mongodb://localhost:27017/fastapi_filter")
-    # https://github.com/tiangolo/fastapi/issues/3855#issuecomment-1013148113
-    client.get_io_loop = asyncio.get_event_loop  # type: ignore[method-assign]
+    client: AsyncMongoClient = AsyncMongoClient("mongodb://localhost:27017/fastapi_filter")
     db = client.fastapi_filter
     await init_beanie(database=db, document_models=[Address, User])
 
@@ -112,9 +108,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    Address.find_all().delete()
-    User.find_all().delete()
-    client.close()
+    await Address.find_all().delete()
+    await User.find_all().delete()
+    await client.close()
 
 
 app = FastAPI(lifespan=lifespan)

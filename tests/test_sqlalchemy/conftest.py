@@ -1,14 +1,13 @@
 from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import Optional
 
 import pytest
 import pytest_asyncio
 from fastapi import Depends, FastAPI, Query
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, select
+from sqlalchemy import ForeignKey, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapped, declarative_base, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.sqlalchemy import Filter as SQLAlchemyFilter
@@ -50,7 +49,10 @@ async def session(engine, SessionLocal, Base):
 
 @pytest.fixture(scope="session")
 def Base():
-    return declarative_base()
+    class Base(DeclarativeBase):
+        pass
+
+    return Base
 
 
 @pytest.fixture(scope="session")
@@ -58,14 +60,14 @@ def User(Base, Address, FavoriteSport, Sport):
     class User(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "users"
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        created_at = Column(DateTime, default=datetime.now, nullable=False)
-        updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
-        name = Column(String)
-        age = Column(Integer, nullable=False)
-        address_id = Column(Integer, ForeignKey("addresses.id"))
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+        created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+        updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
+        name: Mapped[str | None]
+        age: Mapped[int]
+        address_id: Mapped[int | None] = mapped_column(ForeignKey("addresses.id"))
         address: Mapped[Address] = relationship(Address, backref="users", lazy="joined")  # type: ignore[valid-type]
-        favorite_sports: Mapped[Sport] = relationship(  # type: ignore[valid-type]
+        favorite_sports: Mapped[list[Sport]] = relationship(  # type: ignore[valid-type]
             Sport,
             secondary="favorite_sports",
             backref="users",
@@ -80,10 +82,10 @@ def Address(Base):
     class Address(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "addresses"
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        street = Column(String, nullable=True)
-        city = Column(String, nullable=False)
-        country = Column(String, nullable=False)
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+        street: Mapped[str | None]
+        city: Mapped[str]
+        country: Mapped[str]
 
     return Address
 
@@ -93,9 +95,9 @@ def Sport(Base):
     class Sport(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "sports"
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        name = Column(String, nullable=False)
-        is_individual = Column(Boolean, nullable=False)
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+        name: Mapped[str]
+        is_individual: Mapped[bool]
 
     return Sport
 
@@ -105,8 +107,8 @@ def FavoriteSport(Base):
     class FavoriteSport(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "favorite_sports"
 
-        user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-        sport_id = Column(Integer, ForeignKey("sports.id"), primary_key=True)
+        user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+        sport_id: Mapped[int] = mapped_column(ForeignKey("sports.id"), primary_key=True)
 
     return FavoriteSport
 
@@ -203,7 +205,7 @@ def AddressOut():
         model_config = ConfigDict(from_attributes=True)
 
         id: int
-        street: Optional[str]
+        street: str | None
         city: str
         country: str
 
@@ -218,10 +220,10 @@ def UserOut(AddressOut, SportOut):
         id: int
         created_at: datetime
         updated_at: datetime
-        name: Optional[str]
+        name: str | None
         age: int
-        address: Optional[AddressOut]  # type: ignore[valid-type]
-        favorite_sports: Optional[list[SportOut]]  # type: ignore[valid-type]
+        address: AddressOut | None  # type: ignore[valid-type]
+        favorite_sports: list[SportOut] | None  # type: ignore[valid-type]
 
     return UserOut
 
@@ -246,10 +248,10 @@ def Filter():
 @pytest.fixture(scope="package")
 def AddressFilter(Address, Filter):
     class AddressFilter(Filter):  # type: ignore[misc, valid-type]
-        street__isnull: Optional[bool] = None
-        city: Optional[str] = None
-        city__in: Optional[list[str]] = None
-        country__not_in: Optional[list[str]] = None
+        street__isnull: bool | None = None
+        city: str | None = None
+        city__in: list[str] | None = None
+        country__not_in: list[str] | None = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Address
@@ -260,25 +262,25 @@ def AddressFilter(Address, Filter):
 @pytest.fixture(scope="package")
 def UserFilter(User, Filter, AddressFilter):
     class UserFilter(Filter):  # type: ignore[misc, valid-type]
-        name: Optional[str] = None
-        name__neq: Optional[str] = None
-        name__like: Optional[str] = None
-        name__ilike: Optional[str] = None
-        name__in: Optional[list[str]] = None
-        name__not: Optional[str] = None
-        name__not_in: Optional[list[str]] = None
-        name__isnull: Optional[bool] = None
-        age: Optional[int] = None
-        age__lt: Optional[int] = None
-        age__lte: Optional[int] = None
-        age__gt: Optional[int] = None
-        age__gte: Optional[int] = None
-        age__in: Optional[list[int]] = None
-        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
+        name: str | None = None
+        name__neq: str | None = None
+        name__like: str | None = None
+        name__ilike: str | None = None
+        name__in: list[str] | None = None
+        name__not: str | None = None
+        name__not_in: list[str] | None = None
+        name__isnull: bool | None = None
+        age: int | None = None
+        age__lt: int | None = None
+        age__lte: int | None = None
+        age__gt: int | None = None
+        age__gte: int | None = None
+        age__in: list[int] | None = None
+        address: AddressFilter | None = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter), by_alias=True
         )
-        address_id__isnull: Optional[bool] = None
-        search: Optional[str] = None
+        address_id__isnull: bool | None = None
+        search: str | None = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = User
@@ -291,7 +293,7 @@ def UserFilter(User, Filter, AddressFilter):
 @pytest.fixture(scope="package")
 def UserFilterByAlias(UserFilter, AddressFilter):
     class UserFilterByAlias(UserFilter):  # type: ignore[misc, valid-type]
-        address: Optional[AddressFilter] = FilterDepends(  # type: ignore[valid-type]
+        address: AddressFilter | None = FilterDepends(  # type: ignore[valid-type]
             with_prefix("address", AddressFilter), by_alias=True
         )
 
@@ -301,9 +303,9 @@ def UserFilterByAlias(UserFilter, AddressFilter):
 @pytest.fixture(scope="package")
 def SportFilter(Sport, Filter):
     class SportFilter(Filter):  # type: ignore[misc, valid-type]
-        name: Optional[str] = Field(Query(description="Name of the sport", default=None))
+        name: str | None = Field(Query(description="Name of the sport", default=None))
         is_individual: bool
-        bogus_filter: Optional[str] = None
+        bogus_filter: str | None = None
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
             model = Sport

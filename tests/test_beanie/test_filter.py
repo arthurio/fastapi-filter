@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 import pytest
 from fastapi import status
 
+_session_loop = pytest.mark.asyncio(loop_scope="session")
+
 
 @pytest.mark.parametrize(
     "filter_,expected_count",
@@ -25,7 +27,7 @@ from fastapi import status
     ],
 )
 @pytest.mark.usefixtures("sports", "users")
-@pytest.mark.asyncio
+@_session_loop
 async def test_basic_filter(User, UserFilter, AddressFilter, filter_, expected_count):
     query = UserFilter(**filter_).filter(User.find({}))
     assert await query.count() == expected_count
@@ -52,7 +54,7 @@ async def test_basic_filter(User, UserFilter, AddressFilter, filter_, expected_c
     ],
 )
 @pytest.mark.usefixtures("Address", "users", "User", "UserFilter")
-@pytest.mark.asyncio
+@_session_loop
 async def test_api(test_client, uri, filter_, expected_count):
     response = await test_client.get(f"{uri}?{urlencode(filter_)}")
     assert len(response.json()) == expected_count
@@ -63,12 +65,12 @@ async def test_api(test_client, uri, filter_, expected_count):
     (
         ({"is_individual": True}, status.HTTP_200_OK),
         ({"is_individual": False}, status.HTTP_200_OK),
-        ({}, status.HTTP_422_UNPROCESSABLE_ENTITY),
-        ({"is_individual": None}, status.HTTP_422_UNPROCESSABLE_ENTITY),
-        [{"is_individual": True, "bogus_filter": "bad"}, status.HTTP_422_UNPROCESSABLE_ENTITY],
+        ({}, status.HTTP_422_UNPROCESSABLE_CONTENT),
+        ({"is_individual": None}, status.HTTP_422_UNPROCESSABLE_CONTENT),
+        [{"is_individual": True, "bogus_filter": "bad"}, status.HTTP_422_UNPROCESSABLE_CONTENT],
     ),
 )
-@pytest.mark.asyncio
+@_session_loop
 async def test_required_filter(test_client, filter_, expected_status_code):
     response = await test_client.get(f"/sports?{urlencode(filter_)}")
     assert response.status_code == expected_status_code
