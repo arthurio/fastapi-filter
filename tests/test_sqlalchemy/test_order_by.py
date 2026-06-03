@@ -209,7 +209,7 @@ async def test_api_order_by(test_client, users, order_by, assert_function):
 async def test_api_order_by_invalid_field(test_client, session):
     endpoint = "/users_with_order_by?order_by=invalid"
     response = await test_client.get(endpoint)
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 async def test_api_no_order_by(test_client, session):
@@ -225,8 +225,8 @@ async def test_api_no_order_by(test_client, session):
     [
         [None, lambda previous_user, user: True, status.HTTP_200_OK],
         ["", lambda previous_user, user: True, status.HTTP_200_OK],
-        ["name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
-        ["age,-name", None, status.HTTP_422_UNPROCESSABLE_ENTITY],
+        ["name", None, status.HTTP_422_UNPROCESSABLE_CONTENT],
+        ["age,-name", None, status.HTTP_422_UNPROCESSABLE_CONTENT],
         ["-age", lambda previous_user, user: previous_user["age"] >= user["age"], status.HTTP_200_OK],
         [
             "age,-created_at",

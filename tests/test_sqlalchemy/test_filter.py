@@ -93,9 +93,9 @@ async def test_api(test_client, uri, filter_, expected_count):
     [
         [{"is_individual": True}, status.HTTP_200_OK],
         [{"is_individual": False}, status.HTTP_200_OK],
-        [{}, status.HTTP_422_UNPROCESSABLE_ENTITY],
-        [{"is_individual": None}, status.HTTP_422_UNPROCESSABLE_ENTITY],
-        [{"is_individual": True, "bogus_filter": "bad"}, status.HTTP_422_UNPROCESSABLE_ENTITY],
+        [{}, status.HTTP_422_UNPROCESSABLE_CONTENT],
+        [{"is_individual": None}, status.HTTP_422_UNPROCESSABLE_CONTENT],
+        [{"is_individual": True, "bogus_filter": "bad"}, status.HTTP_422_UNPROCESSABLE_CONTENT],
     ],
 )
 @pytest.mark.usefixtures("sports")
