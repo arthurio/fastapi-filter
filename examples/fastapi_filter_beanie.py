@@ -108,9 +108,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    Address.find_all().delete()
-    User.find_all().delete()
-    client.close()
+    await Address.find_all().delete()
+    await User.find_all().delete()
+    await client.close()
 
 
 app = FastAPI(lifespan=lifespan)

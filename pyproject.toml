@@ -102,6 +102,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
 ]
 
@@ -126,11 +127,9 @@ mkdocs-material = "^9.5.21"
 mypy = "^1.10.1"
 mypy-extensions = "^1.0.0"
 pre-commit = "^3.7.1"
-pudb = "^2024.1"
 pytest = "^9.0.0"
 pytest-asyncio = "^1.4.0"
 pytest-cov = "^5.0.0"
-pytest-pudb = "^0.7.0"
 python-lsp-server = "^1.11.0"
 requests = "^2.32.3"
 tomli = "^2.0.1"

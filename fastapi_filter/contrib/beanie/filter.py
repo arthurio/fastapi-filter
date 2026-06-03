@@ -1,7 +1,7 @@
 from collections.abc import Callable, Mapping
 from typing import Any
 
-from beanie.odm.interfaces.find import FindType
+from beanie import Document
 from beanie.odm.queries.find import FindMany
 
 from fastapi_filter.base.filter import BaseFilterModel
@@ -47,7 +47,7 @@ class Filter(BaseFilterModel):
         ```
     """
 
-    def sort(self, query: FindMany[FindType]) -> FindMany[FindType]:
+    def sort(self, query: FindMany[Document]) -> FindMany[Document]:
         if not self.ordering_values:
             return query
         return query.sort(*self.ordering_values)
@@ -90,7 +90,7 @@ class Filter(BaseFilterModel):
 
         return filter_conditions
 
-    def filter(self, query: FindMany[FindType]) -> FindMany[FindType]:
+    def filter(self, query: FindMany[Document]) -> FindMany[Document]:
         data = self._get_filter_conditions()
         for filter_condition, filter_kwargs in data:
             query = query.find(filter_condition, **filter_kwargs)
