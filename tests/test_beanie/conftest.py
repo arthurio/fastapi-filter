@@ -6,8 +6,8 @@ import pytest_asyncio
 from beanie import Document, Link, PydanticObjectId, init_beanie
 from beanie.odm.fields import WriteRules
 from fastapi import FastAPI, Query
-from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pymongo import AsyncMongoClient
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.beanie import Filter as MongoFilter
@@ -40,7 +40,7 @@ def database_url() -> str:
 
 @pytest_asyncio.fixture(scope="session")
 async def db_connect(database_url):
-    client: AsyncIOMotorClient = AsyncIOMotorClient(database_url)
+    client: AsyncMongoClient = AsyncMongoClient(database_url)
     db = client.test_db
     await init_beanie(database=db, document_models=[Address, Sport, User])
     yield db

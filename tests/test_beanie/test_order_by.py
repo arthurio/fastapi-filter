@@ -18,8 +18,10 @@ from pydantic import ValidationError
         ],
         [
             "age,-created_at",
-            lambda previous_user, user: (previous_user.age < user.age)
-            or (previous_user.age == user.age and previous_user.created_at >= user.created_at),
+            lambda previous_user, user: (
+                (previous_user.age < user.age)
+                or (previous_user.age == user.age and previous_user.created_at >= user.created_at)
+            ),
         ],
     ],
 )
@@ -79,10 +81,12 @@ def test_missing_order_by_field(User, UserFilterNoOrderBy):
         ],
         [
             "age,-name",
-            lambda previous_user, user: (previous_user.age < user.age)
-            or (
-                previous_user.age == user.age
-                and (previous_user.name <= user.name if previous_user.name and user.name else True)
+            lambda previous_user, user: (
+                (previous_user.age < user.age)
+                or (
+                    previous_user.age == user.age
+                    and (previous_user.name <= user.name if previous_user.name and user.name else True)
+                )
             ),
         ],
     ],
@@ -134,9 +138,9 @@ def test_restricted_order_by_success(UserFilterRestrictedOrderBy, order_by):
         ["", lambda previous_user, user: True],
         [
             "name",
-            lambda previous_user, user: previous_user["name"] <= user["name"]
-            if previous_user["name"] and user["name"]
-            else True,
+            lambda previous_user, user: (
+                previous_user["name"] <= user["name"] if previous_user["name"] and user["name"] else True
+            ),
         ],
         [
             "-created_at",
@@ -144,8 +148,10 @@ def test_restricted_order_by_success(UserFilterRestrictedOrderBy, order_by):
         ],
         [
             "age,-created_at",
-            lambda previous_user, user: (previous_user["age"] < user["age"])
-            or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"]),
+            lambda previous_user, user: (
+                (previous_user["age"] < user["age"])
+                or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"])
+            ),
         ],
     ],
 )
@@ -188,8 +194,10 @@ async def test_api_no_order_by(test_client):
         ["-age", lambda previous_user, user: previous_user["age"] >= user["age"], status.HTTP_200_OK],
         [
             "age,-created_at",
-            lambda previous_user, user: (previous_user["age"] < user["age"])
-            or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"]),
+            lambda previous_user, user: (
+                (previous_user["age"] < user["age"])
+                or (previous_user["age"] == user["age"] and previous_user["created_at"] >= user["created_at"])
+            ),
             status.HTTP_200_OK,
         ],
     ],

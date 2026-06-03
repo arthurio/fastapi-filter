@@ -9,8 +9,8 @@ from beanie import Document, Link, PydanticObjectId, init_beanie
 from beanie.odm.fields import WriteRules
 from faker import Faker
 from fastapi import FastAPI, Query
-from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pymongo import AsyncMongoClient
 
 from fastapi_filter import FilterDepends, with_prefix
 from fastapi_filter.contrib.beanie import Filter
@@ -96,7 +96,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     color_message = "Open " + click.style("http://127.0.0.1:8000/docs", bold=True) + " to start exploring 🎒 🧭 🗺️"
     logger.info(message, extra={"color_message": color_message})
 
-    client: AsyncIOMotorClient = AsyncIOMotorClient("mongodb://localhost:27017/fastapi_filter")
+    client: AsyncMongoClient = AsyncMongoClient("mongodb://localhost:27017/fastapi_filter")
     db = client.fastapi_filter
     await init_beanie(database=db, document_models=[Address, User])
 
