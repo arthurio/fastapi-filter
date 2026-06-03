@@ -1395,28 +1395,6 @@ files = [
 ]
 
 [[package]]
-name = "pudb"
-version = "2024.1.3"
-description = "A full-screen, console-based Python debugger"
-optional = false
-python-versions = "~=3.8"
-groups = ["dev"]
-files = [
-    {file = "pudb-2024.1.3-py3-none-any.whl", hash = "sha256:b1c64447fcee5848d0376231672b97ca8580ca6d3297c82cba6b0ba5bd5ee640"},
-    {file = "pudb-2024.1.3.tar.gz", hash = "sha256:264f239e0538e52e83d3d020143100b3171cae17227674bb1b9f8b075f34849c"},
-]
-
-[package.dependencies]
-jedi = ">=0.18,<1"
-packaging = ">=20.0"
-pygments = ">=2.7.4"
-urwid = ">=2.4"
-urwid-readline = "*"
-
-[package.extras]
-completion = ["shtab"]
-
-[[package]]
 name = "pure-eval"
 version = "0.2.2"
 description = "Safely evaluate AST nodes without side effects"
@@ -1736,25 +1714,6 @@ pytest = ">=4.6"
 
 [package.extras]
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
-
-[[package]]
-name = "pytest-pudb"
-version = "0.7.0"
-description = "Pytest PuDB debugger integration"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "pytest-pudb-0.7.0.tar.gz", hash = "sha256:0ea87316d39c82163d340c28a168e08a163b8d3f484e60a53c9fd5eefe432c63"},
-    {file = "pytest_pudb-0.7.0-py2.py3-none-any.whl", hash = "sha256:21e96fc16f313a7bd75e1df1b151de8a721144318b0ae8350208d6554222005a"},
-]
-
-[package.dependencies]
-pudb = "*"
-pytest = ">=2.0"
-
-[package.extras]
-dev = ["flake8", "pexpect", "tox"]
 
 [[package]]
 name = "python-dateutil"
@@ -2422,49 +2381,6 @@ socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
-name = "urwid"
-version = "2.6.14"
-description = "A full-featured console (xterm et al.) user interface library"
-optional = false
-python-versions = ">3.7"
-groups = ["dev"]
-files = [
-    {file = "urwid-2.6.14-py3-none-any.whl", hash = "sha256:3c8afb3cb30f08873608214e2eb9a7a1351a8a19f80addfbd44d9ba476f5102b"},
-    {file = "urwid-2.6.14.tar.gz", hash = "sha256:feeafc4fa9343fdfa1e9b01914064a4a9399ec746b814a550d44462e5ef85c72"},
-]
-
-[package.dependencies]
-typing-extensions = "*"
-wcwidth = "*"
-
-[package.extras]
-curses = ["windows-curses ; sys_platform == \"win32\""]
-glib = ["PyGObject"]
-lcd = ["pyserial"]
-serial = ["pyserial"]
-tornado = ["tornado (>=5.0)"]
-trio = ["exceptiongroup", "trio (>=0.22.0)"]
-twisted = ["twisted"]
-zmq = ["zmq"]
-
-[[package]]
-name = "urwid-readline"
-version = "0.14"
-description = "A textbox edit widget for urwid that supports readline shortcuts"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "urwid_readline-0.14.tar.gz", hash = "sha256:8fabd2e501c124a30d38cfb10610b32f119a615ec0b310ae5591c583fb00bd09"},
-]
-
-[package.dependencies]
-urwid = "*"
-
-[package.extras]
-dev = ["black", "pytest"]
-
-[[package]]
 name = "uvicorn"
 version = "0.30.1"
 description = "The lightning-fast ASGI server."
@@ -2571,4 +2487,4 @@ sqlalchemy = ["SQLAlchemy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "edeefb1fab869b3c44ac7e3aba657e24dea3089343c070c604997f4872852bfe"
+content-hash = "d8531b92bc089a2ee39ed469bd3c1d876d7e4b42fe1fc3f470d9649713ba3dfa"
