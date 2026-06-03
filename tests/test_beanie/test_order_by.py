@@ -2,7 +2,7 @@ import pytest
 from fastapi import status
 from pydantic import ValidationError
 
-pytestmark = pytest.mark.asyncio(loop_scope="session")
+_session_loop = pytest.mark.asyncio(loop_scope="session")
 
 
 @pytest.mark.parametrize(
@@ -28,6 +28,7 @@ pytestmark = pytest.mark.asyncio(loop_scope="session")
     ],
 )
 @pytest.mark.usefixtures("users")
+@_session_loop
 async def test_order_by(User, UserFilterOrderBy, order_by, assert_function):
     query = User.find({})
     query = UserFilterOrderBy(order_by=order_by).sort(query)
@@ -42,6 +43,7 @@ async def test_order_by(User, UserFilterOrderBy, order_by, assert_function):
 
 
 @pytest.mark.usefixtures("users")
+@_session_loop
 async def test_order_by_with_default(User, UserFilterOrderByWithDefault):
     query = User.find({})
     query = UserFilterOrderByWithDefault().sort(query)
@@ -94,6 +96,7 @@ def test_missing_order_by_field(User, UserFilterNoOrderBy):
     ],
 )
 @pytest.mark.usefixtures("users")
+@_session_loop
 async def test_custom_order_by(User, UserFilterCustomOrderBy, order_by, assert_function):
     query = User.find({})
     query = UserFilterCustomOrderBy(custom_order_by=order_by).sort(query)
@@ -158,6 +161,7 @@ def test_restricted_order_by_success(UserFilterRestrictedOrderBy, order_by):
     ],
 )
 @pytest.mark.usefixtures("users")
+@_session_loop
 async def test_api_order_by(test_client, order_by, assert_function):
     endpoint = "/users_with_order_by"
     if order_by is not None:
@@ -172,12 +176,14 @@ async def test_api_order_by(test_client, order_by, assert_function):
         previous_user = user
 
 
+@_session_loop
 async def test_api_order_by_invalid_field(test_client):
     endpoint = "/users_with_order_by?order_by=invalid"
     response = await test_client.get(endpoint)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
+@_session_loop
 async def test_api_no_order_by(test_client):
     endpoint = "/users_with_no_order_by?order_by=age"
     with pytest.raises(
@@ -205,6 +211,7 @@ async def test_api_no_order_by(test_client):
     ],
 )
 @pytest.mark.usefixtures("users")
+@_session_loop
 async def test_api_restricted_order_by(test_client, order_by, assert_function, status_code):
     endpoint = "/users_with_restricted_order_by"
     if order_by is not None:
@@ -221,6 +228,7 @@ async def test_api_restricted_order_by(test_client, order_by, assert_function, s
             previous_user = user
 
 
+@_session_loop
 async def test_api_custom_order_by(test_client):
     endpoint = "/users_with_custom_order_by?custom_order_by=age"
     response = await test_client.get(endpoint)
