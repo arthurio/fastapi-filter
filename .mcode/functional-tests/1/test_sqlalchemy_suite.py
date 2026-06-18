@@ -94,9 +94,12 @@ class TestNativeAnnotatedPattern:
 
     def test_native_pattern_basic_filters(self):
         """Native Annotated[Filter, Query()] pattern: basic name and age filters."""
-        result = run_pytest("test_filter.py::test_api_native_pattern")
+        result = run_pytest(
+            "test_filter.py::test_api_native_pattern",
+            extra_args=["-k", "filter_0 or filter_2 or filter_3 or filter_5 or filter_6"],
+        )
         assert result.returncode == 0, (
-            f"test_api_native_pattern failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+            f"test_api_native_pattern (basic filters) failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         )
         assert "passed" in result.stdout
 
@@ -114,10 +117,11 @@ class TestNativeAnnotatedPattern:
           filter_4: {"name__not_in": "Mr Praline,Mr Creosote,Gumbys,Knight"} -> 2 results
           filter_7: {"age__in": "1"} -> 1 result
           filter_8: {"age__in": "21,33"} -> 3 results
-
-        Running the full test_api_native_pattern suite verifies these cases pass.
         """
-        result = run_pytest("test_filter.py::test_api_native_pattern")
+        result = run_pytest(
+            "test_filter.py::test_api_native_pattern",
+            extra_args=["-k", "filter_1 or filter_4 or filter_7 or filter_8"],
+        )
         assert result.returncode == 0, (
             f"split_str comma handling in native pattern failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         )
