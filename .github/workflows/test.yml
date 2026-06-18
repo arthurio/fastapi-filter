@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v5
@@ -27,34 +27,25 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: cache poetry install
-        uses: actions/cache@v4
-        with:
-          path: ~/.local
-          key: poetry-${{ steps.setup-python.outputs.python-version }}-1.8.5-0
-
-      - uses: snok/install-poetry@v1
-        with:
-          version: 1.8.5
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Load cached venv
-        id: cached-poetry-dependencies
+        id: cached-uv-dependencies
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}-0
+          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/uv.lock') }}-0
 
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --extras all
+        if: steps.cached-uv-dependencies.outputs.cache-hit != 'true'
+        run: uv sync --all-extras
 
       - name: Set up MongoDB
         uses: supercharge/mongodb-github-action@v1.10.0
 
       - name: Run unit tests
-        run: poetry run -- nox -- tests --cov-report=xml
+        run: uv run nox -- tests --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -69,7 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v5
@@ -80,30 +71,19 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: cache poetry install
-        uses: actions/cache@v4
-        with:
-          path: ~/.local
-          key: poetry-${{ steps.setup-python.outputs.python-version }}-1.8.5-0
-
-      - uses: snok/install-poetry@v1
-        with:
-          version: 1.8.5
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Load cached venv
-        id: cached-poetry-dependencies
+        id: cached-uv-dependencies
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}-0
+          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/uv.lock') }}-0
 
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --extras all
+        if: steps.cached-uv-dependencies.outputs.cache-hit != 'true'
+        run: uv sync --all-extras
 
       - name: Run pre-commit
-        run: |
-          source .venv/bin/activate
-          pre-commit run --all-files
+        run: uv run pre-commit run --all-files
