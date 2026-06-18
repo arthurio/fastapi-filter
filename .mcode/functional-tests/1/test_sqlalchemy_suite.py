@@ -48,9 +48,7 @@ def run_pytest(test_selector: str, extra_args: list[str] | None = None) -> subpr
 
 def assert_pytest_passed(result: subprocess.CompletedProcess, label: str) -> None:
     """Assert that a subprocess pytest run succeeded and reported passing tests."""
-    assert result.returncode == 0, (
-        f"{label} failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"{label} failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
     assert "passed" in result.stdout
 
 
