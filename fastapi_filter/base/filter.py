@@ -248,7 +248,7 @@ def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_
     instead of `FilterDepends`. See the examples for both patterns side-by-side.
     """
     fields = _list_to_str_fields(Filter)
-    GeneratedFilter: type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)
+    GeneratedFilter: type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)  # type: ignore[call-overload]
 
     class _FilterWrapper:
         def __init__(

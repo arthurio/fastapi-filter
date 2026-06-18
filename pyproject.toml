@@ -84,6 +84,8 @@ build-backend = "hatchling.build"
 
 [[tool.mypy.overrides]]
 module = [
+  "beanie",
+  "beanie.*",
   "bson.objectid",
   "mongoengine.*",
   "uvicorn.*",
