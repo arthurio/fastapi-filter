@@ -11,11 +11,15 @@ with a specific subset of tests via subprocess and checks the exit code + output
 """
 
 import os
+import shutil
 import subprocess
 
-REPO_DIR = "/l2l/workspace/fastapi-filter"
-UV_BIN = "/home/morphagent/.local/bin/uv"
-ENV = {**os.environ, "PATH": f"/home/morphagent/.local/bin:{os.environ.get('PATH', '')}"}
+_uv = shutil.which("uv")
+if _uv is None:
+    raise RuntimeError("uv binary not found on PATH; install uv before running functional tests")
+UV_BIN: str = _uv
+REPO_DIR: str = os.path.join(os.environ.get("WORKSPACE_DIR", "/l2l/workspace"), "fastapi-filter")
+ENV = {**os.environ}
 
 
 def run_pytest(test_selector: str, extra_args: list[str] | None = None) -> subprocess.CompletedProcess:
