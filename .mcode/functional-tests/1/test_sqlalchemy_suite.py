@@ -46,6 +46,14 @@ def run_pytest(test_selector: str, extra_args: list[str] | None = None) -> subpr
     )
 
 
+def assert_pytest_passed(result: subprocess.CompletedProcess, label: str) -> None:
+    """Assert that a subprocess pytest run succeeded and reported passing tests."""
+    assert result.returncode == 0, (
+        f"{label} failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+    )
+    assert "passed" in result.stdout
+
+
 class TestFilterDependsRegression:
     """Regression tests for the FilterDepends pattern after _FilterWrapper refactor.
 
@@ -56,32 +64,22 @@ class TestFilterDependsRegression:
     def test_filter_direct_instantiation(self):
         """FilterDepends pattern: direct filter instantiation with all operators."""
         result = run_pytest("test_filter.py::test_filter")
-        assert result.returncode == 0, f"test_filter failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_filter")
 
     def test_filter_api_filterdepends(self):
         """FilterDepends pattern: API endpoint filters via /users and /users-by-alias."""
         result = run_pytest("test_filter.py::test_api")
-        assert result.returncode == 0, (
-            f"test_api (FilterDepends path) failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_api (FilterDepends path)")
 
     def test_required_filter_validation(self):
         """FilterDepends pattern: required filter fields trigger 422 when missing."""
         result = run_pytest("test_filter.py::test_required_filter")
-        assert result.returncode == 0, (
-            f"test_required_filter failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_required_filter")
 
     def test_deprecation_like_ilike(self):
         """FilterDepends pattern: like/ilike without % triggers DeprecationWarning."""
         result = run_pytest("test_filter.py::test_filter_deprecation_like_and_ilike")
-        assert result.returncode == 0, (
-            f"test_filter_deprecation_like_and_ilike failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_filter_deprecation_like_and_ilike")
 
 
 class TestNativeAnnotatedPattern:
@@ -98,10 +96,7 @@ class TestNativeAnnotatedPattern:
             "test_filter.py::test_api_native_pattern",
             extra_args=["-k", "filter_0 or filter_2 or filter_3 or filter_5 or filter_6"],
         )
-        assert result.returncode == 0, (
-            f"test_api_native_pattern (basic filters) failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_api_native_pattern (basic filters)")
 
     def test_native_pattern_split_str_comma_handling(self):
         """Native pattern: split_str handles single-element list wrapping from FastAPI.
@@ -122,16 +117,13 @@ class TestNativeAnnotatedPattern:
             "test_filter.py::test_api_native_pattern",
             extra_args=["-k", "filter_1 or filter_4 or filter_7 or filter_8"],
         )
-        assert result.returncode == 0, (
-            f"split_str comma handling in native pattern failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
+        assert_pytest_passed(result, "split_str comma handling in native pattern")
         # Verify parametrized cases with comma-separated string values pass
         # These are filter_1 (name__in), filter_4 (name__not_in), filter_7/8 (age__in)
         assert "filter_1" in result.stdout
         assert "filter_4" in result.stdout
         assert "filter_7" in result.stdout
         assert "filter_8" in result.stdout
-        assert "passed" in result.stdout
 
 
 class TestOrderByFunctionality:
@@ -144,99 +136,64 @@ class TestOrderByFunctionality:
     def test_order_by_direct(self):
         """Direct order_by instantiation with various sort directions."""
         result = run_pytest("test_order_by.py::test_order_by")
-        assert result.returncode == 0, f"test_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_order_by")
 
     def test_order_by_with_default(self):
         """Order-by with a default value is applied when no order_by param is given."""
         result = run_pytest("test_order_by.py::test_order_by_with_default")
-        assert result.returncode == 0, (
-            f"test_order_by_with_default failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_order_by_with_default")
 
     def test_order_by_api_with_default(self):
         """API endpoint: order_by with default applied correctly via HTTP."""
         result = run_pytest("test_order_by.py::test_api_order_by_with_default")
-        assert result.returncode == 0, (
-            f"test_api_order_by_with_default failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_api_order_by_with_default")
 
     def test_invalid_order_by(self):
         """Invalid order_by field raises ValidationError."""
         result = run_pytest("test_order_by.py::test_invalid_order_by")
-        assert result.returncode == 0, (
-            f"test_invalid_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_invalid_order_by")
 
     def test_missing_order_by_field(self):
         """Using sort() on a filter without order_by defined raises AttributeError."""
         result = run_pytest("test_order_by.py::test_missing_order_by_field")
-        assert result.returncode == 0, (
-            f"test_missing_order_by_field failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_missing_order_by_field")
 
     def test_custom_order_by(self):
         """Custom ordering_field_name (not default 'order_by') works correctly."""
         result = run_pytest("test_order_by.py::test_custom_order_by")
-        assert result.returncode == 0, (
-            f"test_custom_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_custom_order_by")
 
     def test_restricted_order_by_failure(self):
         """Order_by with non-allowed field raises ValidationError."""
         result = run_pytest("test_order_by.py::test_restricted_order_by_failure")
-        assert result.returncode == 0, (
-            f"test_restricted_order_by_failure failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_restricted_order_by_failure")
 
     def test_restricted_order_by_success(self):
         """Order_by with allowed fields succeeds."""
         result = run_pytest("test_order_by.py::test_restricted_order_by_success")
-        assert result.returncode == 0, (
-            f"test_restricted_order_by_success failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_restricted_order_by_success")
 
     def test_api_order_by(self):
         """API endpoint: order_by via HTTP query params works correctly."""
         result = run_pytest("test_order_by.py::test_api_order_by")
-        assert result.returncode == 0, f"test_api_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_api_order_by")
 
     def test_api_order_by_invalid_field(self):
         """API endpoint: invalid order_by field returns 422."""
         result = run_pytest("test_order_by.py::test_api_order_by_invalid_field")
-        assert result.returncode == 0, (
-            f"test_api_order_by_invalid_field failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_api_order_by_invalid_field")
 
     def test_api_restricted_order_by(self):
         """API endpoint: restricted order_by fields enforce allowlist."""
         result = run_pytest("test_order_by.py::test_api_restricted_order_by")
-        assert result.returncode == 0, (
-            f"test_api_restricted_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_api_restricted_order_by")
 
     def test_api_custom_order_by(self):
         """API endpoint: custom ordering_field_name used via HTTP."""
         result = run_pytest("test_order_by.py::test_api_custom_order_by")
-        assert result.returncode == 0, (
-            f"test_api_custom_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_api_custom_order_by")
 
     def test_order_by_duplicates_fail(self):
         """Duplicate fields in order_by raise ValidationError with descriptive message."""
         result = run_pytest("test_order_by.py::test_order_by_with_duplicates_fail")
-        assert result.returncode == 0, (
-            f"test_order_by_with_duplicates_fail failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
-        assert "passed" in result.stdout
+        assert_pytest_passed(result, "test_order_by_with_duplicates_fail")
