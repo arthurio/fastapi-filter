@@ -90,6 +90,25 @@ class UserFilter(Filter):
         search_model_fields = ["name"]
 
 
+class FlatUserFilter(Filter):
+    """Flat user filter with no nested sub-filters.
+
+    Suitable for use with the native ``Annotated[FlatUserFilter, Query()]`` pattern
+    (FastAPI 0.115+). For nested filters (e.g. address sub-filter via ``with_prefix``),
+    use ``FilterDepends`` instead — see the ``UserFilter`` class above.
+    """
+
+    name: str | None = None
+    age__lt: int | None = None
+    age__gte: int | None = None
+    order_by: list[str] = ["age"]
+    search: str | None = None
+
+    class Constants(Filter.Constants):
+        model = User
+        search_model_fields = ["name"]
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     message = "Open http://127.0.0.1:8000/docs to start exploring 🎒 🧭 🗺️"
@@ -128,8 +147,8 @@ async def get_users(user_filter: UserFilter = FilterDepends(UserFilter)) -> Any:
 async def get_users_native(
     # For non-nested filters, the native Annotated[Filter, Query()] pattern (FastAPI 0.115+)
     # is simpler and does not require FilterDepends. Use FilterDepends when you need
-    # nested filters with with_prefix().
-    user_filter: Annotated[UserFilter, Query()],
+    # nested filters with with_prefix() — see the /users route above.
+    user_filter: Annotated[FlatUserFilter, Query()],
 ) -> Any:
     query = user_filter.filter(User.find({}))
     query = user_filter.sort(query)

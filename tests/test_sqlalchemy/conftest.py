@@ -341,7 +341,7 @@ def FlatUserFilter(User, Filter):
 
 
 @pytest.fixture(scope="package")
-def app(
+def app(  # noqa: C901
     Address,
     FavoriteSport,
     FlatUserFilter,

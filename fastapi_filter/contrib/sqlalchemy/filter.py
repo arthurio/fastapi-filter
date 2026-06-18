@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from warnings import warn
 
@@ -82,7 +82,7 @@ class Filter(BaseFilterModel):
             name__isnull: Optional[bool]
     """
 
-    class Direction(str, Enum):
+    class Direction(StrEnum):
         asc = "asc"
         desc = "desc"
 

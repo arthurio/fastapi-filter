@@ -129,19 +129,22 @@ class BaseFilterModel(BaseModel, extra="forbid"):
     @field_validator("*", mode="before")
     @classmethod
     def split_str(cls, value, field: ValidationInfo):
-        if (
-            field.field_name is not None
-            and (
-                field.field_name == cls.Constants.ordering_field_name
-                or field.field_name.endswith("__in")
-                or field.field_name.endswith("__not_in")
-                or field.field_name.endswith("__nin")
-            )
-            and isinstance(value, str)
+        if field.field_name is not None and (
+            field.field_name == cls.Constants.ordering_field_name
+            or field.field_name.endswith("__in")
+            or field.field_name.endswith("__not_in")
+            or field.field_name.endswith("__nin")
         ):
-            if not value:
-                return []
-            return list(value.split(","))
+            # Handle raw string (FilterDepends path or direct instantiation)
+            if isinstance(value, str):
+                if not value:
+                    return []
+                return list(value.split(","))
+            # Handle single-element list wrapping a comma-separated string.
+            # FastAPI's native Annotated[Filter, Query()] wraps list[str] fields in a
+            # list, so "a,b,c" arrives as ["a,b,c"] rather than as a plain str.
+            if isinstance(value, list) and len(value) == 1 and isinstance(value[0], str) and "," in value[0]:
+                return list(value[0].split(","))
         return value
 
 
