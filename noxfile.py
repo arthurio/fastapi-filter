@@ -21,4 +21,4 @@ def tests(session, sqlalchemy):
     # Override SQLAlchemy with the specific version under test so the nox parametrization
     # actually exercises the pinned version (not the uv.lock-resolved version).
     session.install(f"sqlalchemy[asyncio]=={sqlalchemy}")
-    session.run("pytest", *session.posargs)
+    session.run("uv", "run", "pytest", *session.posargs, external=True)
