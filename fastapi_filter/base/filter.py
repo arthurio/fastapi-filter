@@ -1,7 +1,8 @@
+import inspect
+import types
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
-from types import UnionType
 from typing import Any, Union, get_args, get_origin
 
 from fastapi import Depends
@@ -9,7 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
 from pydantic.fields import FieldInfo
 
-UNION_TYPES: list = [Union, UnionType]
+type FilterField = tuple[object | type, FieldInfo | None]
 
 
 class BaseFilterModel(BaseModel, extra="forbid"):
@@ -199,13 +200,13 @@ def with_prefix(prefix: str, Filter: type[BaseFilterModel]) -> type[BaseFilterMo
     return NestedFilter
 
 
-def _list_to_str_fields(Filter: type[BaseFilterModel]):
-    ret: dict[str, tuple[object | type, FieldInfo | None]] = {}
+def _list_to_str_fields(Filter: type[BaseFilterModel]) -> dict[str, FilterField]:
+    ret: dict[str, FilterField] = {}
     for name, f in Filter.model_fields.items():
         field_info = deepcopy(f)
         annotation = f.annotation
 
-        if get_origin(annotation) in UNION_TYPES:
+        if get_origin(annotation) is Union or isinstance(annotation, types.UnionType):
             annotation_args: list = list(get_args(f.annotation))
             if type(None) in annotation_args:
                 annotation_args.remove(type(None))
@@ -238,21 +239,37 @@ def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_
 
     When we apply the filter, we build the original filter to properly validate the data (i.e. can the string be parsed
     and formatted as a list of <type>?)
+
+    For non-nested filters (filters without nested FilterDepends fields), the simpler
+    `Annotated[Filter, Query()]` pattern from FastAPI 0.115+ can be used directly
+    instead of `FilterDepends`. See the examples for both patterns side-by-side.
     """
     fields = _list_to_str_fields(Filter)
     GeneratedFilter: type[BaseFilterModel] = create_model(Filter.__class__.__name__, **fields)
 
-    class FilterWrapper(GeneratedFilter):  # type: ignore[misc,valid-type]
-        def __new__(cls, *args, **kwargs):
+    class _FilterWrapper:
+        def __init__(
+            self,
+            generated_filter: type[BaseFilterModel],
+            filter_class: type[BaseFilterModel],
+            by_alias: bool,
+        ) -> None:
+            self._generated_filter = generated_filter
+            self._filter_class = filter_class
+            self._by_alias = by_alias
+            # Copy the __signature__ from GeneratedFilter so FastAPI can introspect query params
+            self.__signature__ = inspect.signature(generated_filter)
+
+        def __call__(self, **kwargs: Any) -> BaseFilterModel:
             try:
-                instance = GeneratedFilter(*args, **kwargs)
-                data = instance.model_dump(exclude_unset=True, exclude_defaults=True, by_alias=by_alias)
-                if original_filter := getattr(Filter.Constants, "original_filter", None):
-                    prefix = f"{Filter.Constants.prefix}__"
+                instance = self._generated_filter(**kwargs)
+                data = instance.model_dump(exclude_unset=True, exclude_defaults=True, by_alias=self._by_alias)
+                if original_filter := getattr(self._filter_class.Constants, "original_filter", None):
+                    prefix = f"{self._filter_class.Constants.prefix}__"
                     stripped = {k.removeprefix(prefix): v for k, v in data.items()}
                     return original_filter(**stripped)
-                return Filter(**data)
+                return self._filter_class(**data)
             except ValidationError as e:
                 raise RequestValidationError(e.errors()) from e
 
-    return Depends(FilterWrapper)
+    return Depends(_FilterWrapper(GeneratedFilter, Filter, by_alias))
