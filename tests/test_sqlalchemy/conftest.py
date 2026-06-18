@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from datetime import datetime
+from typing import Annotated
 
 import pytest
 import pytest_asyncio
@@ -319,9 +320,31 @@ def SportFilter(Sport, Filter):
 
 
 @pytest.fixture(scope="package")
+def FlatUserFilter(User, Filter):
+    class FlatUserFilter(Filter):  # type: ignore[misc, valid-type]
+        name: str | None = None
+        name__neq: str | None = None
+        name__isnull: bool | None = None
+        name__not: str | None = None
+        name__not_in: list[str] | None = None
+        name__in: list[str] | None = None
+        age__lt: int | None = None
+        age__lte: int | None = None
+        age__gt: int | None = None
+        age__gte: int | None = None
+        age__in: list[int] | None = None
+
+        class Constants(Filter.Constants):  # type: ignore[name-defined]
+            model = User
+
+    yield FlatUserFilter
+
+
+@pytest.fixture(scope="package")
 def app(
     Address,
     FavoriteSport,
+    FlatUserFilter,
     SessionLocal,
     Sport,
     SportFilter,
@@ -353,6 +376,15 @@ def app(
     @app.get("/users-by-alias", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_by_alias(
         user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True),  # type: ignore[valid-type]
+        db: AsyncSession = Depends(get_db),
+    ):
+        query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]
+        result = await db.execute(query)
+        return result.scalars().unique().all()
+
+    @app.get("/users-native", response_model=list[UserOut])  # type: ignore[valid-type]
+    async def get_users_native(
+        user_filter: Annotated[FlatUserFilter, Query()],  # type: ignore[valid-type]
         db: AsyncSession = Depends(get_db),
     ):
         query = user_filter.filter(select(User).outerjoin(Address))  # type: ignore[attr-defined]

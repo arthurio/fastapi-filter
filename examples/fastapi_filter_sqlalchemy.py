@@ -1,7 +1,7 @@
 import logging
 from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Annotated, Any
 
 import click
 import uvicorn
@@ -149,6 +149,21 @@ async def get_db() -> AsyncIterator[AsyncSession]:
 @app.get("/users", response_model=list[UserOut])
 async def get_users(
     user_filter: UserFilter = FilterDepends(UserFilter),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    query = select(User).join(Address)
+    query = user_filter.filter(query)
+    query = user_filter.sort(query)
+    result = await db.execute(query)
+    return result.scalars().all()
+
+
+@app.get("/users-native", response_model=list[UserOut])
+async def get_users_native(
+    # For non-nested filters, the native Annotated[Filter, Query()] pattern (FastAPI 0.115+)
+    # is simpler and does not require FilterDepends. Use FilterDepends when you need
+    # nested filters with with_prefix().
+    user_filter: Annotated[UserFilter, Query()],
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     query = select(User).join(Address)
