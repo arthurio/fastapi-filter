@@ -9,6 +9,7 @@ These tests wrap the library's own pytest suite and verify:
 This is a CLI-style functional test: each test class invokes the library's pytest suite
 with a specific subset of tests via subprocess and checks the exit code + output.
 """
+
 import os
 import subprocess
 
@@ -20,9 +21,13 @@ ENV = {**os.environ, "PATH": f"/home/morphagent/.local/bin:{os.environ.get('PATH
 def run_pytest(test_selector: str, extra_args: list[str] | None = None) -> subprocess.CompletedProcess:
     """Run a specific subset of the SQLAlchemy test suite via uv run pytest."""
     cmd = [
-        UV_BIN, "run", "pytest",
+        UV_BIN,
+        "run",
+        "pytest",
         f"tests/test_sqlalchemy/{test_selector}",
-        "-v", "--no-header", "--tb=short",
+        "-v",
+        "--no-header",
+        "--tb=short",
         "--no-cov",  # disable coverage for functional test runs
     ]
     if extra_args:
@@ -47,9 +52,7 @@ class TestFilterDependsRegression:
     def test_filter_direct_instantiation(self):
         """FilterDepends pattern: direct filter instantiation with all operators."""
         result = run_pytest("test_filter.py::test_filter")
-        assert result.returncode == 0, (
-            f"test_filter failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"test_filter failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         assert "passed" in result.stdout
 
     def test_filter_api_filterdepends(self):
@@ -133,9 +136,7 @@ class TestOrderByFunctionality:
     def test_order_by_direct(self):
         """Direct order_by instantiation with various sort directions."""
         result = run_pytest("test_order_by.py::test_order_by")
-        assert result.returncode == 0, (
-            f"test_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"test_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         assert "passed" in result.stdout
 
     def test_order_by_with_default(self):
@@ -197,9 +198,7 @@ class TestOrderByFunctionality:
     def test_api_order_by(self):
         """API endpoint: order_by via HTTP query params works correctly."""
         result = run_pytest("test_order_by.py::test_api_order_by")
-        assert result.returncode == 0, (
-            f"test_api_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"test_api_order_by failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         assert "passed" in result.stdout
 
     def test_api_order_by_invalid_field(self):
