@@ -2,7 +2,7 @@ import nox
 
 
 @nox.session(reuse_venv=True)
-@nox.parametrize("sqlalchemy", ["2.0.51", "2.1.0"])
+@nox.parametrize("sqlalchemy", ["2.0.51"])  # add "2.1.0" once the final release is on PyPI
 def tests(session, sqlalchemy):
     # Install the project with all optional extras into the nox session venv
     session.install(".[all]")
