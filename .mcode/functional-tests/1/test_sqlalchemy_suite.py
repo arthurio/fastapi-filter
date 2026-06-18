@@ -1,5 +1,4 @@
-"""
-Functional tests for the fastapi-filter library's SQLAlchemy backend.
+"""Functional tests for the fastapi-filter library's SQLAlchemy backend.
 
 These tests wrap the library's own pytest suite and verify:
 1. FilterDepends (existing pattern) still works - regression test for _FilterWrapper refactor
@@ -10,9 +9,8 @@ These tests wrap the library's own pytest suite and verify:
 This is a CLI-style functional test: each test class invokes the library's pytest suite
 with a specific subset of tests via subprocess and checks the exit code + output.
 """
-import subprocess
 import os
-import pytest
+import subprocess
 
 REPO_DIR = "/l2l/workspace/fastapi-filter"
 UV_BIN = "/home/morphagent/.local/bin/uv"
