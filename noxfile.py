@@ -16,6 +16,7 @@ def tests(session, sqlalchemy):
         "Faker>=26.0.0",
         "SQLAlchemy-Utils>=0.41.2",
         "uvicorn>=0.30.1",
+        "pydantic[email]>=2.12.0,<3",
     )
     # Override SQLAlchemy with the specific version under test so the nox parametrization
     # actually exercises the pinned version (not the uv.lock-resolved version).
