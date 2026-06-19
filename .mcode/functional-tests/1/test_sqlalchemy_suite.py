@@ -12,7 +12,7 @@ with a specific subset of tests via subprocess and checks the exit code + output
 
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404
 
 _uv = shutil.which("uv")
 if _uv is None:
@@ -36,7 +36,7 @@ def run_pytest(test_selector: str, extra_args: list[str] | None = None) -> subpr
     ]
     if extra_args:
         cmd.extend(extra_args)
-    return subprocess.run(
+    return subprocess.run(  # nosec B603
         cmd,
         cwd=REPO_DIR,
         capture_output=True,
