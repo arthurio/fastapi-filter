@@ -61,6 +61,28 @@ async def test_api(test_client, uri, filter_, expected_count):
 
 
 @pytest.mark.parametrize(
+    "filter_,expected_count",
+    [
+        [{"name": "Mr Praline"}, 1],
+        [{"name__in": "Mr Praline,Mr Creosote,Gumbys,Knight"}, 3],
+        [{"name__isnull": True}, 1],
+        [{"name__isnull": False}, 5],
+        [{"name__nin": "Mr Praline,Mr Creosote,Gumbys,Knight"}, 3],
+        [{"name__ne": "Mr Praline"}, 5],
+        [{"name__ne": "Mr Praline", "age__gte": 21, "age__lt": 50}, 2],
+        [{"age__in": "1"}, 1],
+        [{"age__in": "21,33"}, 3],
+    ],
+)
+@pytest.mark.usefixtures("Address", "users", "User", "UserFilter")
+@_session_loop
+async def test_api_native_pattern(test_client, filter_, expected_count):
+    """Test that the native Annotated[Filter, Query()] pattern works identically to FilterDepends for flat filters."""
+    response = await test_client.get(f"/users-native?{urlencode(filter_)}")
+    assert len(response.json()) == expected_count
+
+
+@pytest.mark.parametrize(
     "filter_,expected_status_code",
     (
         ({"is_individual": True}, status.HTTP_200_OK),

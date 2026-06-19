@@ -20,6 +20,13 @@ as well as the type of operator, then tie your filter to a specific model.
 
 [MongoEngine](https://github.com/arthurio/fastapi-filter/blob/main/examples/fastapi_filter_mongoengine.py)
 
+> **Warning: Synchronous driver.** The MongoEngine backend uses PyMongo, a
+> **synchronous** driver. Calling filter or sort operations from `async def`
+> FastAPI route handlers will **block the asyncio event loop**, degrading
+> throughput under load. For async FastAPI applications, use the
+> [Beanie backend](https://github.com/arthurio/fastapi-filter/blob/main/examples/fastapi_filter_beanie.py)
+> instead.
+
 [beanie](https://github.com/arthurio/fastapi-filter/blob/main/examples/fastapi_filter_beanie.py)
 
 ### Operators

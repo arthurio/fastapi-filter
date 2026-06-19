@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator, Generator
 from datetime import datetime
+from typing import Annotated
 
 import pytest
 import pytest_asyncio
@@ -246,8 +247,30 @@ def Filter():
 
 
 @pytest.fixture(scope="package")
+def FlatUserFilter(User, Filter):
+    class FlatUserFilter(Filter):  # type: ignore[misc, valid-type]
+        name: str | None = None
+        name__in: list[str] | None = None
+        name__nin: list[str] | None = None
+        name__ne: str | None = None
+        name__isnull: bool | None = None
+        age: int | None = None
+        age__lt: int | None = None
+        age__lte: int | None = None
+        age__gt: int | None = None
+        age__gte: int | None = None
+        age__in: list[int] | None = None
+
+        class Constants(MongoFilter.Constants):  # type: ignore[name-defined]
+            model = User
+
+    yield FlatUserFilter
+
+
+@pytest.fixture(scope="package")
 def app(
     Address: Document,
+    FlatUserFilter,
     User: Document,
     SportFilter,
     SportOut: BaseModel,
@@ -270,6 +293,13 @@ def app(
     @app.get("/users-by-alias", response_model=list[UserOut])  # type: ignore[valid-type]
     async def get_users_by_alias(
         user_filter: UserFilter = FilterDepends(UserFilterByAlias, by_alias=True),  # type: ignore[valid-type]
+    ):
+        query = user_filter.filter(User.find({}))  # type: ignore[attr-defined]
+        return await query.project(UserOut).to_list()
+
+    @app.get("/users-native", response_model=list[UserOut])  # type: ignore[valid-type]
+    async def get_users_native(
+        user_filter: Annotated[FlatUserFilter, Query()],  # type: ignore[valid-type]
     ):
         query = user_filter.filter(User.find({}))  # type: ignore[attr-defined]
         return await query.project(UserOut).to_list()

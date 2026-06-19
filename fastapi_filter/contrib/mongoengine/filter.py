@@ -1,3 +1,12 @@
+"""MongoEngine filter backend for fastapi-filter.
+
+.. warning::
+    All filter and sort operations in this backend are **synchronous** (backed by
+    PyMongo's blocking driver) and will block the asyncio event loop when called
+    from ``async def`` FastAPI route handlers. For async FastAPI applications,
+    use the Beanie backend (``fastapi_filter.contrib.beanie``) instead.
+"""
+
 from mongoengine import QuerySet
 from mongoengine.queryset.visitor import Q
 

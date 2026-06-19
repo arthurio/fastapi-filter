@@ -2,7 +2,7 @@ from urllib.parse import urlencode
 
 import pytest
 from fastapi import status
-from sqlalchemy.future import select
+from sqlalchemy import select
 
 
 @pytest.mark.parametrize(
@@ -85,6 +85,27 @@ async def test_filter_deprecation_like_and_ilike(session, Address, User, UserFil
 @pytest.mark.usefixtures("users")
 async def test_api(test_client, uri, filter_, expected_count):
     response = await test_client.get(f"{uri}?{urlencode(filter_)}")
+    assert len(response.json()) == expected_count
+
+
+@pytest.mark.parametrize(
+    "filter_,expected_count",
+    [
+        [{"name": "Mr Praline"}, 1],
+        [{"name__in": "Mr Praline,Mr Creosote,Gumbys,Knight"}, 3],
+        [{"name__isnull": True}, 1],
+        [{"name__isnull": False}, 5],
+        [{"name__not_in": "Mr Praline,Mr Creosote,Gumbys,Knight"}, 2],
+        [{"name__not": "Mr Praline"}, 5],
+        [{"name__not": "Mr Praline", "age__gte": 21, "age__lt": 50}, 2],
+        [{"age__in": "1"}, 1],
+        [{"age__in": "21,33"}, 3],
+    ],
+)
+@pytest.mark.usefixtures("users")
+async def test_api_native_pattern(test_client, filter_, expected_count):
+    """Test that the native Annotated[Filter, Query()] pattern works identically to FilterDepends for flat filters."""
+    response = await test_client.get(f"/users-native?{urlencode(filter_)}")
     assert len(response.json()) == expected_count
 
 

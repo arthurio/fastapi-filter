@@ -1,4 +1,6 @@
-from enum import Enum
+from collections.abc import Callable
+from enum import StrEnum
+from typing import Any
 from warnings import warn
 
 from sqlalchemy import or_
@@ -28,7 +30,7 @@ def _backward_compatible_value_for_like_and_ilike(value: str):
     return value
 
 
-_orm_operator_transformer = {
+_orm_operator_transformer: dict[str, Callable[[Any], tuple[str, Any]]] = {
     "neq": lambda value: ("__ne__", value),
     "gt": lambda value: ("__gt__", value),
     "gte": lambda value: ("__ge__", value),
@@ -80,7 +82,7 @@ class Filter(BaseFilterModel):
             name__isnull: Optional[bool]
     """
 
-    class Direction(str, Enum):
+    class Direction(StrEnum):
         asc = "asc"
         desc = "desc"
 

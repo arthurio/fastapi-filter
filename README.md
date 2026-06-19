@@ -9,14 +9,14 @@
 
 **Required:**
 
-- Python: >=3.9, <4.0
-- Fastapi: >=0.100, <1.0
-- Pydantic: >=2.0.0, <3.0.0
+- Python: >=3.12
+- Fastapi: >=0.115.0, <1.0
+- Pydantic: >=2.12.0, <3.0.0
 
 **Optional**
 
-- MongoEngine: >=0.24.1, <0.28.0
-- SQLAlchemy: >=1.4.36, <2.1.0
+- MongoEngine: >=0.28.0, <0.30.0
+- SQLAlchemy: >=2.0.0, <3.0.0
 
 ## Installation
 
@@ -43,9 +43,8 @@ Please visit: [https://fastapi-filter.netlify.app/](https://fastapi-filter.netli
 You can play with examples:
 
 ```bash
-pip install poetry
-poetry install
-python examples/fastapi_filter_sqlalchemy.py
+uv sync --all-extras
+uv run python examples/fastapi_filter_sqlalchemy.py
 ```
 
 ### Filter
@@ -61,9 +60,8 @@ https://user-images.githubusercontent.com/950449/176747056-ea82d6b9-cb3b-43eb-ae
 You can run tests with `pytest`.
 
 ```bash
-pip install poetry
-poetry install --extras all
-pytest
+uv sync --all-extras
+uv run pytest
 ```
 
 <img width="884" alt="arthur_Arthurs-MacBook-Pro-2___code_fastapi-filter" src="https://user-images.githubusercontent.com/950449/176737623-a77f15d6-4e60-4c06-bdb7-b3d77f346a54.png">
