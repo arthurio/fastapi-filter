@@ -51,7 +51,7 @@ jobs:
         run: poetry install --no-interaction --extras all
 
       - name: Set up MongoDB
-        uses: supercharge/mongodb-github-action@v1.10.0
+        uses: supercharge/mongodb-github-action@1.12.1
 
       - name: Run unit tests
         run: poetry run -- nox -- tests --cov-report=xml
