@@ -51,7 +51,7 @@ class TestAddressesHappyPath:
 class TestAddressesFiltering:
     """GET /addresses -- filtering by various fields using custom prefix."""
 
-    def test_filter_by_country(self):
+    def test_addresses_filter_by_country(self):
         """my_custom_prefix__country filters addresses by exact country match."""
         resp = requests.get(f"{BASE_URL}/addresses", timeout=10)
         all_addrs = resp.json()
@@ -67,7 +67,7 @@ class TestAddressesFiltering:
         for addr in filtered:
             assert addr["country"] == target_country
 
-    def test_filter_by_city(self):
+    def test_addresses_filter_by_city(self):
         """my_custom_prefix__city filters addresses by exact city match."""
         resp = requests.get(f"{BASE_URL}/addresses", timeout=10)
         all_addrs = resp.json()
@@ -83,7 +83,7 @@ class TestAddressesFiltering:
         for addr in filtered:
             assert addr["city"] == target_city
 
-    def test_filter_by_street(self):
+    def test_addresses_filter_by_street(self):
         """my_custom_prefix__street filters addresses by exact street match."""
         resp = requests.get(f"{BASE_URL}/addresses", timeout=10)
         all_addrs = resp.json()
@@ -99,7 +99,7 @@ class TestAddressesFiltering:
         for addr in filtered:
             assert addr["street"] == target_street
 
-    def test_city_in_filter(self):
+    def test_addresses_city_in_filter(self):
         """my_custom_prefix__city__in filters addresses to those in the specified cities."""
         resp = requests.get(f"{BASE_URL}/addresses", timeout=10)
         all_addrs = resp.json()
@@ -116,7 +116,7 @@ class TestAddressesFiltering:
         for addr in filtered:
             assert addr["city"] in [city1, city2]
 
-    def test_filter_nonexistent_country_returns_empty(self):
+    def test_addresses_filter_nonexistent_country_returns_empty(self):
         """Filtering by a non-existent country returns empty list."""
         resp = requests.get(
             f"{BASE_URL}/addresses",
@@ -130,7 +130,7 @@ class TestAddressesFiltering:
 class TestAddressesOrdering:
     """GET /addresses -- ordering with custom_order_by."""
 
-    def test_order_by_city_ascending(self):
+    def test_addresses_order_by_city_ascending(self):
         """custom_order_by=city orders addresses by city ascending."""
         resp = requests.get(
             f"{BASE_URL}/addresses",
@@ -142,7 +142,7 @@ class TestAddressesOrdering:
         cities = [a["city"] for a in data]
         assert cities == sorted(cities), "Should be sorted by city ascending"
 
-    def test_order_by_city_descending(self):
+    def test_addresses_order_by_city_descending(self):
         """custom_order_by=-city orders addresses by city descending."""
         resp = requests.get(
             f"{BASE_URL}/addresses",
@@ -154,7 +154,7 @@ class TestAddressesOrdering:
         cities = [a["city"] for a in data]
         assert cities == sorted(cities, reverse=True), "Should be sorted by city descending"
 
-    def test_order_by_country(self):
+    def test_addresses_order_by_country(self):
         """custom_order_by=country orders addresses by country ascending."""
         resp = requests.get(
             f"{BASE_URL}/addresses",
@@ -166,7 +166,7 @@ class TestAddressesOrdering:
         countries = [a["country"] for a in data]
         assert countries == sorted(countries), "Should be sorted by country ascending"
 
-    def test_order_by_invalid_field_returns_422(self):
+    def test_addresses_order_by_invalid_field_returns_422(self):
         """Ordering by an invalid field returns 422."""
         resp = requests.get(
             f"{BASE_URL}/addresses",
@@ -179,7 +179,7 @@ class TestAddressesOrdering:
 class TestAddressesSearch:
     """GET /addresses -- search functionality."""
 
-    def test_custom_search_finds_matching(self):
+    def test_addresses_custom_search_finds_matching(self):
         """custom_search searches across street, country, and city fields."""
         resp = requests.get(f"{BASE_URL}/addresses", timeout=10)
         all_addrs = resp.json()
@@ -202,7 +202,7 @@ class TestAddressesSearch:
             )
             assert found, f"Address {addr} does not match search term '{target}'"
 
-    def test_search_no_results(self):
+    def test_addresses_search_no_results(self):
         """Searching for a non-matching term returns empty list."""
         resp = requests.get(
             f"{BASE_URL}/addresses",
@@ -216,7 +216,7 @@ class TestAddressesSearch:
 class TestAddressesBoundary:
     """GET /addresses -- boundary and edge cases."""
 
-    def test_empty_string_filter(self):
+    def test_addresses_empty_string_filter(self):
         """Empty string filter value returns valid response."""
         resp = requests.get(
             f"{BASE_URL}/addresses",
