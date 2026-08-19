@@ -140,7 +140,7 @@ types-click = "^7.1.8"
 types-setuptools = "^70.1.0.20240627"
 typing-extensions = "^4.12.2"
 urllib3 = "<=2.7.0"
-uvicorn = "^0.30.1"
+uvicorn = "^0.52.0"
 
 [tool.poetry.extras]
 mongoengine = ["mongoengine"]
