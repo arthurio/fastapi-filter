@@ -218,7 +218,7 @@ def _list_to_str_fields(Filter: type[BaseFilterModel]):
             # We cannot raise exception here because we still want to support union types in
             # filter for example `int | float | None` is valid type and should not be transformed.
 
-        if annotation is list or get_origin(annotation) is list:
+        if annotation in (list, tuple) or get_origin(annotation) in (list, tuple):
             if isinstance(field_info.default, Iterable):
                 field_info.default = ",".join(field_info.default)
             ret[name] = (str if f.is_required() else str | None, field_info)
