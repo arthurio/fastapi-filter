@@ -83,7 +83,7 @@ async def test_order_by_with_default(session, User, UserFilterOrderByWithDefault
     ],
 )
 async def test_api_order_by_with_default(session, test_client, users, order_by, assert_function):
-    endpoint = "/users_with_default"
+    endpoint = "/users_with_default_order_by"
     if order_by is not None:
         endpoint = f"{endpoint}?order_by={order_by}"
     response = await test_client.get(endpoint)
