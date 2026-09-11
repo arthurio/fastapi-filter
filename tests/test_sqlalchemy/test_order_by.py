@@ -1,7 +1,10 @@
 import pytest
-from fastapi import status
-from pydantic import ValidationError
+from fastapi import FastAPI, status
+from httpx import ASGITransport, AsyncClient
+from pydantic import ValidationError, create_model
 from sqlalchemy import select
+
+from fastapi_filter import FilterDepends
 
 
 @pytest.mark.parametrize(
@@ -80,7 +83,7 @@ async def test_order_by_with_default(session, User, UserFilterOrderByWithDefault
     ],
 )
 async def test_api_order_by_with_default(session, test_client, users, order_by, assert_function):
-    endpoint = "/users_with_default"
+    endpoint = "/users_with_default_order_by"
     if order_by is not None:
         endpoint = f"{endpoint}?order_by={order_by}"
     response = await test_client.get(endpoint)
@@ -91,6 +94,31 @@ async def test_api_order_by_with_default(session, test_client, users, order_by, 
             continue
         assert assert_function(previous_user, user)
         previous_user = user
+
+
+@pytest.mark.parametrize(
+    "annotation,default",
+    [(list[str], ["age"]), (tuple[str, ...], ("age",))],
+    ids=["list", "tuple"],
+)
+async def test_api_order_by_sequence_annotations(UserFilter, annotation, default):
+    UserFilterSequenceOrderBy = create_model(
+        "UserFilterSequenceOrderBy",
+        __base__=UserFilter,
+        order_by=(annotation, default),
+    )
+
+    app = FastAPI()
+
+    @app.get("/users")
+    async def get_users(
+        user_filter: UserFilterSequenceOrderBy = FilterDepends(UserFilterSequenceOrderBy),  # type: ignore[valid-type]
+    ):
+        return user_filter.order_by  # type: ignore[attr-defined]
+
+    async with AsyncClient(base_url="http://test", transport=ASGITransport(app=app)) as client:
+        assert (await client.get("/users")).json() == ["age"]
+        assert (await client.get("/users?order_by=age,-name")).json() == ["age", "-name"]
 
 
 def test_invalid_order_by(UserFilterOrderBy):
