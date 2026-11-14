@@ -7,8 +7,8 @@ The /addresses endpoint uses a custom prefix 'my_custom_prefix' for all
 filter parameters (set via with_prefix in the app code).
 """
 
-import requests
 import pytest
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 
