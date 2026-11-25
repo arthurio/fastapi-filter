@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any
 from warnings import warn
 
 from sqlalchemy import or_
@@ -72,54 +73,36 @@ class Filter(BaseFilterModel):
             created_at: DatetimeField()
 
         class MyModelFilter(Filter):
-            id: Optional[int]
-            id__in: Optional[str]
-            count: Optional[int]
-            count__lte: Optional[int]
-            created_at__gt: Optional[datetime]
-            name__isnull: Optional[bool]
+            id: int | None
+            id__in: str | None
+            count: int | None
+            count__lte: int | None
+            created_at__gt: datetime | None
+            name__isnull: bool | None
     """
 
     class Direction(str, Enum):  # noqa: UP042 - StrEnum would change str()/format() output (public API)
         asc = "asc"
         desc = "desc"
 
-    def filter(self, query: Query | Select):
-        for field_name, value in self.filtering_fields:
-            field_value = getattr(self, field_name)
-            if isinstance(field_value, Filter):
-                query = field_value.filter(query)
-            else:
-                if "__" in field_name:
-                    field_name, operator = field_name.split("__")
-                    operator, value = _orm_operator_transformer[operator](value)
-                else:
-                    operator = "__eq__"
+    def _apply_condition(self, query: Query | Select, field_name: str, operator: str | None, value: Any):
+        if operator is None:
+            sql_operator = "__eq__"
+        else:
+            sql_operator, value = _orm_operator_transformer[operator](value)
+        model_field = getattr(self.Constants.model, field_name)
+        return query.filter(getattr(model_field, sql_operator)(value))
 
-                if field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
-                    search_filters = [
-                        getattr(self.Constants.model, field).ilike(f"%{value}%")
-                        for field in self.Constants.search_model_fields
-                    ]
-                    query = query.filter(or_(*search_filters))
-                else:
-                    model_field = getattr(self.Constants.model, field_name)
-                    query = query.filter(getattr(model_field, operator)(value))
+    def _apply_search(self, query: Query | Select, search_fields: list[str], value: Any):
+        search_filters = [getattr(self.Constants.model, field).ilike(f"%{value}%") for field in search_fields]
+        return query.filter(or_(*search_filters))
 
-        return query
+    def _apply_nested(self, query: Query | Select, field_name: str, nested: BaseFilterModel, nesting_depth: int):
+        return nested.filter(query)
 
-    def sort(self, query: Query | Select):
-        if not self.ordering_values:
-            return query
-
-        for field_name in self.ordering_values:
-            direction = Filter.Direction.asc
-            if field_name.startswith("-"):
-                direction = Filter.Direction.desc
-            field_name = field_name.replace("-", "").replace("+", "")
-
+    def _apply_order(self, query: Query | Select, ordering: list[tuple[str, bool]]):
+        for field_name, descending in ordering:
+            direction = Filter.Direction.desc if descending else Filter.Direction.asc
             order_by_field = getattr(self.Constants.model, field_name)
-
             query = query.order_by(getattr(order_by_field, direction)())
-
         return query

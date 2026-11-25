@@ -52,20 +52,19 @@ and even re-use existing filters for their models.
 As you can see in the examples, all it takes is something along the lines of:
 
 ```python hl_lines="21"
-from typing import Optional
 
 class AddressFilter(Filter):
-    street: Optional[str]
-    country: Optional[str]
-    city__in: Optional[list[str]]
+    street: str | None
+    country: str | None
+    city__in: list[str] | None
 
     class Constants(Filter.Constants):
         model = Address
 
 
 class UserFilter(Filter):
-    name: Optional[str]
-    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
+    name: str | None
+    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
 
     class Constants(Filter.Constants):
         model = User
@@ -106,19 +105,18 @@ used for filtering related fields.
 The following would be equivalent:
 
 ```python
-from typing import Optional
 
 class AddressFilter(Filter):
-    street: Optional[str]
-    country: Optional[str]
+    street: str | None
+    country: str | None
 
     class Constants(Filter.Constants):
         model = Address
 
 
 class UserFilter(Filter):
-    name: Optional[str]
-    address: Optional[AddressFilter] = FilterDepends(with_prefix("address", AddressFilter))
+    name: str | None
+    address: AddressFilter | None = FilterDepends(with_prefix("address", AddressFilter))
 
     class Constants(Filter.Constants):
         model = User
@@ -128,9 +126,9 @@ AND
 
 ```python
 class UserFilter(Filter):
-    name: Optional[str]
-    address__street: Optional[str]
-    address__country: Optional[str]
+    name: str | None
+    address__street: str | None
+    address__country: str | None
 ```
 
 ## Order by
@@ -156,11 +154,10 @@ If you don't want to allow searching on your filter, just don't add `search` (or
 ### Example - Basic
 
 ```python
-from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
 
 class UserFilter(Filter):
-    order_by: Optional[list[str]]
+    order_by: list[str] | None
 
 @app.get("/users", response_model=list[UserOut])
 async def get_users(
@@ -187,7 +184,6 @@ Valid urls:
 If for some reason you can't or don't want to use `order_by` as the field name for ordering, you can override it:
 
 ```python
-from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
 
 class UserFilter(Filter):
@@ -195,7 +191,7 @@ class UserFilter(Filter):
         model = User
         ordering_field_name = "custom_order_by"
 
-    custom_order_by: Optional[list[str]]
+    custom_order_by: list[str] | None
 
 @app.get("/users", response_model=list[UserOut])
 async def get_users(
@@ -222,12 +218,11 @@ curl /users?custom_order_by=+id
 Add the following field_validator to your filter class:
 
 ```python
-from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import field_validator
 
 class MyFilter(Filter):
-    order_by: Optional[list[str]]
+    order_by: list[str] | None
 
     @field_validator("order_by")
     def restrict_sortable_fields(cls, value):
@@ -253,7 +248,6 @@ If for some reason you can't or don't want to use `search` as the field name for
 setting `search_field_name`:
 
 ```python
-from typing import Optional
 from fastapi_filter.contrib.sqlalchemy import Filter
 
 class UserFilter(Filter):
