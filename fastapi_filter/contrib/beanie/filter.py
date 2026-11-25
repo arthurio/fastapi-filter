@@ -85,4 +85,4 @@ class Filter(BaseFilterModel):
         return query.find(fetch_links=True)
 
     def _apply_order(self, query: Any, ordering: list[tuple[str, bool]]) -> Any:
-        return query.sort(*[f"{'-' if descending else '+'}{name}" for name, descending in ordering])
+        return query.sort(*self._prefixed_ordering(ordering))

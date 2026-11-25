@@ -50,4 +50,4 @@ class Filter(BaseFilterModel):
         return query.filter(**{f"{field_name}__in": nested.filter(nested.Constants.model.objects())})
 
     def _apply_order(self, query: QuerySet, ordering: list[tuple[str, bool]]) -> QuerySet:
-        return query.order_by(*[f"{'-' if descending else '+'}{name}" for name, descending in ordering])
+        return query.order_by(*self._prefixed_ordering(ordering))

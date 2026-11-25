@@ -118,6 +118,11 @@ class BaseFilterModel(BaseModel, extra="forbid"):
         """Hook: order `query` by `(field_name, descending)` pairs, in order of priority."""
         raise NotImplementedError
 
+    @staticmethod
+    def _prefixed_ordering(ordering: list[tuple[str, bool]]) -> list[str]:
+        """Serialise `(field_name, descending)` pairs back to `-name` / `+name` strings."""
+        return [f"{'-' if descending else '+'}{name}" for name, descending in ordering]
+
     @property
     def filtering_fields(self):
         fields = self.model_dump(exclude_none=True, exclude_unset=True)
