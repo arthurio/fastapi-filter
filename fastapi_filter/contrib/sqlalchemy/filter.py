@@ -80,7 +80,7 @@ class Filter(BaseFilterModel):
             name__isnull: Optional[bool]
     """
 
-    class Direction(str, Enum):
+    class Direction(str, Enum):  # noqa: UP042 - StrEnum would change str()/format() output (public API)
         asc = "asc"
         desc = "desc"
 
