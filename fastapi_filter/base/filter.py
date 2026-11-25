@@ -6,6 +6,7 @@ from typing import Any, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
+from fastapi.params import _Unset
 from pydantic import BaseModel, ConfigDict, ValidationError, ValidationInfo, create_model, field_validator
 from pydantic.fields import FieldInfo
 
@@ -203,6 +204,8 @@ def _list_to_str_fields(Filter: type[BaseFilterModel]):
     ret: dict[str, tuple[object | type, FieldInfo | None]] = {}
     for name, f in Filter.model_fields.items():
         field_info = deepcopy(f)
+        if hasattr(field_info.default, "example") and field_info.default.example == _Unset:
+            field_info.default.example = _Unset
         annotation = f.annotation
 
         if get_origin(annotation) in UNION_TYPES:
