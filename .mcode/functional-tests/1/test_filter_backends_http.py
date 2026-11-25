@@ -4,7 +4,6 @@ Each backend gets a small FastAPI app (real ASGI request/response via Starlette'
 the same dataset and the same behavioural assertions. Needs mongod on 127.0.0.1:27017 for beanie/mongoengine.
 """
 
-import asyncio
 import os
 import tempfile
 import uuid
@@ -186,7 +185,10 @@ def build_beanie():
         await init_beanie(database=client[RUN + "_beanie"], document_models=[Address, User])
         for name, age, street, city, country in ROWS:
             await User(
-                name=name, age=age, created_at=datetime(2021, 1, 1), address=Address(street=street, city=city, country=country)
+                name=name,
+                age=age,
+                created_at=datetime(2021, 1, 1),
+                address=Address(street=street, city=city, country=country),
             ).save(link_rule=WriteRules.WRITE)
         yield
         await client.drop_database(RUN + "_beanie")
