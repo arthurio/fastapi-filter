@@ -215,6 +215,29 @@ def test_hooks_must_be_implemented():
         Bare(name="x").filter(FakeQuery())
 
 
+def test_search_hook_must_be_implemented():
+    class BareSearch(BaseFilterModel):
+        search: str | None = None
+
+        class Constants(BaseFilterModel.Constants):
+            model = FakeModel
+            search_model_fields = ["name"]
+
+    with pytest.raises(NotImplementedError):
+        BareSearch(search="x").filter(FakeQuery())
+
+
+def test_order_hook_must_be_implemented():
+    class BareOrder(BaseFilterModel):
+        order_by: list[str] | None = None
+
+        class Constants(BaseFilterModel.Constants):
+            model = FakeModel
+
+    with pytest.raises(NotImplementedError):
+        BareOrder(order_by=["name"]).sort(FakeQuery())
+
+
 def test_with_prefix_sets_constants_via_class_body():
     prefixed = with_prefix("address", AddressFilter)
     assert prefixed.Constants.prefix == "address"
