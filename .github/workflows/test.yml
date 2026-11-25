@@ -26,6 +26,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
 
       - name: cache poetry install
         uses: actions/cache@v4
@@ -79,6 +80,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
 
       - name: cache poetry install
         uses: actions/cache@v4
