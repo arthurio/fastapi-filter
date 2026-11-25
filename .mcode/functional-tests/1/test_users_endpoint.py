@@ -8,8 +8,8 @@ The app seeds 100 random users with Faker, so tests must not depend on
 specific values -- they validate structure, counts, and filter correctness.
 """
 
-import requests
 import pytest
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 
@@ -94,9 +94,7 @@ class TestUsersAgeFiltering:
 
     def test_age_lt_filters_correctly(self):
         """age__lt=20 combined with age__gte=0 returns only users with age < 20."""
-        resp = requests.get(
-            f"{BASE_URL}/users", params={"age__gte": 0, "age__lt": 20}, timeout=10
-        )
+        resp = requests.get(f"{BASE_URL}/users", params={"age__gte": 0, "age__lt": 20}, timeout=10)
         assert resp.status_code == 200
         data = resp.json()
         assert len(data) > 0, "Expected at least one user with age < 20"
@@ -113,9 +111,7 @@ class TestUsersAgeFiltering:
 
     def test_age_range_combination(self):
         """Combining age__gte and age__lt creates a range filter."""
-        resp = requests.get(
-            f"{BASE_URL}/users", params={"age__gte": 50, "age__lt": 60}, timeout=10
-        )
+        resp = requests.get(f"{BASE_URL}/users", params={"age__gte": 50, "age__lt": 60}, timeout=10)
         assert resp.status_code == 200
         data = resp.json()
         for user in data:
@@ -175,9 +171,7 @@ class TestUsersNameFiltering:
 
     def test_name_neq_excludes(self):
         """name__neq excludes the specified name."""
-        resp_all = requests.get(
-            f"{BASE_URL}/users", params={"age__gte": 0}, timeout=10
-        )
+        resp_all = requests.get(f"{BASE_URL}/users", params={"age__gte": 0}, timeout=10)
         all_users = resp_all.json()
         target_name = all_users[0]["name"]
         resp_neq = requests.get(
@@ -243,7 +237,7 @@ class TestUsersSearch:
     """GET /users -- search functionality."""
 
     def test_search_filters_by_name(self):
-        """search parameter filters users by name (partial match)."""
+        """Search parameter filters users by name (partial match)."""
         # First get a name
         resp = requests.get(f"{BASE_URL}/users", params={"age__gte": 0}, timeout=10)
         all_users = resp.json()
@@ -262,7 +256,7 @@ class TestUsersSearch:
             assert target_name.lower() in user["name"].lower()
 
     def test_search_no_results(self):
-        """search with a non-matching term returns empty list."""
+        """Search with a non-matching term returns empty list."""
         resp = requests.get(
             f"{BASE_URL}/users",
             params={"age__gte": 0, "search": "ZZZZNONEXISTENT99999"},
@@ -318,14 +312,10 @@ class TestUsersInvalidInput:
 
     def test_age_gte_non_integer_returns_422(self):
         """age__gte with a non-integer value returns 422."""
-        resp = requests.get(
-            f"{BASE_URL}/users", params={"age__gte": "abc"}, timeout=10
-        )
+        resp = requests.get(f"{BASE_URL}/users", params={"age__gte": "abc"}, timeout=10)
         assert resp.status_code == 422
 
     def test_age_lt_non_integer_returns_422(self):
         """age__lt with a non-integer value returns 422."""
-        resp = requests.get(
-            f"{BASE_URL}/users", params={"age__gte": 0, "age__lt": "xyz"}, timeout=10
-        )
+        resp = requests.get(f"{BASE_URL}/users", params={"age__gte": 0, "age__lt": "xyz"}, timeout=10)
         assert resp.status_code == 422
