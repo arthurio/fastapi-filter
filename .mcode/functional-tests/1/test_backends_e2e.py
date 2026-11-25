@@ -1,5 +1,5 @@
 """End-to-end tests of the example apps (sqlalchemy, mongoengine, beanie) over real HTTP."""
-import os, subprocess, sys, time, socket, pytest, requests
+import os, subprocess, sys, time, pytest, requests
 
 REPO = os.environ.get("FF_REPO") or os.path.join(os.environ.get("WORKSPACE_DIR", "/l2l/workspace"), "fastapi-filter")
 PY = sys.executable
@@ -59,13 +59,13 @@ def test_name_filters_and_search(base):
     first = users(base).json()[0]["name"]
     r = users(base, name=first)
     assert r.status_code == 200 and r.json() and all(u["name"] == first for u in r.json())
-    if base.endswith("8101"):  # only the sqlalchemy example exposes neq/ilike
+    if base.endswith(str(PORTS["sqlalchemy"])):  # only the sqlalchemy example exposes neq/ilike
         r = users(base, name__neq=first)
         assert r.status_code == 200 and all(u["name"] != first for u in r.json())
     tok = first.split()[0]
     r = users(base, search=tok.lower())
     assert r.status_code == 200 and r.json() and all(tok.lower() in u["name"].lower() for u in r.json())
-    if base.endswith("8101"):
+    if base.endswith(str(PORTS["sqlalchemy"])):
         r = users(base, name__ilike="%" + tok.upper() + "%")
         assert r.status_code == 200 and r.json()
 
