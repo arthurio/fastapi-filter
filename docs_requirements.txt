@@ -1,6 +1,6 @@
 mkdocs==1.6.1
 mkdocs-material==9.7.7
-pymdown-extensions==10.21.3
+pymdown-extensions==11.0.1
 fontawesome-markdown==0.2.6
 urllib3==2.7.0 # not directly required, pinned by Snyk to avoid a vulnerability
 zipp==4.1.0 # not directly required, pinned by Snyk to avoid a vulnerability
