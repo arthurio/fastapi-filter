@@ -472,9 +472,9 @@ def test_like_ilike_warning_and_behaviour(env):
         r = client.get("/users", params={"name__ilike": "mr"})
     assert r.status_code == 200
     assert sorted(names(r)) == ["Mr Creosote", "Mr Praline"]
-    assert any(
-        issubclass(x.category, DeprecationWarning) and "% character" in str(x.message) for x in w
-    ), [str(x.message) for x in w]
+    assert any(issubclass(x.category, DeprecationWarning) and "% character" in str(x.message) for x in w), [
+        str(x.message) for x in w
+    ]
 
 
 def test_like_with_explicit_percent_no_warning(env):
