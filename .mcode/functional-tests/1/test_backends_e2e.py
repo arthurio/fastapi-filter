@@ -122,7 +122,10 @@ def test_invalid_order_field(base):
 def test_imports_from_installed_wheel():
     out = subprocess.run(  # nosec B603
         [PY, "-I", "-c", "import fastapi_filter,sys;print(fastapi_filter.__file__)"],
-        cwd=os.environ.get("TMPDIR", "/tmp"), capture_output=True, text=True, timeout=60,
+        cwd=os.environ.get("TMPDIR", "/tmp"),
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
     assert out.returncode == 0, out.stderr
     assert "site-packages" in out.stdout
