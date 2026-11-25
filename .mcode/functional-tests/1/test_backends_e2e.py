@@ -28,8 +28,8 @@ def base(request):
             "--app-dir",
             os.path.join(REPO, "examples"),
         ],
-        cwd=REPO,
-        env={**os.environ, "PYTHONPATH": REPO},
+        cwd=__import__("tempfile").mkdtemp(),  # keep repo source off sys.path so the installed wheel is used
+        env={k: v for k, v in os.environ.items() if k != "PYTHONPATH"},
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -117,3 +117,12 @@ def test_invalid_type(base):
 
 def test_invalid_order_field(base):
     assert users(base, order_by="nonexistent").status_code in (400, 422)
+
+
+def test_imports_from_installed_wheel():
+    out = subprocess.run(  # nosec B603
+        [PY, "-I", "-c", "import fastapi_filter,sys;print(fastapi_filter.__file__)"],
+        cwd=os.environ.get("TMPDIR", "/tmp"), capture_output=True, text=True, timeout=60,
+    )
+    assert out.returncode == 0, out.stderr
+    assert "site-packages" in out.stdout
