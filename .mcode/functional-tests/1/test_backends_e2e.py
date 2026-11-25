@@ -1,5 +1,12 @@
 """End-to-end tests of the example apps (sqlalchemy, mongoengine, beanie) over real HTTP."""
-import os, subprocess, sys, time, pytest, requests
+
+import os
+import subprocess  # nosec B404
+import sys
+import time
+
+import pytest
+import requests
 
 REPO = os.environ.get("FF_REPO") or os.path.join(os.environ.get("WORKSPACE_DIR", "/l2l/workspace"), "fastapi-filter")
 PY = sys.executable
@@ -10,9 +17,22 @@ PORTS = {"sqlalchemy": 8101, "mongoengine": 8102, "beanie": 8103}
 def base(request):
     name = request.param
     port = PORTS[name]
-    p = subprocess.Popen(
-        [PY, "-m", "uvicorn", f"fastapi_filter_{name}:app", "--port", str(port), "--app-dir", os.path.join(REPO, "examples")],
-        cwd=REPO, env={**os.environ, "PYTHONPATH": REPO}, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    p = subprocess.Popen(  # nosec B603
+        [
+            PY,
+            "-m",
+            "uvicorn",
+            f"fastapi_filter_{name}:app",
+            "--port",
+            str(port),
+            "--app-dir",
+            os.path.join(REPO, "examples"),
+        ],
+        cwd=REPO,
+        env={**os.environ, "PYTHONPATH": REPO},
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     url = f"http://127.0.0.1:{port}"
     try:
         for _ in range(60):
@@ -25,7 +45,8 @@ def base(request):
             pytest.fail("app did not start")
         yield url
     finally:
-        p.terminate(); p.wait(10)
+        p.terminate()
+        p.wait(10)
 
 
 def users(base, **p):

@@ -4,8 +4,8 @@ Tests verify that /openapi.json returns a valid spec and /docs serves
 the Swagger UI documentation page.
 """
 
-import requests
 import pytest
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 
