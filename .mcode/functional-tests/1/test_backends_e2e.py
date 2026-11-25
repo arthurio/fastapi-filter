@@ -1,8 +1,10 @@
 """End-to-end tests of the example apps (sqlalchemy, mongoengine, beanie) over real HTTP."""
 
 import os
+import shutil
 import subprocess  # nosec B404
 import sys
+import tempfile
 import time
 
 import pytest
@@ -17,6 +19,7 @@ PORTS = {"sqlalchemy": 8101, "mongoengine": 8102, "beanie": 8103}
 def base(request):
     name = request.param
     port = PORTS[name]
+    workdir = tempfile.mkdtemp()
     p = subprocess.Popen(  # nosec B603
         [
             PY,
@@ -28,8 +31,8 @@ def base(request):
             "--app-dir",
             os.path.join(REPO, "examples"),
         ],
-        cwd=REPO,
-        env={**os.environ, "PYTHONPATH": REPO},
+        cwd=workdir,  # keep repo source off sys.path so the installed wheel is used
+        env={k: v for k, v in os.environ.items() if k != "PYTHONPATH"},
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -46,7 +49,10 @@ def base(request):
         yield url
     finally:
         p.terminate()
-        p.wait(10)
+        try:
+            p.wait(10)
+        finally:
+            shutil.rmtree(workdir, ignore_errors=True)
 
 
 def is_sqlalchemy(base):
@@ -117,3 +123,15 @@ def test_invalid_type(base):
 
 def test_invalid_order_field(base):
     assert users(base, order_by="nonexistent").status_code in (400, 422)
+
+
+def test_imports_from_installed_wheel():
+    out = subprocess.run(  # nosec B603
+        [PY, "-I", "-c", "import fastapi_filter,sys;print(fastapi_filter.__file__)"],
+        cwd=tempfile.gettempdir(),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert out.returncode == 0, out.stderr
+    assert "site-packages" in out.stdout
