@@ -1,9 +1,6 @@
 from collections.abc import Callable, Mapping
 from typing import Any
 
-from beanie import Document
-from beanie.odm.queries.find import FindMany
-
 from fastapi_filter.base.filter import BaseFilterModel
 
 _odm_operator_transformer: dict[str, Callable[[str | None], dict[str, Any] | None]] = {
@@ -24,6 +21,17 @@ _odm_operator_transformer: dict[str, Callable[[str | None], dict[str, Any] | Non
 }
 
 
+class _ConditionCollector:
+    """Stands in for a query to record `find(condition, **options)` calls of nested filters."""
+
+    def __init__(self) -> None:
+        self.conditions: list[tuple[Mapping[str, Any], dict[str, Any]]] = []
+
+    def find(self, condition: Mapping[str, Any], **options: Any) -> "_ConditionCollector":
+        self.conditions.append((condition, options))
+        return self
+
+
 class Filter(BaseFilterModel):
     """Base filter for beanie related filters.
 
@@ -36,62 +44,45 @@ class Filter(BaseFilterModel):
             created_at: DatetimeField()
 
         class MyModelFilter(Filter):
-            id: Optional[int]
-            id__in: Optional[str]
-            count: Optional[int]
-            count__lte: Optional[int]
-            created_at__gt: Optional[datetime]
-            name__ne: Optional[str]
-            name__nin: Optional[list[str]]
-            name__isnull: Optional[bool]
+            id: int | None
+            id__in: str | None
+            count: int | None
+            count__lte: int | None
+            created_at__gt: datetime | None
+            name__ne: str | None
+            name__nin: list[str] | None
+            name__isnull: bool | None
         ```
     """
 
-    def sort(self, query: FindMany[Document]) -> FindMany[Document]:
-        if not self.ordering_values:
-            return query
-        return query.sort(*self.ordering_values)
+    def _apply_condition(self, query: Any, field_name: str, operator: str | None, value: Any) -> Any:
+        if operator is None:
+            return query.find({field_name: value})
+        return query.find({field_name: _odm_operator_transformer[operator](value)})
 
-    def _get_filter_conditions(self, nesting_depth: int = 1) -> list[tuple[Mapping[str, Any], Mapping[str, Any]]]:
-        filter_conditions: list[tuple[Mapping[str, Any], Mapping[str, Any]]] = []
-        for field_name, value in self.filtering_fields:
-            field_value = getattr(self, field_name)
-            if isinstance(field_value, Filter):
-                if not field_value.model_dump(exclude_none=True, exclude_unset=True):
-                    continue
+    def _apply_search(self, query: Any, search_fields: list[str], value: Any) -> Any:
+        search_conditions = [{field: _odm_operator_transformer["ilike"](value)} for field in search_fields]
+        return query.find({"$or": search_conditions})
 
-                filter_conditions.append(
-                    (
-                        {field_name: _odm_operator_transformer["neq"](None)},
-                        {"fetch_links": True, "nesting_depth": nesting_depth},
-                    )
+    def _apply_nested(self, query: Any, field_name: str, nested: BaseFilterModel, nesting_depth: int) -> Any:
+        query = query.find(
+            {field_name: _odm_operator_transformer["neq"](None)},
+            fetch_links=True,
+            nesting_depth=nesting_depth,
+        )
+        # Collect the nested conditions (one level deeper) instead of applying them, so they can be prefixed.
+        collector = _ConditionCollector()
+        nested._filter_fields(collector, nesting_depth + 1)  # noqa: SLF001
+        for part, part_options in collector.conditions:
+            for sub_field_name, sub_value in part.items():
+                query = query.find(
+                    {f"{field_name}.{sub_field_name}": sub_value},
+                    **{"fetch_links": True, "nesting_depth": nesting_depth, **part_options},
                 )
-                for part, part_options in field_value._get_filter_conditions(nesting_depth=nesting_depth + 1):  # noqa: SLF001
-                    for sub_field_name, sub_value in part.items():
-                        filter_conditions.append(
-                            (
-                                {f"{field_name}.{sub_field_name}": sub_value},
-                                {"fetch_links": True, "nesting_depth": nesting_depth, **part_options},
-                            )
-                        )
+        return query
 
-            elif "__" in field_name:
-                stripped_field_name, operator = field_name.split("__")
-                search_criteria = _odm_operator_transformer[operator](value)
-                filter_conditions.append(({stripped_field_name: search_criteria}, {}))
-            elif field_name == self.Constants.search_field_name and hasattr(self.Constants, "search_model_fields"):
-                search_conditions = [
-                    {search_field: _odm_operator_transformer["ilike"](value)}
-                    for search_field in self.Constants.search_model_fields
-                ]
-                filter_conditions.append(({"$or": search_conditions}, {}))
-            else:
-                filter_conditions.append(({field_name: value}, {}))
-
-        return filter_conditions
-
-    def filter(self, query: FindMany[Document]) -> FindMany[Document]:
-        data = self._get_filter_conditions()
-        for filter_condition, filter_kwargs in data:
-            query = query.find(filter_condition, **filter_kwargs)
+    def _finalize_filter(self, query: Any) -> Any:
         return query.find(fetch_links=True)
+
+    def _apply_order(self, query: Any, ordering: list[tuple[str, bool]]) -> Any:
+        return query.sort(*self._prefixed_ordering(ordering))

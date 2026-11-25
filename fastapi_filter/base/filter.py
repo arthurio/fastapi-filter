@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
 from types import UnionType
-from typing import Any, Union, get_args, get_origin
+from typing import Any, ClassVar, Union, get_args, get_origin
 
 from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
@@ -40,24 +40,94 @@ class BaseFilterModel(BaseModel, extra="forbid"):
     """
 
     class Constants:  # pragma: no cover
-        model: Any
-        ordering_field_name: str = "order_by"
-        search_model_fields: list[str]
-        search_field_name: str = "search"
-        prefix: str
-        original_filter: type["BaseFilterModel"]
+        """Per-filter configuration.
 
-    def filter(self, query):  # pragma: no cover
-        ...
+        Subclasses only need to override what they use, e.g. `class Constants(Filter.Constants): model = MyModel`.
+        """
+
+        model: type[Any]
+        ordering_field_name: ClassVar[str] = "order_by"
+        search_model_fields: ClassVar[list[str]] = []
+        """Model fields searched by `search_field_name`. An empty list disables searching."""
+        search_field_name: ClassVar[str] = "search"
+        prefix: ClassVar[str] = ""
+        original_filter: ClassVar[type["BaseFilterModel"] | None] = None
+
+    # ------------------------------------------------------------------
+    # Template methods: backends should only override the `_apply_*` /
+    # `_finalize_*` / `_split_field_name` hooks below.
+    # ------------------------------------------------------------------
+
+    def filter(self, query: Any) -> Any:
+        """Apply the filter to `query` by walking the fields and calling the backend hooks."""
+        return self._finalize_filter(self._filter_fields(query))
+
+    def _filter_fields(self, query: Any, nesting_depth: int = 1) -> Any:
+        """Apply every filtering field of this filter (recursing into nested filters) to `query`."""
+        for field_name, value in self.filtering_fields:
+            field_value = getattr(self, field_name)
+            if isinstance(field_value, BaseFilterModel):
+                if not field_value.model_dump(exclude_none=True, exclude_unset=True):
+                    continue
+                query = self._apply_nested(query, field_name, field_value, nesting_depth)
+                continue
+
+            name, operator = self._split_field_name(field_name)
+            search_fields = self.Constants.search_model_fields
+            if name == self.Constants.search_field_name and search_fields:
+                query = self._apply_search(query, search_fields, value)
+            else:
+                query = self._apply_condition(query, name, operator, value)
+        return query
+
+    def _split_field_name(self, field_name: str) -> tuple[str, str | None]:
+        """Split `field__operator` into `(field, operator)`; `operator` is None when there is none."""
+        if "__" in field_name:
+            name, operator = field_name.split("__")
+            return name, operator
+        return field_name, None
+
+    def _apply_condition(self, query: Any, field_name: str, operator: str | None, value: Any) -> Any:
+        """Hook: apply `field_name <operator> value` (operator None means equality) to `query`."""
+        raise NotImplementedError
+
+    def _apply_search(self, query: Any, search_fields: list[str], value: Any) -> Any:
+        """Hook: apply a search for `value` over `search_fields` to `query`."""
+        raise NotImplementedError
+
+    def _apply_nested(self, query: Any, field_name: str, nested: "BaseFilterModel", nesting_depth: int) -> Any:
+        """Hook: apply the non-empty `nested` filter found on `field_name`. Defaults to flattening it into `query`."""
+        return nested._filter_fields(query, nesting_depth + 1)  # noqa: SLF001
+
+    def _finalize_filter(self, query: Any) -> Any:
+        """Hook: last step of `filter()`."""
+        return query
+
+    def sort(self, query: Any) -> Any:
+        """Apply the ordering to `query`, parsing the `-`/`+` direction prefixes."""
+        if not self.ordering_values:
+            return query
+
+        ordering: list[tuple[str, bool]] = []
+        for field_name in self.ordering_values:
+            descending = field_name.startswith("-")
+            ordering.append((field_name.replace("-", "").replace("+", ""), descending))
+        return self._apply_order(query, ordering)
+
+    def _apply_order(self, query: Any, ordering: list[tuple[str, bool]]) -> Any:
+        """Hook: order `query` by `(field_name, descending)` pairs, in order of priority."""
+        raise NotImplementedError
+
+    @staticmethod
+    def _prefixed_ordering(ordering: list[tuple[str, bool]]) -> list[str]:
+        """Serialise `(field_name, descending)` pairs back to `-name` / `+name` strings."""
+        return [f"{'-' if descending else '+'}{name}" for name, descending in ordering]
 
     @property
     def filtering_fields(self):
         fields = self.model_dump(exclude_none=True, exclude_unset=True)
         fields.pop(self.Constants.ordering_field_name, None)
         return fields.items()
-
-    def sort(self, query):  # pragma: no cover
-        ...
 
     @property
     def ordering_values(self):
@@ -154,11 +224,11 @@ def with_prefix(prefix: str, Filter: type[BaseFilterModel]) -> type[BaseFilterMo
         from fastapi_filter.filter import FilterDepends
 
         class NumberFilter(BaseModel):
-            count: Optional[int]
+            count: int | None
 
         class MainFilter(BaseModel):
             name: str
-            number_filter: Optional[Filter] = FilterDepends(with_prefix("number_filter", Filter))
+            number_filter: Filter | None = FilterDepends(with_prefix("number_filter", Filter))
         ```
 
     As a result, you'll get the following filters:
@@ -175,26 +245,27 @@ def with_prefix(prefix: str, Filter: type[BaseFilterModel]) -> type[BaseFilterMo
          from pydantic import BaseModel
 
         class NumberFilter(BaseModel):
-            count: Optional[int] = Query(default=10, alias=counter)
+            count: int | None = Query(default=10, alias=counter)
 
         class MainFilter(BaseModel):
             name: str
-            number_filter: Optional[Filter] = FilterDepends(with_prefix("number_filter", Filter))
+            number_filter: Filter | None = FilterDepends(with_prefix("number_filter", Filter))
         ```
 
     As a result, you'll get the following filters:
         * name
         * counter (*NOT* number_filter__counter)
     """
+    # Class bodies can't read enclosing-function names they also assign, hence the aliases.
+    prefix_value = prefix
+    original = Filter
 
     class NestedFilter(Filter):  # type: ignore[misc, valid-type]
         model_config = ConfigDict(extra="forbid", alias_generator=lambda string: f"{prefix}__{string}")
 
         class Constants(Filter.Constants):  # type: ignore[name-defined]
-            ...
-
-    NestedFilter.Constants.prefix = prefix
-    NestedFilter.Constants.original_filter = Filter
+            prefix = prefix_value
+            original_filter = original
 
     return NestedFilter
 
@@ -247,7 +318,7 @@ def FilterDepends(Filter: type[BaseFilterModel], *, by_alias: bool = False, use_
             try:
                 instance = GeneratedFilter(*args, **kwargs)
                 data = instance.model_dump(exclude_unset=True, exclude_defaults=True, by_alias=by_alias)
-                if original_filter := getattr(Filter.Constants, "original_filter", None):
+                if original_filter := Filter.Constants.original_filter:
                     prefix = f"{Filter.Constants.prefix}__"
                     stripped = {k.removeprefix(prefix): v for k, v in data.items()}
                     return original_filter(**stripped)
