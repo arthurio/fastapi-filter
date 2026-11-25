@@ -1,6 +1,7 @@
 """End-to-end tests of the example apps (sqlalchemy, mongoengine, beanie) over real HTTP."""
 
 import os
+import shutil
 import subprocess  # nosec B404
 import sys
 import tempfile
@@ -18,6 +19,7 @@ PORTS = {"sqlalchemy": 8101, "mongoengine": 8102, "beanie": 8103}
 def base(request):
     name = request.param
     port = PORTS[name]
+    workdir = tempfile.mkdtemp()
     p = subprocess.Popen(  # nosec B603
         [
             PY,
@@ -29,7 +31,7 @@ def base(request):
             "--app-dir",
             os.path.join(REPO, "examples"),
         ],
-        cwd=__import__("tempfile").mkdtemp(),  # keep repo source off sys.path so the installed wheel is used
+        cwd=workdir,  # keep repo source off sys.path so the installed wheel is used
         env={k: v for k, v in os.environ.items() if k != "PYTHONPATH"},
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -47,7 +49,10 @@ def base(request):
         yield url
     finally:
         p.terminate()
-        p.wait(10)
+        try:
+            p.wait(10)
+        finally:
+            shutil.rmtree(workdir, ignore_errors=True)
 
 
 def is_sqlalchemy(base):
