@@ -49,6 +49,10 @@ def base(request):
         p.wait(10)
 
 
+def is_sqlalchemy(base):
+    return base.endswith(f":{PORTS['sqlalchemy']}")
+
+
 def users(base, **p):
     return requests.get(base + "/users", params={"age__gte": 0, **p}, timeout=10)
 
@@ -80,13 +84,13 @@ def test_name_filters_and_search(base):
     first = users(base).json()[0]["name"]
     r = users(base, name=first)
     assert r.status_code == 200 and r.json() and all(u["name"] == first for u in r.json())
-    if base.endswith(str(PORTS["sqlalchemy"])):  # only the sqlalchemy example exposes neq/ilike
+    if is_sqlalchemy(base):  # only the sqlalchemy example exposes neq/ilike
         r = users(base, name__neq=first)
         assert r.status_code == 200 and all(u["name"] != first for u in r.json())
     tok = first.split()[0]
     r = users(base, search=tok.lower())
     assert r.status_code == 200 and r.json() and all(tok.lower() in u["name"].lower() for u in r.json())
-    if base.endswith(str(PORTS["sqlalchemy"])):
+    if is_sqlalchemy(base):
         r = users(base, name__ilike="%" + tok.upper() + "%")
         assert r.status_code == 200 and r.json()
 
