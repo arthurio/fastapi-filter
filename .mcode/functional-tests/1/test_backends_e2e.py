@@ -3,6 +3,7 @@
 import os
 import subprocess  # nosec B404
 import sys
+import tempfile
 import time
 
 import pytest
@@ -122,7 +123,7 @@ def test_invalid_order_field(base):
 def test_imports_from_installed_wheel():
     out = subprocess.run(  # nosec B603
         [PY, "-I", "-c", "import fastapi_filter,sys;print(fastapi_filter.__file__)"],
-        cwd=os.environ.get("TMPDIR", "/tmp"),
+        cwd=tempfile.gettempdir(),
         capture_output=True,
         text=True,
         timeout=60,
