@@ -128,7 +128,7 @@ repository = "https://github.com/arthurio/fastapi-filter"
 
 [tool.poetry.group.dev.dependencies]
 Faker = "^40.0.0"
-SQLAlchemy-Utils = "^0.41.2"
+SQLAlchemy-Utils = "^0.43.0"
 aiosqlite = "^0.20.0"
 bandit = "^1.7.9"
 flynt = "^1.0.1"
